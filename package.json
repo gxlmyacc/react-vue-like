@@ -1,6 +1,6 @@
 {
   "name": "react-vue-like",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "react-vue-like",
   "keywords": [
     "react-vue-like",
@@ -9,7 +9,6 @@
   ],
   "sideEffects": false,
   "main": "dist/react-vue-like.min.js",
-  "module": "src/index.js",
   "engines": {
     "node": "> 6.9.1"
   },
