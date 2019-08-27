@@ -1,0 +1,83 @@
+{
+  "name": "react-vue-like",
+  "version": "0.0.1",
+  "description": "react-vue-like",
+  "keywords": [
+    "react-vue-like",
+    "react",
+    "vue"
+  ],
+  "sideEffects": false,
+  "main": "dist/react-vue-like.min.js",
+  "module": "src/index.js",
+  "engines": {
+    "node": "> 6.9.1"
+  },
+  "files": [
+    "dist",
+    "src",
+    "build",
+    "plugin"
+  ],
+  "scripts": {
+    "build-dev": "cross-env NODE_ENV=development webpack --progresss  --config build/webpack-dev.config.js",
+    "build-prod": "cross-env NODE_ENV=production webpack --progresss  --config build/webpack-prod.config.js",
+    "build": "npm run build-dev && npm run build-prod"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gxlmyacc/react-vue-like.git"
+  },
+  "author": "gxlmyacc",
+  "dependencies": {
+    "mobx": "^4.13.0",
+    "mobx-react": "^6.1.3",
+    "prop-types": "^15.7.2",
+    "react": "^16.9.0",
+    "react-dom": "^16.9.0"
+  },
+  "peerDependencies": {
+    "core-js": ">=2",
+    "mobx": ">=4",
+    "mobx-react": ">=6",
+    "prop-types": ">=15",
+    "react": ">=16",
+    "react-dom": ">=16"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.5.4",
+    "@babel/plugin-proposal-class-properties": "^7.5.0",
+    "@babel/plugin-proposal-decorators": "^7.4.4",
+    "@babel/plugin-proposal-json-strings": "^7.2.0",
+    "@babel/plugin-proposal-object-rest-spread": "^7.5.4",
+    "@babel/plugin-syntax-dynamic-import": "^7.2.0",
+    "@babel/plugin-syntax-import-meta": "^7.2.0",
+    "@babel/plugin-transform-arrow-functions": "^7.2.0",
+    "@babel/plugin-transform-runtime": "^7.5.5",
+    "@babel/preset-env": "7.4.5",
+    "@babel/preset-react": "^7.0.0",
+    "babel-eslint": "^10.0.2",
+    "babel-loader": "^8.0.6",
+    "clean-webpack-plugin": "^1.0.1",
+    "cross-env": "^5.2.0",
+    "eslint": "^6.0.1",
+    "eslint-config-airbnb-base": "^13.2.0",
+    "eslint-config-react-app": "^5.0.1",
+    "eslint-import-resolver-webpack": "^0.11.1",
+    "eslint-loader": "^2.2.1",
+    "eslint-plugin-flowtype": "^4.2.0",
+    "eslint-plugin-import": "^2.18.0",
+    "eslint-plugin-jsx-a11y": "^6.2.3",
+    "eslint-plugin-react": "^7.14.3",
+    "eslint-plugin-react-hooks": "^1.6.0",
+    "file-loader": "^4.0.0",
+    "friendly-errors-webpack-plugin": "^1.7.0",
+    "jsx-loader": "^0.13.2",
+    "progress-bar-webpack-plugin": "^1.12.1",
+    "uglifyjs-webpack-plugin": "^2.1.3",
+    "webpack": "^4.35.3",
+    "webpack-bundle-analyzer": "^3.4.1",
+    "webpack-cli": "^3.3.5",
+    "webpack-dev-server": "^3.7.2"
+  }
+}
