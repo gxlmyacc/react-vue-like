@@ -12,6 +12,16 @@ if (!Array.isArray(arrayType)) {
   };
 }
 
+export function defComputed(obj, key, get, set) {
+  Object.defineProperty(obj, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    get,
+    set
+  });
+}
+
 export function isFunction(fn) {
   return typeof fn === 'function';
 }

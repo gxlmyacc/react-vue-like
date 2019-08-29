@@ -1,24 +1,16 @@
 import React from 'react';
 import { extendObservable, observe, when, set, remove } from 'mobx';
 import { observer } from 'mobx-react';
-import { parseExpr, camelize, isFunction, iterativeParent, handleError } from './utils';
+import { parseExpr, camelize, isFunction, iterativeParent, handleError, defComputed } from './utils';
 import config from './config';
 
 function generateComputed(obj) {
   const ret = {};
-  const def = (key, get, set) => {
-    Object.defineProperty(ret, key, {
-      enumerable: true,
-      configurable: true,
-      writable: true,
-      get,
-      set
-    });
-  };
+
   Object.keys(obj).forEach(key => {
     const v = obj[key];
-    if (isFunction(v)) return def(key, v);
-    def(key, v.get, v.set);
+    if (isFunction(v)) return defComputed(key, v);
+    defComputed(key, v.get, v.set);
   });
   return ret;
 }

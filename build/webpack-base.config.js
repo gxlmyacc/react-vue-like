@@ -74,7 +74,9 @@ module.exports = function (options) {
       'react-is',
       'regenerator-runtime',
       'hoist-non-react-statics',
-      'react-dom'
+      'react-dom',
+      'mobx',
+      'mobx-react'
     ],
     resolve: {
       symlinks: false,

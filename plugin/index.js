@@ -35,7 +35,7 @@ function isSubClassOfReactComponent(classNode) {
 const Visitor = {
   ClassDeclaration(path) {
     if (isSubClassOfReactComponent(path.node)) {
-      console.log('ddddd');
+      // console.log('ddddd');
     }
   },
 };

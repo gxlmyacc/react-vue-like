@@ -1,6 +1,6 @@
 {
   "name": "react-vue-like",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "react-vue-like",
   "keywords": [
     "react-vue-like",
@@ -9,6 +9,7 @@
   ],
   "sideEffects": false,
   "main": "dist/react-vue-like.min.js",
+  "module": "esm/index.js",
   "engines": {
     "node": "> 6.9.1"
   },
@@ -16,12 +17,14 @@
     "dist",
     "src",
     "build",
-    "plugin"
+    "plugin",
+    "esm"
   ],
   "scripts": {
     "build-dev": "cross-env NODE_ENV=development webpack --progresss  --config build/webpack-dev.config.js",
     "build-prod": "cross-env NODE_ENV=production webpack --progresss  --config build/webpack-prod.config.js",
-    "build": "npm run build-dev && npm run build-prod"
+    "build": "npm run build-dev && npm run build-prod",
+    "build-esm": "babel src -d esm --source-maps"
   },
   "repository": {
     "type": "git",
@@ -44,15 +47,23 @@
     "react-dom": ">=16"
   },
   "devDependencies": {
+    "@babel/cli": "^7.2.3",
     "@babel/core": "^7.5.4",
     "@babel/plugin-proposal-class-properties": "^7.5.0",
     "@babel/plugin-proposal-decorators": "^7.4.4",
+    "@babel/plugin-proposal-export-default-from": "^7.2.0",
+    "@babel/plugin-proposal-export-namespace-from": "^7.2.0",
     "@babel/plugin-proposal-json-strings": "^7.2.0",
     "@babel/plugin-proposal-object-rest-spread": "^7.5.4",
     "@babel/plugin-syntax-dynamic-import": "^7.2.0",
     "@babel/plugin-syntax-import-meta": "^7.2.0",
     "@babel/plugin-transform-arrow-functions": "^7.2.0",
+    "@babel/plugin-transform-destructuring": "^7.2.0",
+    "@babel/plugin-transform-modules-commonjs": "^7.2.0",
+    "@babel/plugin-transform-parameters": "^7.2.0",
+    "@babel/plugin-transform-spread": "^7.2.2",
     "@babel/plugin-transform-runtime": "^7.5.5",
+    "@babel/plugin-transform-strict-mode": "^7.2.0",
     "@babel/preset-env": "7.4.5",
     "@babel/preset-react": "^7.0.0",
     "babel-eslint": "^10.0.2",
