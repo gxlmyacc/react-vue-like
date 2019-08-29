@@ -1,6 +1,6 @@
 {
   "name": "react-vue-like",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "react-vue-like",
   "keywords": [
     "react-vue-like",
@@ -24,7 +24,8 @@
     "build-dev": "cross-env NODE_ENV=development webpack --progresss  --config build/webpack-dev.config.js",
     "build-prod": "cross-env NODE_ENV=production webpack --progresss  --config build/webpack-prod.config.js",
     "build": "npm run build-dev && npm run build-prod",
-    "build-esm": "babel src -d esm --source-maps"
+    "build-esm": "babel src -d esm --source-maps",
+    "prepublish": "npm run build-esm"
   },
   "repository": {
     "type": "git",

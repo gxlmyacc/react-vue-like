@@ -97,8 +97,8 @@ function generateComputed(obj) {
   var ret = {};
   Object.keys(obj).forEach(function (key) {
     var v = obj[key];
-    if ((0, _utils.isFunction)(v)) return (0, _utils.defComputed)(key, v);
-    (0, _utils.defComputed)(key, v.get, v.set);
+    if ((0, _utils.isFunction)(v)) return (0, _utils.defComputed)(ret, key, v);
+    (0, _utils.defComputed)(ret, key, v.get, v.set);
   });
   return ret;
 }

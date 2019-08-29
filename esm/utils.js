@@ -45,9 +45,10 @@ function defComputed(obj, key, get, set) {
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,
-    writable: true,
     get: get,
-    set: set
+    set: set || function (v) {
+      throw new Error("computed props: ".concat(key, " is readonly!"));
+    }
   });
 }
 

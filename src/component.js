@@ -9,8 +9,8 @@ function generateComputed(obj) {
 
   Object.keys(obj).forEach(key => {
     const v = obj[key];
-    if (isFunction(v)) return defComputed(key, v);
-    defComputed(key, v.get, v.set);
+    if (isFunction(v)) return defComputed(ret, key, v);
+    defComputed(ret, key, v.get, v.set);
   });
   return ret;
 }
