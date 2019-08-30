@@ -67,17 +67,17 @@ export function iterativeParent(ctx, callback, componentClass) {
   }
 }
 
-export function findComponentEl(vm) {
-  let node = vm && vm._reactInternalFiber;
-  while (node) {
-    let el = node.stateNode;
-    if (el instanceof Element) return el;
-    let child = node.child;
-    if (!child) break;
-    node = child.stateNode ? child : child._reactInternalFiber;
-  }
-  return null;
-}
+// export function findComponentEl(vm) {
+//   let node = vm && vm._reactInternalFiber;
+//   while (node) {
+//     let el = node.stateNode;
+//     if (el instanceof Element) return el;
+//     let child = node.child;
+//     if (!child) break;
+//     node = child.stateNode ? child : child._reactInternalFiber;
+//   }
+//   return null;
+// }
 
 function warn(msg, vm) {
   let trace = vm ? generateComponentTrace(vm) : '';

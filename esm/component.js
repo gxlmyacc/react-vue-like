@@ -43,6 +43,8 @@ require("core-js/modules/es6.object.keys");
 
 var _react = _interopRequireDefault(require("react"));
 
+var _reactDom = _interopRequireDefault(require("react-dom"));
+
 var _mobx = require("mobx");
 
 var _mobxReact = require("mobx-react");
@@ -171,17 +173,23 @@ function (_React$Component) {
     var mixins = target.mixins,
         isRoot = target.isRoot,
         inherits = target.inherits;
+    if (isRoot) _this._isVueLikeRoot = true;
     _this._isVueLike = true;
-    _this._isVueLikeRoot = Boolean(isRoot);
     _this._type = target;
     _this._ticks = [];
     _this._provides = [];
     _this._injects = [];
     _this._inherits = null;
+    _this._el = null;
     _this.$refs = {};
     _this.$parent = null;
     _this.$root = null;
     _this.$children = [];
+    (0, _utils.defComputed)(_assertThisInitialized(_this), '$el', function () {
+      return _this._el || (_this._el = _reactDom.default.findDOMNode(_assertThisInitialized(_this)));
+    }, function (v) {
+      throw new Error('ReactVueLike error: $el is readonly!');
+    });
     _this._renderFn = _this.render;
     _this.render = ReactVueLike.prototype.render;
     var inheritsKeys = inherits && Object.keys(inherits);
@@ -309,14 +317,16 @@ function (_React$Component) {
       }
     }
   }, {
-    key: "_resolveEl",
-    value: function _resolveEl() {
-      this.$el = (0, _utils.findComponentEl)(this);
+    key: "_resolveUpdated",
+    value: function _resolveUpdated() {
+      this._el = null;
     }
   }, {
     key: "_resolveDestory",
     value: function _resolveDestory() {
       var _this4 = this;
+
+      this._flushTicks();
 
       if (this.$parent) {
         var idx = this.$parent.$children.findIndex(function (c) {
@@ -324,6 +334,20 @@ function (_React$Component) {
         });
         if (~idx) this.$parent.$children.splice(idx, 1);
       }
+    }
+  }, {
+    key: "_flushTicks",
+    value: function _flushTicks() {
+      if (!this._ticks.length) return;
+
+      var ticks = this._ticks.slice();
+
+      this._ticks = [];
+      setTimeout(function () {
+        return ticks.forEach(function (v) {
+          return v();
+        });
+      }, 0);
     }
   }, {
     key: "_callListener",
@@ -467,7 +491,15 @@ function (_React$Component) {
     value: function beforeDestory() {}
   }, {
     key: "errorCaptured",
-    value: function errorCaptured(err, vm, info) {}
+    value: function errorCaptured(err, vm, info) {} // $mount(elementOrSelector) {
+    //   if (!elementOrSelector) throw new Error('$mount error: elementOrSelector can not be null!');
+    //   let el;
+    //   if (typeof elementOrSelector === 'string') el = document.getElementById(elementOrSelector);
+    //   else if (elementOrSelector instanceof Element) el = elementOrSelector;
+    //   else throw new Error(`$mount error: elementOrSelector ${elementOrSelector} is not support type!`);
+    //   ReactDOM.render(<App />, el);
+    // }
+
   }, {
     key: "$nextTick",
     value: function $nextTick(cb, ctx) {
@@ -588,8 +620,6 @@ function (_React$Component) {
         this._resolveParent();
 
         this._resolveInject();
-
-        this._resolveEl();
       }
 
       this.$emit('hook:mounted');
@@ -597,18 +627,11 @@ function (_React$Component) {
   }, {
     key: "componentDidUpdate",
     value: function componentDidUpdate(prevProps, prevState, snapshot) {
+      this._resolveUpdated();
+
       this.$emit('hook:updated');
 
-      if (this._ticks.length) {
-        var ticks = this._ticks.slice();
-
-        this._ticks = [];
-        setTimeout(function () {
-          return ticks.forEach(function (v) {
-            return v();
-          });
-        }, 0);
-      }
+      this._flushTicks();
     }
   }, {
     key: "componentWillUnmount",

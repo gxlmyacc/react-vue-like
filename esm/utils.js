@@ -8,7 +8,6 @@ exports.isFunction = isFunction;
 exports.parseExpr = parseExpr;
 exports.camelize = camelize;
 exports.iterativeParent = iterativeParent;
-exports.findComponentEl = findComponentEl;
 exports.handleError = handleError;
 Object.defineProperty(exports, "observable", {
   enumerable: true,
@@ -186,21 +185,18 @@ function iterativeParent(ctx, callback, componentClass) {
     if (vm && vm._isVueLikeRoot) break;
     parentNode = parentNode.return;
   }
-}
+} // export function findComponentEl(vm) {
+//   let node = vm && vm._reactInternalFiber;
+//   while (node) {
+//     let el = node.stateNode;
+//     if (el instanceof Element) return el;
+//     let child = node.child;
+//     if (!child) break;
+//     node = child.stateNode ? child : child._reactInternalFiber;
+//   }
+//   return null;
+// }
 
-function findComponentEl(vm) {
-  var node = vm && vm._reactInternalFiber;
-
-  while (node) {
-    var el = node.stateNode;
-    if (el instanceof Element) return el;
-    var child = node.child;
-    if (!child) break;
-    node = child.stateNode ? child : child._reactInternalFiber;
-  }
-
-  return null;
-}
 
 function warn(msg, vm) {
   var trace = vm ? generateComponentTrace(vm) : '';

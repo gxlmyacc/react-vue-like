@@ -1,9 +1,9 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import { extendObservable, observe, when, set, remove } from 'mobx';
 import { observer } from 'mobx-react';
 import {
-  parseExpr, camelize, isFunction, iterativeParent, handleError, defComputed,
-  findComponentEl
+  parseExpr, camelize, isFunction, iterativeParent, handleError, defComputed
 } from './utils';
 import config from './config';
 import propcheck from './prop-check';
@@ -76,17 +76,23 @@ class ReactVueLike extends React.Component {
     const target = new.target;
     const { mixins, isRoot, inherits } = target;
 
+    if (isRoot) this._isVueLikeRoot = true;
+
     this._isVueLike = true;
-    this._isVueLikeRoot = Boolean(isRoot);
     this._type = target;
     this._ticks = [];
     this._provides = [];
     this._injects = [];
     this._inherits = null;
+    this._el = null;
     this.$refs = {};
     this.$parent = null;
     this.$root = null;
     this.$children = [];
+
+    defComputed(this, '$el', () => this._el || (this._el = ReactDOM.findDOMNode(this)), v => {
+      throw new Error('ReactVueLike error: $el is readonly!');
+    });
 
     this._renderFn = this.render;
     this.render = ReactVueLike.prototype.render;
@@ -189,15 +195,24 @@ class ReactVueLike extends React.Component {
     }
   }
 
-  _resolveEl() {
-    this.$el = findComponentEl(this);
+  _resolveUpdated() {
+    this._el = null;
   }
 
   _resolveDestory() {
+    this._flushTicks();
+
     if (this.$parent) {
       const idx = this.$parent.$children.findIndex(c => c === this);
       if (~idx) this.$parent.$children.splice(idx, 1);
     }
+  }
+
+  _flushTicks() {
+    if (!this._ticks.length) return;
+    const ticks = this._ticks.slice();
+    this._ticks = [];
+    setTimeout(() => ticks.forEach(v => v()), 0);
   }
 
   async _callListener(eventName, handlers, args) {
@@ -292,6 +307,16 @@ class ReactVueLike extends React.Component {
 
   }
 
+  // $mount(elementOrSelector) {
+  //   if (!elementOrSelector) throw new Error('$mount error: elementOrSelector can not be null!');
+  //   let el;
+  //   if (typeof elementOrSelector === 'string') el = document.getElementById(elementOrSelector);
+  //   else if (elementOrSelector instanceof Element) el = elementOrSelector;
+  //   else throw new Error(`$mount error: elementOrSelector ${elementOrSelector} is not support type!`);
+
+  //   ReactDOM.render(<App />, el);
+  // }
+
   $nextTick(cb, ctx) {
     this._ticks.push(ctx ? cb.bind(ctx) : cb);
   }
@@ -370,20 +395,17 @@ class ReactVueLike extends React.Component {
     if (this._reactInternalFiber) {
       this._resolveParent();
       this._resolveInject();
-      this._resolveEl();
     }
 
     this.$emit('hook:mounted');
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
+    this._resolveUpdated();
+
     this.$emit('hook:updated');
 
-    if (this._ticks.length) {
-      const ticks = this._ticks.slice();
-      this._ticks = [];
-      setTimeout(() => ticks.forEach(v => v()), 0);
-    }
+    this._flushTicks();
   }
 
   componentWillUnmount() {

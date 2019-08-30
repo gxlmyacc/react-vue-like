@@ -1,18 +1,41 @@
 import { observable, extendObservable, when, set, remove } from 'mobx';
 import { defComputed } from './utils';
 
-class ReactVueLikeStore {
+function wrapModuleState(module) {
+  let ret = {};
+  if (!module._state) return ret;
+  Object.keys(module._state).forEach(key => defComputed(
+    ret,
+    key,
+    () => module._state[key],
+    v => {
+      if (module.strict && !module._commiting) {
+        throw new Error(`ReactVueLike.Store error: ''${key}' state can only be modified in mutation!`);
+      }
+      module._state[key] = v;
+    }
+  ));
+  return ret;
+}
+
+class Store {
   constructor(module = {}, parent, root, moduleName) {
     this.root = root || this;
     this.parent = parent;
     this.mutationListeners = [];
+    this.actionListeners = [];
     this.moduleName = moduleName || '';
     this.namespaced = module.namespaced || false;
+    this.strict = Boolean(module.strict);
 
+    this._commiting = false;
+    this._state = module.state || {};
     this.state = {};
     this.getters = {};
     this.mutations = {};
+    this.actions = {};
     this.modules = {};
+    this.plugins = module.plugins || [];
 
     const _getters = {};
     if (module.getters) {
@@ -22,14 +45,16 @@ class ReactVueLikeStore {
       }));
     }
 
-    this.state = observable.object(module.state || {});
+    this.state = observable.object(wrapModuleState(this));
     this.getters = observable.object(_getters);
     this.mutations = module.mutations ? { ...module.mutations } : {};
+    this.actions = module.actions ? { ...module.actions } : {};
 
     if (this.parent && moduleName) {
       this._mergeState(this.moduleName, this.state);
       this._mergeGetters(this.moduleName, _getters);
       this._mergeMutations(this.moduleName, this.mutations);
+      this._mergeActions(this.moduleName, this.actions);
     }
 
     if (module.modules) {
@@ -37,6 +62,8 @@ class ReactVueLikeStore {
     }
 
     if (module.install) this.install = module.install.bind(this);
+
+    if (this.plugins) this.plugins.forEach(p => p(this));
   }
 
   _getModuleKey(moduleName, key) {
@@ -69,6 +96,15 @@ class ReactVueLikeStore {
     if (this.parent) this.parent._mergeMutations(this.moduleName, mutations);
   }
 
+  _mergeActions(moduleName, actions) {
+    const newAtions = {};
+    const keys = Object.keys(newAtions);
+    if (!keys.length) return;
+    keys.forEach(key => newAtions[this._getModuleKey(moduleName, key)] = actions[key]);
+    Object.assign(this.mutations, newAtions);
+    if (this.parent) this.parent._mergeMutations(this.moduleName, actions);
+  }
+
   _removeState(key) {
     remove(this.state, key);
   }
@@ -83,11 +119,23 @@ class ReactVueLikeStore {
     if (this.parent) this.parent._removeMutation(this.parent._getModuleKey(this.moduleName, key));
   }
 
+  _removeAction(key) {
+    delete this.actions[key];
+    if (this.parent) this.parent._removeAction(this.parent._getModuleKey(this.moduleName, key));
+  }
+
+  replaceState(state = {}) {
+    const _state = { ...state };
+    Object.keys(this.modules).forEach(moduleName => _state[moduleName] = this.modules[moduleName].state || {});
+    this._state = _state;
+    this.state = observable.object(wrapModuleState(this));
+  }
+
   registerModule(moduleName, module) {
     if (!moduleName) return;
     if (this.modules[moduleName]) this.unregisterModule(moduleName);
     if (!module) return;
-    this.modules[moduleName] = new ReactVueLikeStore(module, this, this.root, moduleName);
+    this.modules[moduleName] = new Store(module, this, this.root, moduleName);
   }
 
   unregisterModule(moduleName) {
@@ -100,6 +148,9 @@ class ReactVueLikeStore {
     });
     Object.keys(this.mutations).forEach(key => {
       if (key === this._getModuleKey(moduleName, key)) this._removeMutation(key);
+    });
+    Object.keys(this.actions).forEach(key => {
+      if (key === this._getModuleKey(moduleName, key)) this._removeAction(key);
     });
 
     this.modules[moduleName] = null;
@@ -122,10 +173,35 @@ class ReactVueLikeStore {
     } else {
       const mutation = this.mutations[event];
       if (!mutation) throw new Error(`commit error: event '${event}' not be found!`);
-      ret = mutation.call(this, this.state, payload, this.parent, this.root);
+      this._commiting = true;
+      try {
+        ret = mutation.call(this, this.state, payload, this.parent, this.root);
+      } finally {
+        this._commiting = false;
+      }
     }
 
     this.mutationListeners.forEach(v => v({ type: 'UPDATE_DATA', payload }, this.state));
+    return ret;
+  }
+
+  dispatch(event, payload) {
+    if (!event) return;
+    const [moduleName, eventName] = event.split('/')[0];
+    let ret;
+
+    if (eventName) {
+      const module = this.modules[moduleName];
+      if (!module) throw new Error(`commit error: module '${moduleName}' not be found!`);
+      ret = module.dispatch(eventName, payload);
+    } else {
+      const action = this.actions[event];
+      if (!action) throw new Error(`commit error: event '${event}' not be found!`);
+      const { state, getters, commit } = this;
+      ret = action.call(this, { state, getters, commit });
+    }
+
+    this.actionListeners.forEach(v => v({ type: 'UPDATE_DATA', payload }, this.state));
     return ret;
   }
 
@@ -137,6 +213,15 @@ class ReactVueLikeStore {
       if (~idx) this.mutationListeners.splice(idx, 1);
     };
   }
+
+  subscribeAction(handler) {
+    if (!handler || this.actionListeners.includes(handler)) return;
+    this.actionListeners.push(handler);
+    return () => {
+      const idx = this.actionListeners.indexOf(handler);
+      if (~idx) this.actionListeners.splice(idx, 1);
+    };
+  }
 }
 
-export default ReactVueLikeStore;
+export default Store;

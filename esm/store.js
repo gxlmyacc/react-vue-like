@@ -51,10 +51,27 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-var ReactVueLikeStore =
+function wrapModuleState(module) {
+  var ret = {};
+  if (!module._state) return ret;
+  Object.keys(module._state).forEach(function (key) {
+    return (0, _utils.defComputed)(ret, key, function () {
+      return module._state[key];
+    }, function (v) {
+      if (module.strict && !module._commiting) {
+        throw new Error("ReactVueLike.Store error: ''".concat(key, "' state can only be modified in mutation!"));
+      }
+
+      module._state[key] = v;
+    });
+  });
+  return ret;
+}
+
+var Store =
 /*#__PURE__*/
 function () {
-  function ReactVueLikeStore() {
+  function Store() {
     var _this = this;
 
     var module = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
@@ -62,17 +79,23 @@ function () {
     var root = arguments.length > 2 ? arguments[2] : undefined;
     var moduleName = arguments.length > 3 ? arguments[3] : undefined;
 
-    _classCallCheck(this, ReactVueLikeStore);
+    _classCallCheck(this, Store);
 
     this.root = root || this;
     this.parent = parent;
     this.mutationListeners = [];
+    this.actionListeners = [];
     this.moduleName = moduleName || '';
     this.namespaced = module.namespaced || false;
+    this.strict = Boolean(module.strict);
+    this._commiting = false;
+    this._state = module.state || {};
     this.state = {};
     this.getters = {};
     this.mutations = {};
+    this.actions = {};
     this.modules = {};
+    this.plugins = module.plugins || [];
     var _getters = {};
 
     if (module.getters) {
@@ -84,9 +107,10 @@ function () {
       });
     }
 
-    this.state = _mobx.observable.object(module.state || {});
+    this.state = _mobx.observable.object(wrapModuleState(this));
     this.getters = _mobx.observable.object(_getters);
     this.mutations = module.mutations ? _objectSpread({}, module.mutations) : {};
+    this.actions = module.actions ? _objectSpread({}, module.actions) : {};
 
     if (this.parent && moduleName) {
       this._mergeState(this.moduleName, this.state);
@@ -94,6 +118,8 @@ function () {
       this._mergeGetters(this.moduleName, _getters);
 
       this._mergeMutations(this.moduleName, this.mutations);
+
+      this._mergeActions(this.moduleName, this.actions);
     }
 
     if (module.modules) {
@@ -103,9 +129,12 @@ function () {
     }
 
     if (module.install) this.install = module.install.bind(this);
+    if (this.plugins) this.plugins.forEach(function (p) {
+      return p(_this);
+    });
   }
 
-  _createClass(ReactVueLikeStore, [{
+  _createClass(Store, [{
     key: "_getModuleKey",
     value: function _getModuleKey(moduleName, key) {
       return this.namespaced ? "".concat(moduleName, "/").concat(key) : key;
@@ -146,6 +175,20 @@ function () {
       if (this.parent) this.parent._mergeMutations(this.moduleName, mutations);
     }
   }, {
+    key: "_mergeActions",
+    value: function _mergeActions(moduleName, actions) {
+      var _this4 = this;
+
+      var newAtions = {};
+      var keys = Object.keys(newAtions);
+      if (!keys.length) return;
+      keys.forEach(function (key) {
+        return newAtions[_this4._getModuleKey(moduleName, key)] = actions[key];
+      });
+      Object.assign(this.mutations, newAtions);
+      if (this.parent) this.parent._mergeMutations(this.moduleName, actions);
+    }
+  }, {
     key: "_removeState",
     value: function _removeState(key) {
       (0, _mobx.remove)(this.state, key);
@@ -163,17 +206,38 @@ function () {
       if (this.parent) this.parent._removeMutation(this.parent._getModuleKey(this.moduleName, key));
     }
   }, {
+    key: "_removeAction",
+    value: function _removeAction(key) {
+      delete this.actions[key];
+      if (this.parent) this.parent._removeAction(this.parent._getModuleKey(this.moduleName, key));
+    }
+  }, {
+    key: "replaceState",
+    value: function replaceState() {
+      var _this5 = this;
+
+      var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      var _state = _objectSpread({}, state);
+
+      Object.keys(this.modules).forEach(function (moduleName) {
+        return _state[moduleName] = _this5.modules[moduleName].state || {};
+      });
+      this._state = _state;
+      this.state = _mobx.observable.object(wrapModuleState(this));
+    }
+  }, {
     key: "registerModule",
     value: function registerModule(moduleName, module) {
       if (!moduleName) return;
       if (this.modules[moduleName]) this.unregisterModule(moduleName);
       if (!module) return;
-      this.modules[moduleName] = new ReactVueLikeStore(module, this, this.root, moduleName);
+      this.modules[moduleName] = new Store(module, this, this.root, moduleName);
     }
   }, {
     key: "unregisterModule",
     value: function unregisterModule(moduleName) {
-      var _this4 = this;
+      var _this6 = this;
 
       var module = this.modules[moduleName];
       if (!module) return;
@@ -181,10 +245,13 @@ function () {
       this._removeState(moduleName);
 
       Object.keys(this.getters).forEach(function (key) {
-        if (key === _this4._getModuleKey(moduleName, key)) _this4._removeGetter(key);
+        if (key === _this6._getModuleKey(moduleName, key)) _this6._removeGetter(key);
       });
       Object.keys(this.mutations).forEach(function (key) {
-        if (key === _this4._getModuleKey(moduleName, key)) _this4._removeMutation(key);
+        if (key === _this6._getModuleKey(moduleName, key)) _this6._removeMutation(key);
+      });
+      Object.keys(this.actions).forEach(function (key) {
+        if (key === _this6._getModuleKey(moduleName, key)) _this6._removeAction(key);
       });
       this.modules[moduleName] = null;
     }
@@ -199,7 +266,7 @@ function () {
   }, {
     key: "commit",
     value: function commit(event, payload) {
-      var _this5 = this;
+      var _this7 = this;
 
       if (!event) return;
 
@@ -216,34 +283,91 @@ function () {
       } else {
         var mutation = this.mutations[event];
         if (!mutation) throw new Error("commit error: event '".concat(event, "' not be found!"));
-        ret = mutation.call(this, this.state, payload, this.parent, this.root);
+        this._commiting = true;
+
+        try {
+          ret = mutation.call(this, this.state, payload, this.parent, this.root);
+        } finally {
+          this._commiting = false;
+        }
       }
 
       this.mutationListeners.forEach(function (v) {
         return v({
           type: 'UPDATE_DATA',
           payload: payload
-        }, _this5.state);
+        }, _this7.state);
+      });
+      return ret;
+    }
+  }, {
+    key: "dispatch",
+    value: function dispatch(event, payload) {
+      var _this8 = this;
+
+      if (!event) return;
+
+      var _event$split$2 = _slicedToArray(event.split('/')[0], 2),
+          moduleName = _event$split$2[0],
+          eventName = _event$split$2[1];
+
+      var ret;
+
+      if (eventName) {
+        var module = this.modules[moduleName];
+        if (!module) throw new Error("commit error: module '".concat(moduleName, "' not be found!"));
+        ret = module.dispatch(eventName, payload);
+      } else {
+        var action = this.actions[event];
+        if (!action) throw new Error("commit error: event '".concat(event, "' not be found!"));
+        var state = this.state,
+            getters = this.getters,
+            commit = this.commit;
+        ret = action.call(this, {
+          state: state,
+          getters: getters,
+          commit: commit
+        });
+      }
+
+      this.actionListeners.forEach(function (v) {
+        return v({
+          type: 'UPDATE_DATA',
+          payload: payload
+        }, _this8.state);
       });
       return ret;
     }
   }, {
     key: "subscribe",
     value: function subscribe(handler) {
-      var _this6 = this;
+      var _this9 = this;
 
       if (!handler || this.mutationListeners.includes(handler)) return;
       this.mutationListeners.push(handler);
       return function () {
-        var idx = _this6.mutationListeners.indexOf(handler);
+        var idx = _this9.mutationListeners.indexOf(handler);
 
-        if (~idx) _this6.mutationListeners.splice(idx, 1);
+        if (~idx) _this9.mutationListeners.splice(idx, 1);
+      };
+    }
+  }, {
+    key: "subscribeAction",
+    value: function subscribeAction(handler) {
+      var _this10 = this;
+
+      if (!handler || this.actionListeners.includes(handler)) return;
+      this.actionListeners.push(handler);
+      return function () {
+        var idx = _this10.actionListeners.indexOf(handler);
+
+        if (~idx) _this10.actionListeners.splice(idx, 1);
       };
     }
   }]);
 
-  return ReactVueLikeStore;
+  return Store;
 }();
 
-var _default = ReactVueLikeStore;
+var _default = Store;
 exports.default = _default;

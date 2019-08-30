@@ -1,10 +1,10 @@
 import ReactVueLike from './component';
+import Store from './store';
 
 export { default as propcheck } from './prop-check';
 
-export { default as ReactVueLikeStore } from './store';
-
 export * from './utils';
 
+ReactVueLike.Store = Store;
 
 export default ReactVueLike;
