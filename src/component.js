@@ -1,8 +1,12 @@
 import React from 'react';
 import { extendObservable, observe, when, set, remove } from 'mobx';
 import { observer } from 'mobx-react';
-import { parseExpr, camelize, isFunction, iterativeParent, handleError, defComputed } from './utils';
+import {
+  parseExpr, camelize, isFunction, iterativeParent, handleError, defComputed,
+  findComponentEl
+} from './utils';
 import config from './config';
+import propcheck from './prop-check';
 
 function generateComputed(obj) {
   const ret = {};
@@ -70,13 +74,15 @@ class ReactVueLike extends React.Component {
     super(_props);
 
     const target = new.target;
-    const { mixins } = target;
+    const { mixins, isRoot, inherits } = target;
 
     this._isVueLike = true;
+    this._isVueLikeRoot = Boolean(isRoot);
     this._type = target;
     this._ticks = [];
     this._provides = [];
     this._injects = [];
+    this._inherits = null;
     this.$refs = {};
     this.$parent = null;
     this.$root = null;
@@ -85,7 +91,13 @@ class ReactVueLike extends React.Component {
     this._renderFn = this.render;
     this.render = ReactVueLike.prototype.render;
 
-    const ctxs = mixins ? [...mixins, target] : [target];
+    const inheritsKeys = (inherits && Object.keys(inherits));
+    if (inheritsKeys.length) {
+      this._inherits = {};
+      inheritsKeys.forEach(key => this._inherits[key] = inherits[key]);
+    }
+
+    const ctxs = mixins ? [...ReactVueLike.mixins, ...mixins, target] : [...ReactVueLike.mixins, target];
     this.$listeners = initListeners(ctxs, _props);
 
     this.$emit('hook:beforeCreate', _props);
@@ -104,7 +116,14 @@ class ReactVueLike extends React.Component {
     });
 
     this.$data = _data;
-    extendObservable(this, this.$data);
+    let _deeps = {};
+    let _shadows = {};
+    Object.keys(_data).forEach(key => {
+      if (key.startsWith('_')) _shadows[key] = _data[key];
+      else _deeps[key] = _data[key];
+    });
+    extendObservable(this, _deeps, {}, { deep: true });
+    extendObservable(this, _shadows, {}, { deep: false });
 
     extendObservable(this, generateComputed(_computed));
 
@@ -122,9 +141,20 @@ class ReactVueLike extends React.Component {
   }
 
   _resolveParent() {
-    iterativeParent(this, parent => this.$parent = parent, ReactVueLike);
+    if (!this._isVueLikeRoot) {
+      iterativeParent(this, parent => this.$parent = parent, ReactVueLike);
+      if (this.$parent) {
+        this.$parent.$children.push(this);
+
+        if (this.$parent._inherits) {
+          if (!this._inherits) this._inherits = {};
+          Object.assign(this._inherits, this.$parent._inherits);
+        }
+      }
+    }
     this.$root = this.$parent ? this.$parent.$root : this;
-    if (this.$parent) this.$parent.$children.push(this);
+
+    if (this._inherits) Object.assign(this, this._inherits);
   }
 
   _resolveInject() {
@@ -159,6 +189,10 @@ class ReactVueLike extends React.Component {
     }
   }
 
+  _resolveEl() {
+    this.$el = findComponentEl(this);
+  }
+
   _resolveDestory() {
     if (this.$parent) {
       const idx = this.$parent.$children.findIndex(c => c === this);
@@ -188,6 +222,15 @@ class ReactVueLike extends React.Component {
 
   static config(options = {}) {
     Object.assign(config, options);
+  }
+
+  static mixin(m) {
+    if (!m) return;
+    ReactVueLike.mixins.push(m);
+  }
+
+  static inherits = {
+
   }
 
   static props = {
@@ -327,6 +370,7 @@ class ReactVueLike extends React.Component {
     if (this._reactInternalFiber) {
       this._resolveParent();
       this._resolveInject();
+      this._resolveEl();
     }
 
     this.$emit('hook:mounted');
@@ -338,7 +382,7 @@ class ReactVueLike extends React.Component {
     if (this._ticks.length) {
       const ticks = this._ticks.slice();
       this._ticks = [];
-      ticks.forEach(v => v());
+      setTimeout(() => ticks.forEach(v => v()), 0);
     }
   }
 
@@ -352,6 +396,25 @@ class ReactVueLike extends React.Component {
   }
 }
 
+ReactVueLike.config.optionMergeStrategies = {
+
+};
+
 ReactVueLike.Component = ReactVueLike;
+
+function ReactHook() {
+  const _createElement = React.createElement;
+  React.createElement = function createElement(Component, ...args) {
+    if (!Component || !Component.props) return _createElement.call(this, Component, ...args);
+    // eslint-disable-next-line
+    if (!Component.propTypes && (Component.prototype instanceof ReactVueLike)) {
+      Component = propcheck(Component);
+      if (Component.beforeConstructor) Component.beforeConstructor(Component);
+    }
+    return _createElement.call(this, Component, ...args);
+  };
+}
+
+ReactHook();
 
 export default ReactVueLike;

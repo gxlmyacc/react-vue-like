@@ -8,11 +8,96 @@ exports.isFunction = isFunction;
 exports.parseExpr = parseExpr;
 exports.camelize = camelize;
 exports.iterativeParent = iterativeParent;
+exports.findComponentEl = findComponentEl;
 exports.handleError = handleError;
+Object.defineProperty(exports, "observable", {
+  enumerable: true,
+  get: function get() {
+    return _mobx.observable;
+  }
+});
+Object.defineProperty(exports, "extendObservable", {
+  enumerable: true,
+  get: function get() {
+    return _mobx.extendObservable;
+  }
+});
+Object.defineProperty(exports, "observe", {
+  enumerable: true,
+  get: function get() {
+    return _mobx.observe;
+  }
+});
+Object.defineProperty(exports, "computed", {
+  enumerable: true,
+  get: function get() {
+    return _mobx.computed;
+  }
+});
+Object.defineProperty(exports, "action", {
+  enumerable: true,
+  get: function get() {
+    return _mobx.action;
+  }
+});
+Object.defineProperty(exports, "autorun", {
+  enumerable: true,
+  get: function get() {
+    return _mobx.autorun;
+  }
+});
+Object.defineProperty(exports, "when", {
+  enumerable: true,
+  get: function get() {
+    return _mobx.when;
+  }
+});
 Object.defineProperty(exports, "runInAction", {
   enumerable: true,
   get: function get() {
     return _mobx.runInAction;
+  }
+});
+Object.defineProperty(exports, "set", {
+  enumerable: true,
+  get: function get() {
+    return _mobx.set;
+  }
+});
+Object.defineProperty(exports, "get", {
+  enumerable: true,
+  get: function get() {
+    return _mobx.get;
+  }
+});
+Object.defineProperty(exports, "remove", {
+  enumerable: true,
+  get: function get() {
+    return _mobx.remove;
+  }
+});
+Object.defineProperty(exports, "has", {
+  enumerable: true,
+  get: function get() {
+    return _mobx.has;
+  }
+});
+Object.defineProperty(exports, "observer", {
+  enumerable: true,
+  get: function get() {
+    return _mobxReact.observer;
+  }
+});
+Object.defineProperty(exports, "Provider", {
+  enumerable: true,
+  get: function get() {
+    return _mobxReact.Provider;
+  }
+});
+Object.defineProperty(exports, "Observer", {
+  enumerable: true,
+  get: function get() {
+    return _mobxReact.Observer;
   }
 });
 
@@ -27,6 +112,8 @@ require("core-js/modules/es6.regexp.split");
 var _mobx = require("mobx");
 
 var _config = _interopRequireDefault(require("./config"));
+
+var _mobxReact = require("mobx-react");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -86,6 +173,7 @@ function camelize(str) {
 }
 
 function iterativeParent(ctx, callback, componentClass) {
+  if (ctx._isVueLikeRoot) return;
   var parentNode = ctx._reactInternalFiber && ctx._reactInternalFiber.return;
 
   while (parentNode) {
@@ -95,8 +183,23 @@ function iterativeParent(ctx, callback, componentClass) {
       if (callback(vm)) break;
     }
 
+    if (vm && vm._isVueLikeRoot) break;
     parentNode = parentNode.return;
   }
+}
+
+function findComponentEl(vm) {
+  var node = vm && vm._reactInternalFiber;
+
+  while (node) {
+    var el = node.stateNode;
+    if (el instanceof Element) return el;
+    var child = node.child;
+    if (!child) break;
+    node = child.stateNode ? child : child._reactInternalFiber;
+  }
+
+  return null;
 }
 
 function warn(msg, vm) {
@@ -105,7 +208,7 @@ function warn(msg, vm) {
   if (_config.default.warnHandler) {
     _config.default.warnHandler.call(null, msg, vm, trace);
   } else if (!_config.default.silent) {
-    console.error('[Vue warn]: ' + msg + trace);
+    console.error('[ReactVueLike warn]: ' + msg + trace);
   }
 }
 
@@ -229,4 +332,3 @@ function getComponentName(vm) {
   var type = vm && vm._type;
   return type ? type.displayName || type.name : '<Anonymous>';
 }
-//# sourceMappingURL=utils.js.map

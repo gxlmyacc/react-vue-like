@@ -23,6 +23,8 @@ require("regenerator-runtime/runtime");
 
 require("core-js/modules/es6.array.find-index");
 
+require("core-js/modules/es6.string.starts-with");
+
 require("core-js/modules/es7.array.includes");
 
 require("core-js/modules/es6.string.includes");
@@ -48,6 +50,8 @@ var _mobxReact = require("mobx-react");
 var _utils = require("./utils");
 
 var _config2 = _interopRequireDefault(require("./config"));
+
+var _propCheck = _interopRequireDefault(require("./prop-check"));
 
 var _class, _class2, _temp;
 
@@ -164,19 +168,32 @@ function (_React$Component) {
 
     _this = _possibleConstructorReturn(this, _getPrototypeOf(ReactVueLike).call(this, _props));
     var target = this instanceof ReactVueLike ? this.constructor : void 0;
-    var mixins = target.mixins;
+    var mixins = target.mixins,
+        isRoot = target.isRoot,
+        inherits = target.inherits;
     _this._isVueLike = true;
+    _this._isVueLikeRoot = Boolean(isRoot);
     _this._type = target;
     _this._ticks = [];
     _this._provides = [];
     _this._injects = [];
+    _this._inherits = null;
     _this.$refs = {};
     _this.$parent = null;
     _this.$root = null;
     _this.$children = [];
     _this._renderFn = _this.render;
     _this.render = ReactVueLike.prototype.render;
-    var ctxs = mixins ? [].concat(_toConsumableArray(mixins), [target]) : [target];
+    var inheritsKeys = inherits && Object.keys(inherits);
+
+    if (inheritsKeys.length) {
+      _this._inherits = {};
+      inheritsKeys.forEach(function (key) {
+        return _this._inherits[key] = inherits[key];
+      });
+    }
+
+    var ctxs = mixins ? [].concat(_toConsumableArray(ReactVueLike.mixins), _toConsumableArray(mixins), [target]) : [].concat(_toConsumableArray(ReactVueLike.mixins), [target]);
     _this.$listeners = initListeners(ctxs, _props);
 
     _this.$emit('hook:beforeCreate', _props);
@@ -196,7 +213,17 @@ function (_React$Component) {
       });
     });
     _this.$data = _data;
-    (0, _mobx.extendObservable)(_assertThisInitialized(_this), _this.$data);
+    var _deeps = {};
+    var _shadows = {};
+    Object.keys(_data).forEach(function (key) {
+      if (key.startsWith('_')) _shadows[key] = _data[key];else _deeps[key] = _data[key];
+    });
+    (0, _mobx.extendObservable)(_assertThisInitialized(_this), _deeps, {}, {
+      deep: true
+    });
+    (0, _mobx.extendObservable)(_assertThisInitialized(_this), _shadows, {}, {
+      deep: false
+    });
     (0, _mobx.extendObservable)(_assertThisInitialized(_this), generateComputed(_computed));
     bindMethods(_assertThisInitialized(_this), _methods);
     var pMethods = {};
@@ -220,11 +247,23 @@ function (_React$Component) {
     value: function _resolveParent() {
       var _this2 = this;
 
-      (0, _utils.iterativeParent)(this, function (parent) {
-        return _this2.$parent = parent;
-      }, ReactVueLike);
+      if (!this._isVueLikeRoot) {
+        (0, _utils.iterativeParent)(this, function (parent) {
+          return _this2.$parent = parent;
+        }, ReactVueLike);
+
+        if (this.$parent) {
+          this.$parent.$children.push(this);
+
+          if (this.$parent._inherits) {
+            if (!this._inherits) this._inherits = {};
+            Object.assign(this._inherits, this.$parent._inherits);
+          }
+        }
+      }
+
       this.$root = this.$parent ? this.$parent.$root : this;
-      if (this.$parent) this.$parent.$children.push(this);
+      if (this._inherits) Object.assign(this, this._inherits);
     }
   }, {
     key: "_resolveInject",
@@ -268,6 +307,11 @@ function (_React$Component) {
         (0, _utils.handleError)(e, this, 'resolveInject');
         throw e;
       }
+    }
+  }, {
+    key: "_resolveEl",
+    value: function _resolveEl() {
+      this.$el = (0, _utils.findComponentEl)(this);
     }
   }, {
     key: "_resolveDestory",
@@ -544,6 +588,8 @@ function (_React$Component) {
         this._resolveParent();
 
         this._resolveInject();
+
+        this._resolveEl();
       }
 
       this.$emit('hook:mounted');
@@ -557,9 +603,11 @@ function (_React$Component) {
         var ticks = this._ticks.slice();
 
         this._ticks = [];
-        ticks.forEach(function (v) {
-          return v();
-        });
+        setTimeout(function () {
+          return ticks.forEach(function (v) {
+            return v();
+          });
+        }, 0);
       }
     }
   }, {
@@ -588,6 +636,12 @@ function (_React$Component) {
       Object.assign(_config2.default, options);
     }
   }, {
+    key: "mixin",
+    value: function mixin(m) {
+      if (!m) return;
+      ReactVueLike.mixins.push(m);
+    }
+  }, {
     key: "data",
     value: function data(props) {
       return {};
@@ -598,9 +652,30 @@ function (_React$Component) {
   }]);
 
   return ReactVueLike;
-}(_react.default.Component), _defineProperty(_class2, "props", {}), _defineProperty(_class2, "mixins", []), _defineProperty(_class2, "inject", []), _defineProperty(_class2, "computed", {}), _defineProperty(_class2, "watch", {}), _defineProperty(_class2, "methods", {}), _temp)) || _class;
+}(_react.default.Component), _defineProperty(_class2, "inherits", {}), _defineProperty(_class2, "props", {}), _defineProperty(_class2, "mixins", []), _defineProperty(_class2, "inject", []), _defineProperty(_class2, "computed", {}), _defineProperty(_class2, "watch", {}), _defineProperty(_class2, "methods", {}), _temp)) || _class;
 
+ReactVueLike.config.optionMergeStrategies = {};
 ReactVueLike.Component = ReactVueLike;
+
+function ReactHook() {
+  var _createElement = _react.default.createElement;
+
+  _react.default.createElement = function createElement(Component) {
+    for (var _len3 = arguments.length, args = new Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+      args[_key3 - 1] = arguments[_key3];
+    }
+
+    if (!Component || !Component.props) return _createElement.call.apply(_createElement, [this, Component].concat(args)); // eslint-disable-next-line
+
+    if (!Component.propTypes && Component.prototype instanceof ReactVueLike) {
+      Component = (0, _propCheck.default)(Component);
+      if (Component.beforeConstructor) Component.beforeConstructor(Component);
+    }
+
+    return _createElement.call.apply(_createElement, [this, Component].concat(args));
+  };
+}
+
+ReactHook();
 var _default = ReactVueLike;
 exports.default = _default;
-//# sourceMappingURL=component.js.map

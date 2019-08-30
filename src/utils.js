@@ -1,7 +1,12 @@
 import { observable } from 'mobx';
 import config from './config';
 
-export { runInAction } from 'mobx';
+export {
+  observable, extendObservable, observe,
+  computed, action, autorun, when, runInAction,
+  set, get, remove, has
+} from 'mobx';
+export { observer, Provider, Observer } from 'mobx-react';
 
 // isArray support ObservableArray
 const arrayType = observable.array([11, 22]);
@@ -50,14 +55,28 @@ export function camelize(str) {
 }
 
 export function iterativeParent(ctx, callback, componentClass) {
+  if (ctx._isVueLikeRoot) return;
   let parentNode = ctx._reactInternalFiber && ctx._reactInternalFiber.return;
   while (parentNode) {
     const vm = parentNode.nodeType === undefined && parentNode.stateNode;
     if (vm && (!componentClass || vm instanceof componentClass)) {
       if (callback(vm)) break;
     }
+    if (vm && vm._isVueLikeRoot) break;
     parentNode = parentNode.return;
   }
+}
+
+export function findComponentEl(vm) {
+  let node = vm && vm._reactInternalFiber;
+  while (node) {
+    let el = node.stateNode;
+    if (el instanceof Element) return el;
+    let child = node.child;
+    if (!child) break;
+    node = child.stateNode ? child : child._reactInternalFiber;
+  }
+  return null;
 }
 
 function warn(msg, vm) {
@@ -66,7 +85,7 @@ function warn(msg, vm) {
   if (config.warnHandler) {
     config.warnHandler.call(null, msg, vm, trace);
   } else if (!config.silent) {
-    console.error(('[Vue warn]: ' + msg + trace));
+    console.error(('[ReactVueLike warn]: ' + msg + trace));
   }
 }
 

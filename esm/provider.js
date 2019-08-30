@@ -17,4 +17,3 @@ Object.defineProperty(exports, "Observer", {
 });
 
 var _mobxReact = require("mobx-react");
-//# sourceMappingURL=provider.js.map

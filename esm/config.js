@@ -11,4 +11,3 @@ var config = {
 };
 var _default = config;
 exports.default = _default;
-//# sourceMappingURL=config.js.map

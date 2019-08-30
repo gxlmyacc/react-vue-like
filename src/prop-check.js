@@ -58,7 +58,6 @@ function generateProps(aPropTypes, aProps) {
   return ret;
 }
 
-
 export default function propcheck(target) {
   const { props } = target;
   if (!props) return target;

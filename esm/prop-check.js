@@ -121,4 +121,3 @@ function propcheck(target) {
   if (propTypes && !target.propTypes) target.propTypes = propTypes;
   return target;
 }
-//# sourceMappingURL=prop-check.js.map

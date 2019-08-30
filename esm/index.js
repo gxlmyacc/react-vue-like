@@ -35,19 +35,6 @@ var _propCheck = _interopRequireDefault(require("./prop-check"));
 
 var _store = _interopRequireDefault(require("./store"));
 
-var _provider = require("./provider");
-
-Object.keys(_provider).forEach(function (key) {
-  if (key === "default" || key === "__esModule") return;
-  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
-  Object.defineProperty(exports, key, {
-    enumerable: true,
-    get: function get() {
-      return _provider[key];
-    }
-  });
-});
-
 var _utils = require("./utils");
 
 Object.keys(_utils).forEach(function (key) {
@@ -65,4 +52,3 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var _default = _component.default;
 exports.default = _default;
-//# sourceMappingURL=index.js.map
