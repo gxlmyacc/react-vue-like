@@ -173,12 +173,12 @@ function camelize(str) {
 
 function iterativeParent(ctx, callback, componentClass) {
   if (ctx._isVueLikeRoot) return;
-  var parentNode = ctx._reactInternalFiber && ctx._reactInternalFiber.return;
+  var parentNode = ctx._reactInternalFiber ? ctx._reactInternalFiber.return : ctx.stateNode ? ctx : null;
 
   while (parentNode) {
     var vm = parentNode.nodeType === undefined && parentNode.stateNode;
 
-    if (vm && (!componentClass || vm instanceof componentClass)) {
+    if (vm && !vm._isVueLikeAbstract && (!componentClass || vm instanceof componentClass)) {
       if (callback(vm)) break;
     }
 

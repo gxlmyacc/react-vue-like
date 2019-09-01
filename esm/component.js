@@ -172,8 +172,10 @@ function (_React$Component) {
     var target = this instanceof ReactVueLike ? this.constructor : void 0;
     var mixins = target.mixins,
         isRoot = target.isRoot,
+        isAbstract = target.isAbstract,
         inherits = target.inherits;
     if (isRoot) _this._isVueLikeRoot = true;
+    if (isAbstract) _this._isVueLikeAbstract = true;
     _this._isVueLike = true;
     _this._type = target;
     _this._ticks = [];
@@ -181,6 +183,8 @@ function (_React$Component) {
     _this._injects = [];
     _this._inherits = null;
     _this._el = null;
+    _this._isMounted = false;
+    _this._mountedPending = [];
     _this.$refs = {};
     _this.$parent = null;
     _this.$root = null;
@@ -210,7 +214,11 @@ function (_React$Component) {
     var _computed = {};
     var _methods = {};
     var _watch = {};
+    var _directives = {};
+    var _filters = {};
     ctxs.forEach(function (ctx) {
+      if (ctx.filters) Object.assign(_filters, ctx.filters);
+      if (ctx.directives) Object.assign(_directives, ctx.directives);
       if (ctx.data) Object.assign(_data, ctx.data.call(_assertThisInitialized(_this), _props));
       if (ctx.computed) Object.assign(_computed, ctx.computed);
       if (ctx.methods) Object.assign(_methods, ctx.methods);
@@ -220,6 +228,8 @@ function (_React$Component) {
         return !_this._injects.includes(key) && _this._injects.push(key);
       });
     });
+    _this.$filters = _filters;
+    _this.$directives = _directives;
     _this.$data = _data;
     var _deeps = {};
     var _shadows = {};
@@ -242,41 +252,103 @@ function (_React$Component) {
     });
     bindMethods(_assertThisInitialized(_this), pMethods);
     bindWatch(_assertThisInitialized(_this), _watch);
+    Object.keys(_config2.default.inheritMergeStrategies).forEach(function (key) {
+      var child = _this._inherits[key];
+      var parent = _this[key];
+      if (!parent) return;
+
+      if (child) {
+        var v = _config2.default.inheritMergeStrategies[key](parent, child, _assertThisInitialized(_this));
+
+        if (v !== child) _this._inherits[key] = v;
+      } else _this._inherits[key] = parent;
+    });
 
     _this.$emit('hook:created');
-
-    _this.$emit('hook:beforeMount');
 
     return _this;
   }
 
   _createClass(ReactVueLike, [{
-    key: "_resolveParent",
-    value: function _resolveParent() {
+    key: "_resolveFilter",
+    value: function _resolveFilter(filter, filterName) {
+      if (!this.$filters) return '';
+
+      try {
+        return filter();
+      } catch (e) {
+        // if (e && e.message) e.message = `['${filterName}' filter error]:${e.message}`;
+        (0, _utils.handleError)(e, this, "filter:".concat(filterName));
+        return '';
+      }
+    }
+  }, {
+    key: "_resolveMounted",
+    value: function _resolveMounted(done) {
       var _this2 = this;
 
-      if (!this._isVueLikeRoot) {
-        (0, _utils.iterativeParent)(this, function (parent) {
-          return _this2.$parent = parent;
-        }, ReactVueLike);
+      var _pending = function _pending() {
+        if (!_this2._isVueLikeRoot) {
+          Object.keys(_config2.default.optionMergeStrategies).forEach(function (key) {
+            var ret = _config2.default.optionMergeStrategies[key](_this2.$parent[key], _this2[key], _this2);
 
-        if (this.$parent) {
-          this.$parent.$children.push(this);
+            if (ret !== _this2[key]) _this2[key] = ret;
+          });
+        }
 
-          if (this.$parent._inherits) {
-            if (!this._inherits) this._inherits = {};
-            Object.assign(this._inherits, this.$parent._inherits);
-          }
+        _this2.$root = _this2.$parent ? _this2.$parent.$root : _this2;
+
+        _this2._resolveInherits();
+
+        _this2._resolveInject();
+
+        var pending = _this2._mountedPending;
+        _this2._mountedPending = [];
+        pending.forEach(function (v) {
+          return v();
+        });
+        done && done();
+      };
+
+      if (!this.$parent || this.$parent._isMounted) _pending();else this.$parent._mountedPending.push(_pending);
+    }
+  }, {
+    key: "_resolveInherits",
+    value: function _resolveInherits() {
+      var _this3 = this;
+
+      if (!this._isVueLikeRoot && this.$parent) {
+        if (this.$parent._inherits) {
+          if (!this._inherits) this._inherits = {};
+          Object.assign(this._inherits, this.$parent._inherits);
         }
       }
 
-      this.$root = this.$parent ? this.$parent.$root : this;
-      if (this._inherits) Object.assign(this, this._inherits);
+      if (this._inherits) {
+        Object.keys(this._inherits).forEach(function (key) {
+          var child = _this3[key];
+          var parent = _this3._inherits[key];
+          var merge = _config2.default.inheritMergeStrategies[key];
+          _this3[key] = merge ? merge(parent, child, _this3) : parent;
+        });
+      }
+    }
+  }, {
+    key: "_resolveParent",
+    value: function _resolveParent() {
+      var _this4 = this;
+
+      if (!this._isVueLikeRoot) {
+        (0, _utils.iterativeParent)(this, function (parent) {
+          return _this4.$parent = parent;
+        }, ReactVueLike);
+        if (this.$parent) this.$parent.$children.push(this);
+      }
     }
   }, {
     key: "_resolveInject",
     value: function _resolveInject() {
-      var _this3 = this;
+      var _this5 = this;
 
       try {
         var injects = this._injects;
@@ -301,7 +373,7 @@ function (_React$Component) {
                 var v = _provide[key];
 
                 if (v !== undefined) {
-                  _this3.$set(_this3, key, v);
+                  _this5.$set(_this5, key, v);
 
                   injects.splice(i, 1);
                 }
@@ -324,13 +396,13 @@ function (_React$Component) {
   }, {
     key: "_resolveDestory",
     value: function _resolveDestory() {
-      var _this4 = this;
+      var _this6 = this;
 
       this._flushTicks();
 
       if (this.$parent) {
         var idx = this.$parent.$children.findIndex(function (c) {
-          return c === _this4;
+          return c === _this6;
         });
         if (~idx) this.$parent.$children.splice(idx, 1);
       }
@@ -501,6 +573,11 @@ function (_React$Component) {
     // }
 
   }, {
+    key: "$runInAction",
+    value: function $runInAction() {
+      return _mobxReact.runInAction.apply(void 0, arguments);
+    }
+  }, {
     key: "$nextTick",
     value: function $nextTick(cb, ctx) {
       this._ticks.push(ctx ? cb.bind(ctx) : cb);
@@ -561,9 +638,14 @@ function (_React$Component) {
   }, {
     key: "$on",
     value: function $on(eventName, handler) {
+      var _this7 = this;
+
       eventName = (0, _utils.camelize)(eventName);
       if (!this.$listeners[eventName]) this.$listeners[eventName] = [];
-      this.$listeners[eventName].push(handler.bind(this));
+      this.$listeners[eventName].push(handler);
+      return function () {
+        return _this7.$off(eventName, handler);
+      };
     }
   }, {
     key: "$off",
@@ -580,7 +662,7 @@ function (_React$Component) {
           if (~idx) handlers.splice(idx, 1);
         }
 
-        return;
+        if (handlers.length) return;
       }
 
       delete this.$listeners[eventName];
@@ -588,19 +670,15 @@ function (_React$Component) {
   }, {
     key: "$once",
     value: function $once(eventName, handler) {
-      var _this5 = this;
+      var off = this.$on(eventName, function () {
+        off();
 
-      eventName = (0, _utils.camelize)(eventName);
-
-      this.$listeners[eventName] = function () {
-        _this5.$off(eventName, handler);
-
-        for (var _len2 = arguments.length, payload = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-          payload[_key2] = arguments[_key2];
+        for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+          args[_key2] = arguments[_key2];
         }
 
-        return handler.call.apply(handler, [_this5].concat(payload));
-      };
+        return handler.call.apply(handler, [this].concat(args));
+      });
     }
   }, {
     key: "render",
@@ -616,13 +694,17 @@ function (_React$Component) {
   }, {
     key: "componentDidMount",
     value: function componentDidMount() {
-      if (this._reactInternalFiber) {
-        this._resolveParent();
+      var _this8 = this;
 
-        this._resolveInject();
-      }
+      this.$emit('hook:beforeMount');
 
-      this.$emit('hook:mounted');
+      this._resolveParent();
+
+      this._isMounted = true;
+
+      this._resolveMounted(function () {
+        return _this8.$emit('hook:mounted');
+      });
     }
   }, {
     key: "componentDidUpdate",
@@ -675,15 +757,18 @@ function (_React$Component) {
   }]);
 
   return ReactVueLike;
-}(_react.default.Component), _defineProperty(_class2, "inherits", {}), _defineProperty(_class2, "props", {}), _defineProperty(_class2, "mixins", []), _defineProperty(_class2, "inject", []), _defineProperty(_class2, "computed", {}), _defineProperty(_class2, "watch", {}), _defineProperty(_class2, "methods", {}), _temp)) || _class;
+}(_react.default.Component), _defineProperty(_class2, "isRoot", false), _defineProperty(_class2, "isAbstract", false), _defineProperty(_class2, "inherits", {}), _defineProperty(_class2, "props", {}), _defineProperty(_class2, "mixins", []), _defineProperty(_class2, "directives", {}), _defineProperty(_class2, "filters", {}), _defineProperty(_class2, "inject", []), _defineProperty(_class2, "computed", {}), _defineProperty(_class2, "watch", {}), _defineProperty(_class2, "methods", {}), _temp)) || _class;
 
-ReactVueLike.config.optionMergeStrategies = {};
+ReactVueLike.config.optionMergeStrategies = _config2.default.optionMergeStrategies;
+ReactVueLike.config.inheritMergeStrategies = _config2.default.inheritMergeStrategies;
 ReactVueLike.Component = ReactVueLike;
 
 function ReactHook() {
   var _createElement = _react.default.createElement;
 
   _react.default.createElement = function createElement(Component) {
+    if (Component === 'ReactVueLike.Directive') Component = ReactVueLike.Directive;
+
     for (var _len3 = arguments.length, args = new Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
       args[_key3 - 1] = arguments[_key3];
     }

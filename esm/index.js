@@ -24,6 +24,8 @@ exports.default = void 0;
 
 var _component = _interopRequireDefault(require("./component"));
 
+var _Directive = _interopRequireDefault(require("./Directive"));
+
 var _store = _interopRequireDefault(require("./store"));
 
 var _propCheck = _interopRequireDefault(require("./prop-check"));
@@ -44,5 +46,6 @@ Object.keys(_utils).forEach(function (key) {
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 _component.default.Store = _store.default;
+_component.default.Directive = _Directive.default;
 var _default = _component.default;
 exports.default = _default;

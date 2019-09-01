@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { extendObservable, observe, when, set, remove } from 'mobx';
-import { observer } from 'mobx-react';
+import { observer, runInAction } from 'mobx-react';
 import {
   parseExpr, camelize, isFunction, iterativeParent, handleError, defComputed
 } from './utils';
@@ -70,13 +70,15 @@ function initListeners(ctxs, props) {
 
 @observer
 class ReactVueLike extends React.Component {
+
   constructor(_props) {
     super(_props);
 
     const target = new.target;
-    const { mixins, isRoot, inherits } = target;
+    const { mixins, isRoot, isAbstract, inherits } = target;
 
     if (isRoot) this._isVueLikeRoot = true;
+    if (isAbstract) this._isVueLikeAbstract = true;
 
     this._isVueLike = true;
     this._type = target;
@@ -85,6 +87,8 @@ class ReactVueLike extends React.Component {
     this._injects = [];
     this._inherits = null;
     this._el = null;
+    this._isMounted = false;
+    this._mountedPending = [];
     this.$refs = {};
     this.$parent = null;
     this.$root = null;
@@ -112,7 +116,11 @@ class ReactVueLike extends React.Component {
     let _computed = {};
     let _methods = {};
     let _watch = {};
+    let _directives = {};
+    let _filters = {};
     ctxs.forEach(ctx => {
+      if (ctx.filters) Object.assign(_filters, ctx.filters);
+      if (ctx.directives) Object.assign(_directives, ctx.directives);
       if (ctx.data) Object.assign(_data, ctx.data.call(this, _props));
       if (ctx.computed) Object.assign(_computed, ctx.computed);
       if (ctx.methods) Object.assign(_methods, ctx.methods);
@@ -121,6 +129,8 @@ class ReactVueLike extends React.Component {
       if (ctx.inject) ctx.inject.forEach(key => !this._injects.includes(key) && this._injects.push(key));
     });
 
+    this.$filters = _filters;
+    this.$directives = _directives;
     this.$data = _data;
     let _deeps = {};
     let _shadows = {};
@@ -142,25 +152,76 @@ class ReactVueLike extends React.Component {
 
     bindWatch(this, _watch);
 
+    Object.keys(config.inheritMergeStrategies).forEach(key => {
+      let child = this._inherits[key];
+      let parent = this[key];
+      if (!parent) return;
+      if (child) {
+        let v = config.inheritMergeStrategies[key](parent, child, this);
+        if (v !== child) this._inherits[key] = v;
+      } else this._inherits[key] = parent;
+    });
+
     this.$emit('hook:created');
-    this.$emit('hook:beforeMount');
+  }
+
+  _resolveFilter(filter, filterName) {
+    if (!this.$filters) return '';
+    try {
+      return filter();
+    } catch (e) {
+      // if (e && e.message) e.message = `['${filterName}' filter error]:${e.message}`;
+      handleError(e, this, `filter:${filterName}`);
+      return '';
+    }
+  }
+
+  _resolveMounted(done) {
+    const _pending = () => {
+      if (!this._isVueLikeRoot) {
+        Object.keys(config.optionMergeStrategies).forEach(key => {
+          let ret = config.optionMergeStrategies[key](this.$parent[key], this[key], this);
+          if (ret !== this[key]) this[key] = ret;
+        });
+      }
+      this.$root = this.$parent ? this.$parent.$root : this;
+
+      this._resolveInherits();
+      this._resolveInject();
+
+      let pending = this._mountedPending;
+      this._mountedPending = [];
+      pending.forEach(v => v());
+
+      done && done();
+    };
+
+    if (!this.$parent || this.$parent._isMounted) _pending();
+    else this.$parent._mountedPending.push(_pending);
+  }
+
+  _resolveInherits() {
+    if (!this._isVueLikeRoot && this.$parent) {
+      if (this.$parent._inherits) {
+        if (!this._inherits) this._inherits = {};
+        Object.assign(this._inherits, this.$parent._inherits);
+      }
+    }
+    if (this._inherits) {
+      Object.keys(this._inherits).forEach(key => {
+        let child = this[key];
+        let parent = this._inherits[key];
+        const merge = config.inheritMergeStrategies[key];
+        this[key] = merge ? merge(parent, child, this) : parent;
+      });
+    }
   }
 
   _resolveParent() {
     if (!this._isVueLikeRoot) {
       iterativeParent(this, parent => this.$parent = parent, ReactVueLike);
-      if (this.$parent) {
-        this.$parent.$children.push(this);
-
-        if (this.$parent._inherits) {
-          if (!this._inherits) this._inherits = {};
-          Object.assign(this._inherits, this.$parent._inherits);
-        }
-      }
+      if (this.$parent) this.$parent.$children.push(this);
     }
-    this.$root = this.$parent ? this.$parent.$root : this;
-
-    if (this._inherits) Object.assign(this, this._inherits);
   }
 
   _resolveInject() {
@@ -244,6 +305,10 @@ class ReactVueLike extends React.Component {
     ReactVueLike.mixins.push(m);
   }
 
+  static isRoot = false;
+
+  static isAbstract = false;
+
   static inherits = {
 
   }
@@ -253,6 +318,10 @@ class ReactVueLike extends React.Component {
   }
 
   static mixins = [];
+
+  static directives = {};
+
+  static filters = {};
 
   static data(props) {
     return {};
@@ -317,6 +386,10 @@ class ReactVueLike extends React.Component {
   //   ReactDOM.render(<App />, el);
   // }
 
+  $runInAction(...args) {
+    return runInAction(...args);
+  }
+
   $nextTick(cb, ctx) {
     this._ticks.push(ctx ? cb.bind(ctx) : cb);
   }
@@ -358,7 +431,8 @@ class ReactVueLike extends React.Component {
   $on(eventName, handler) {
     eventName = camelize(eventName);
     if (!this.$listeners[eventName]) this.$listeners[eventName] = [];
-    this.$listeners[eventName].push(handler.bind(this));
+    this.$listeners[eventName].push(handler);
+    return () => this.$off(eventName, handler);
   }
 
   $off(eventName, handler) {
@@ -369,17 +443,16 @@ class ReactVueLike extends React.Component {
         const idx = handlers.findIndex(v => v === handler);
         if (~idx) handlers.splice(idx, 1);
       }
-      return;
+      if (handlers.length) return;
     }
     delete this.$listeners[eventName];
   }
 
   $once(eventName, handler) {
-    eventName = camelize(eventName);
-    this.$listeners[eventName] = (...payload) => {
-      this.$off(eventName, handler);
-      return handler.call(this, ...payload);
-    };
+    const off = this.$on(eventName, function (...args) {
+      off();
+      return handler.call(this, ...args);
+    });
   }
 
   render(...args) {
@@ -392,12 +465,12 @@ class ReactVueLike extends React.Component {
   }
 
   componentDidMount() {
-    if (this._reactInternalFiber) {
-      this._resolveParent();
-      this._resolveInject();
-    }
+    this.$emit('hook:beforeMount');
 
-    this.$emit('hook:mounted');
+    this._resolveParent();
+    this._isMounted = true;
+
+    this._resolveMounted(() => this.$emit('hook:mounted'));
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
@@ -416,17 +489,18 @@ class ReactVueLike extends React.Component {
   componentDidCatch(error, info) {
     this.$emit('hook:errorCaptured', error, this, info);
   }
+
 }
 
-ReactVueLike.config.optionMergeStrategies = {
-
-};
-
+ReactVueLike.config.optionMergeStrategies = config.optionMergeStrategies;
+ReactVueLike.config.inheritMergeStrategies = config.inheritMergeStrategies;
 ReactVueLike.Component = ReactVueLike;
 
 function ReactHook() {
   const _createElement = React.createElement;
   React.createElement = function createElement(Component, ...args) {
+    if (Component === 'ReactVueLike.Directive') Component = ReactVueLike.Directive;
+
     if (!Component || !Component.props) return _createElement.call(this, Component, ...args);
     // eslint-disable-next-line
     if (!Component.propTypes && (Component.prototype instanceof ReactVueLike)) {
