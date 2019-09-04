@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactVueLike from 'react-vue-like';
-import { SSL_OP_NO_TLSv1_1 } from 'constants';
-import { AST_Accessor } from '_terser@4.2.1@terser';
+
+import 'some.scss?scoped';
 
 function Test() {
   return <div></div>;
@@ -11,10 +11,16 @@ function Test2() {
   return <div></div>;
 }
 
+var __dirname = '1';
+
 class App extends ReactVueLike {
 
   static data() {
     return {
+      __dirname,
+      dirname: a.__dirname,
+      filename: __filename,
+      now: __now,
       vif: true,
       vshow: true,
       formData: {
@@ -27,9 +33,9 @@ class App extends ReactVueLike {
   render() {
     // let lan;
     return (<div class="root">
-      {/* <span v-if={this.vif}>v-if showing</span>
-      <span v-show={this.vif && this.vshow} style={{ display: 'none' }}>v-show showing</span>
-      <input v-model={this.formData.text} />
+      <span className="dddd" v-if={this.vif}>v-if showing</span>
+      <span className={'aa' + ' bb'} v-show={this.vif && this.vshow} style={{ display: 'none' }}>v-show showing</span>
+      <input className={callFunc()} v-model={this.formData.text} />
       <input v-model={this.formData.text1} onChange={a => console.log(a)} />
       <span v-test_dd$aa$bb={[1,'2',true, null, undefined,
         new Date(1, a), new RegExp(), /dd/i, this.vif, {}, [],
@@ -42,7 +48,7 @@ class App extends ReactVueLike {
       </span>
       <Test dd="1" />
       <Test2 v-test2={{ aa: 1 }} />
-      <span> dd { dd | dd } dd </span>*/}
+      <span> dd { dd | dd } dd </span>
       <span a={ 11 | cc }> aa { 2 | 'aa.bb.cc'(123, 333) } bb {11 | dd.cc.ee  } { 22 | aa.bb.cc.dd(11) } { 33 | bb(bb) } bb { 44 | dd }</span>
     </div>);
   }

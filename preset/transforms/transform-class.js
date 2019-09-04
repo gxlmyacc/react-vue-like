@@ -7,9 +7,10 @@ module.exports = function ({ types: t }) {
     });
   }
 
-  function JSXAttributeVisitor(node) {
-    if (node.node.name.name === 'class') {
-      node.node.name.name = 'className';
+  function JSXAttributeVisitor(path) {
+    if (path.node.name.name === 'class') {
+      // removeAttributeVisitor(path, path.node);
+      path.node.name.name = 'className';
     }
   }
 

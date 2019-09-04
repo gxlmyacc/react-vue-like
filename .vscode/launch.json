@@ -10,9 +10,21 @@
       "name": "babel-preset-demo",
       "program": "${workspaceFolder}/node_modules/@babel/cli/bin/babel.js",
       "args": [
-        "preset/demo",
+        "preset/demo/src",
         "-d",
-        "preset/demo-out"
+        "preset/demo/out"
+      ],
+      "cwd":"${workspaceFolder}"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "babel-postcss-demo",
+      "program": "${workspaceFolder}/node_modules/_postcss-cli@6.1.3@postcss-cli/bin/postcss",
+      "args": [
+        "-o",
+        "postcss/demo/out/index.css",
+        "postcss/demo/src/*.css",
       ],
       "cwd":"${workspaceFolder}"
     }

@@ -19,6 +19,7 @@ function wrapModuleState(module) {
 }
 
 class Store {
+
   constructor(module = {}, parent, root, moduleName) {
     this.root = root || this;
     this.parent = parent;
@@ -222,6 +223,7 @@ class Store {
       if (~idx) this.actionListeners.splice(idx, 1);
     };
   }
+
 }
 
 export default Store;

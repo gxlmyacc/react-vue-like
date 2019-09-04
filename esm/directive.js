@@ -153,6 +153,8 @@ function (_ReactVueLike) {
   return Directive;
 }(_component.default);
 
+Directive.__file = __filename;
+
 _defineProperty(Directive, "props", {
   // _source: {
   //   type: [String, Object],

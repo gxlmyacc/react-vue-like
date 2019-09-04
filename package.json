@@ -1,7 +1,7 @@
 {
   "name": "react-vue-like",
-  "version": "0.0.7",
-  "description": "react-vue-like",
+  "version": "0.0.8",
+  "description": "write react componet like vue",
   "keywords": [
     "react-vue-like",
     "react",
@@ -23,7 +23,8 @@
     "build-src": "cross-env NODE_ENV=production webpack --progresss  --config build/webpack-prod.config.js",
     "build-esm": "babel src -d esm",
     "build": "npm run build-src && npm run build-esm",
-    "build-preset-demo": "babel preset/demo -d preset/demo-out",
+    "build-preset-demo": "babel preset/demo/src -d preset/demo/out",
+    "build-posscss-demo": "postcss -o postcss/demo/out/main.css postcss/demo/src/*.css",
     "prepublish": "npm run build"
   },
   "repository": {
@@ -51,11 +52,13 @@
     "@babel/plugin-transform-strict-mode": "^7.2.0",
     "@babel/preset-env": "7.4.5",
     "@babel/preset-react": "^7.0.0",
-    "babel-plugin-syntax-jsx": "^6.18.0",
-    "babylon": "^6.18.0",
+    "find-up": "^4.1.0",
+    "hash-sum": "^2.0.0",
     "lodash.clonedeep": "^4.5.0",
     "mobx": "^4.13.0",
     "mobx-react": "^6.1.3",
+    "postcss-cli": "^6.1.3",
+    "postcss-selector-parser": "^6.0.2",
     "prop-types": "^15.7.2",
     "react": "^16.9.0",
     "react-dom": "^16.9.0"
