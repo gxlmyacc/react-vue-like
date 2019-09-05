@@ -2,7 +2,7 @@ import React from 'react';
 import dd, {aa} from 'cc';
 import ReactVueLike from 'react-vue-like';
 
-import 'some.scss?scoped';
+import './index.scss?scoped';
 
 function Test() {
   return <div></div>;

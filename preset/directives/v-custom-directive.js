@@ -21,6 +21,7 @@ module.exports = function ({ types: t, template }) {
 
 
     iterativeAttrAST(path.node, attr => {
+      if (path.node.openingElement.name.name === DirectiveName) return;
       const matched = attr.name.name.match(attrName);
       if (!matched) return;
       let [, name, arg, modifiers] = matched;

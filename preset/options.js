@@ -31,7 +31,7 @@ module.exports = {
   },
   inject: {
     file: true,
-    scopeRegx: /\.((?:le|sc|sa|c)ss)\?scoped(.*)$/,
+    scopeRegx: /(\.(?:le|sc|sa|c)ss)\?scoped(.*)$/,
     scope: true
   },
   transform: {

@@ -29,7 +29,7 @@ var _cc = _interopRequireWildcard(require("cc"));
 
 var _reactVueLike = _interopRequireDefault(require("react-vue-like"));
 
-require("somescss?react-vue-like&scoped=true&id=data-v-215f84a6");
+require("./index.scss?react-vue-like&scoped=true&id=data-v-215f84a6");
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
 
@@ -211,7 +211,7 @@ function (_ReactVueLike) {
         __dirname: "/preset/demo/src",
         dirname: a.__dirname,
         filename: "/preset/demo/src/app.js",
-        now: "2019-09-05 10:16:23",
+        now: "2019-09-05 14:36:00",
         vif: true,
         vshow: true,
         formData: {
