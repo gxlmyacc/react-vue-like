@@ -1,6 +1,6 @@
 {
   "name": "react-vue-like",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "write react componet like vue",
   "keywords": [
     "react-vue-like",
@@ -17,7 +17,9 @@
     "dist",
     "build",
     "esm",
-    "preset"
+    "preset",
+    "loader",
+    "postcss"
   ],
   "scripts": {
     "build-src": "cross-env NODE_ENV=production webpack --progresss  --config build/webpack-prod.config.js",

@@ -270,6 +270,23 @@ function (_React$Component) {
   }
 
   _createClass(ReactVueLike, [{
+    key: "_resolveRef",
+    value: function _resolveRef(refName, el, key) {
+      if (!key) {
+        this.$refs[refName] = el;
+        return;
+      }
+
+      if (typeof key === 'number') {
+        if (!this.$refs[refName]) this.$refs[refName] = [];
+        this.$refs[refName][key] = el;
+        return;
+      }
+
+      if (!this.$refs[refName]) this.$refs[refName] = {};
+      this.$refs[refName][key] = el;
+    }
+  }, {
     key: "_resolveFilter",
     value: function _resolveFilter(filter, filterName) {
       if (!this.$filters) return '';
