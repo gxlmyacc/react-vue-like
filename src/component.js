@@ -165,6 +165,20 @@ class ReactVueLike extends React.Component {
     this.$emit('hook:created');
   }
 
+  _resolveRef(refName, el, key) {
+    if (!key) {
+      this.$refs[refName] = el;
+      return;
+    }
+    if (typeof key === 'number') {
+      if (!this.$refs[refName]) this.$refs[refName] = [];
+      this.$refs[refName][key] = el;
+      return;
+    }
+    if (!this.$refs[refName]) this.$refs[refName] = {};
+    this.$refs[refName][key] = el;
+  }
+
   _resolveFilter(filter, filterName) {
     if (!this.$filters) return '';
     try {

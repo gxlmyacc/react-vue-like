@@ -1,8 +1,11 @@
 const { declare } = require('@babel/helper-plugin-utils');
+const path = require('path');
+const { fileExists } = require('./utils');
 const options = require('./options');
 const transformClass = require('./transforms/transform-class');
 const transformFilter = require('./transforms/transform-filter');
 const transformConst = require('./transforms/transform-const');
+const transformRef = require('./transforms/transform-ref');
 // const vFor = require('./directives/v-for');
 const vIf = require('./directives/v-if');
 const vShow = require('./directives/v-show');
@@ -11,6 +14,11 @@ const vCustomDirective = require('./directives/v-custom-directive');
 
 const injectFile = require('./injects/inject-file');
 const injectScope = require('./injects/inject-scope');
+
+let pkg;
+if (fileExists(path.join(process.cwd(), 'package.json'))) {
+  pkg = require(path.join(process.cwd(), 'package.json'));
+}
 
 module.exports = declare((api, opts = {}) => {
   api.assertVersion(7);
@@ -28,6 +36,8 @@ module.exports = declare((api, opts = {}) => {
 
   options.attrNameKeys = Object.keys(options.attrName).map(key => options.attrName[key]);
 
+  options.pkg = pkg;
+
   const plugins = [];
 
   if (options.inject.file) plugins.push(injectFile);
@@ -36,6 +46,7 @@ module.exports = declare((api, opts = {}) => {
   if (options.transform.class) plugins.push(transformClass);
   if (options.transform.filter) plugins.push(transformFilter);
   if (options.transform.const) plugins.push(transformConst);
+  if (options.transform.ref) plugins.push(transformRef);
 
   if (options.directive.if) plugins.push(vIf);
   if (options.directive.show) plugins.push(vShow);

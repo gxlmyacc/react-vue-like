@@ -25,9 +25,13 @@ require("core-js/modules/es6.regexp.constructor");
 
 var _react = _interopRequireDefault(require("react"));
 
+var _cc = _interopRequireWildcard(require("cc"));
+
 var _reactVueLike = _interopRequireDefault(require("react-vue-like"));
 
-require("somescss?react-vue-like&scoped=true&id=data-v-4167244a");
+require("somescss?react-vue-like&scoped=true&id=data-v-215f84a6");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -70,11 +74,15 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
 function Test() {
-  return _react.default.createElement("div", null);
+  return _react.default.createElement("div", {
+    className: "data-v-215f84a6"
+  });
 }
 
 function Test2() {
-  return _react.default.createElement("div", null);
+  return _react.default.createElement("div", {
+    className: "data-v-215f84a6"
+  });
 }
 
 var _dirname = '1';
@@ -102,17 +110,24 @@ function (_ReactVueLike) {
       // let lan;
       return _react.default.createElement("div", {
         class: "root",
-        className: "data-v-4167244a"
+        className: "data-v-215f84a6"
       }, this.vif ? _react.default.createElement("span", {
-        className: "data-v-4167244a dddd"
+        ref: function ref(el) {
+          return _this._resolveRef("ddd", el, undefined);
+        },
+        className: "data-v-215f84a6 dddd"
       }, "v-if showing") : null, _react.default.createElement("span", {
-        className: "data-v-4167244a" + ' ' + ('aa' + ' bb'),
+        ref: function ref(el) {
+          return _this._resolveRef("bbb", el, "ccc");
+        },
+        key: "ccc",
+        className: "data-v-215f84a6" + ' ' + ('aa' + ' bb'),
         "v-show": this.vif && this.vshow,
         style: {
           display: 'none'
         }
       }, "v-show showing"), _react.default.createElement("input", {
-        className: "data-v-4167244a" + ' ' + callFunc(),
+        className: "data-v-215f84a6" + ' ' + callFunc(),
         value: this.formData.text,
         onChange: function onChange(e) {
           _this.formData.text = e.target.value;
@@ -128,9 +143,9 @@ function (_ReactVueLike) {
             return console.log(a);
           })(e);
         },
-        className: "data-v-4167244a"
+        className: "data-v-215f84a6"
       }), _react.default.createElement("ReactVueLike.Directive", {
-        className: "data-v-4167244a",
+        className: "data-v-215f84a6",
         _source: "span",
         _bindings: [{
           name: "test",
@@ -153,13 +168,13 @@ function (_ReactVueLike) {
 
             var ee = 1,
                 rr;
-          }].concat(_toConsumableArray(ddd), [a > c ? b - 1 : c + 1 ? c || d ? e ^ d : 11 : true, !d, i++, --i, (_ref4 = {}, _defineProperty(_ref4, dd, 1), _defineProperty(_ref4, "cc", 2), _ee = "ee", _mutatorMap = {}, _mutatorMap[_ee] = _mutatorMap[_ee] || {}, _mutatorMap[_ee].get = function () {}, _ee2 = "ee", _mutatorMap[_ee2] = _mutatorMap[_ee2] || {}, _mutatorMap[_ee2].set = function (v) {}, _defineProperty(_ref4, "rr", function rr() {}), _defineEnumerableProperties(_ref4, _mutatorMap), _ref4), "11".concat(1, "22", 3, "44")])
+          }].concat(_toConsumableArray(ddd), [a > c ? b - 1 : c + 1 ? c || d ? e ^ d : 11 : true, !d, i++, --i, (_ref4 = {}, _defineProperty(_ref4, _cc.default, 1), _defineProperty(_ref4, "cc", 2), _ee = "ee", _mutatorMap = {}, _mutatorMap[_ee] = _mutatorMap[_ee] || {}, _mutatorMap[_ee].get = function () {}, _ee2 = "ee", _mutatorMap[_ee2] = _mutatorMap[_ee2] || {}, _mutatorMap[_ee2].set = function (v) {}, _defineProperty(_ref4, "rr", function rr() {}), _defineEnumerableProperties(_ref4, _mutatorMap), _ref4), "11".concat(1, "22", 3, "44")])
         }]
       }), _react.default.createElement(Test, {
         dd: "1",
-        className: "data-v-4167244a"
+        className: "data-v-215f84a6"
       }), _react.default.createElement("ReactVueLike.Directive", {
-        className: "data-v-4167244a",
+        className: "data-v-215f84a6",
         _source: Test2,
         _bindings: [{
           name: "test2",
@@ -171,12 +186,12 @@ function (_ReactVueLike) {
           }
         }]
       }), _react.default.createElement("span", {
-        className: "data-v-4167244a"
+        className: "data-v-215f84a6"
       }, " dd ", this._resolveFilter(function () {
-        return _this.$filters.dd.call(null, dd);
+        return _this.$filters.dd.call(null, _cc.default);
       }, 'dd'), " dd "), _react.default.createElement("span", {
         a: 11 | cc,
-        className: "data-v-4167244a"
+        className: "data-v-215f84a6"
       }, " aa ", this._resolveFilter(function () {
         return _this.$filters.aa.bb.cc.call(null, [2, 123, 333]);
       }, 'aa.bb.cc'), " bb ", this._resolveFilter(function () {
@@ -196,7 +211,7 @@ function (_ReactVueLike) {
         __dirname: "/preset/demo/src",
         dirname: a.__dirname,
         filename: "/preset/demo/src/app.js",
-        now: "2019-09-04 14:52:03",
+        now: "2019-09-05 10:16:23",
         vif: true,
         vshow: true,
         formData: {
@@ -211,6 +226,6 @@ function (_ReactVueLike) {
 }(_reactVueLike.default);
 
 App.__file = __filename;
-App.__scopeId = "data-v-4167244a";
+App.__scopeId = "data-v-215f84a6";
 var _default = App;
 exports.default = _default;

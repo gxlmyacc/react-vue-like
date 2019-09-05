@@ -1,4 +1,5 @@
 import React from 'react';
+import dd, {aa} from 'cc';
 import ReactVueLike from 'react-vue-like';
 
 import 'some.scss?scoped';
@@ -33,8 +34,8 @@ class App extends ReactVueLike {
   render() {
     // let lan;
     return (<div class="root">
-      <span className="dddd" v-if={this.vif}>v-if showing</span>
-      <span className={'aa' + ' bb'} v-show={this.vif && this.vshow} style={{ display: 'none' }}>v-show showing</span>
+      <span ref="ddd" className="dddd" v-if={this.vif}>v-if showing</span>
+      <span ref="bbb" key="ccc" className={'aa' + ' bb'} v-show={this.vif && this.vshow} style={{ display: 'none' }}>v-show showing</span>
       <input className={callFunc()} v-model={this.formData.text} />
       <input v-model={this.formData.text1} onChange={a => console.log(a)} />
       <span v-test_dd$aa$bb={[1,'2',true, null, undefined,

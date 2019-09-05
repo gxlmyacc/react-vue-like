@@ -1,6 +1,7 @@
 
 const t = require('@babel/types');
 const template = require('@babel/template').default;
+const fs = require('fs');
 const types = require('./types');
 
 function objValueStr2AST(objValueStr, t) {
@@ -487,7 +488,16 @@ function camelize(str) {
   return str.replace(/-(\w)/g, function (_, c) { return c ? c.toUpperCase() : ''; });
 }
 
+function fileExists(path) {
+  try {
+    return !fs.accessSync(path, fs.F_OK);
+  } catch (e) {
+    return false;
+  }
+}
+
 module.exports = {
+  fileExists,
   camelize,
   isRequired,
   isReactComponent,

@@ -37,7 +37,8 @@ module.exports = {
   transform: {
     class: false,
     filter: true,
-    const: true
+    const: true,
+    ref: true,
   },
   directive: {
     if: true,

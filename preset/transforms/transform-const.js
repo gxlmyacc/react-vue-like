@@ -4,16 +4,8 @@ const {
   relative,
   dirname
 } = require('path');
-const fs = require('fs');
 const findUp = require('find-up');
-
-function fileExists(path) {
-  try {
-    return !fs.accessSync(path, fs.F_OK);
-  } catch (e) {
-    return false;
-  }
-}
+const { fileExists } = require('../utils');
 
 function getConfigPath(filename) {
   let packagePath = findUp.sync('package.json', {

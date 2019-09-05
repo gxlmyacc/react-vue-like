@@ -2,10 +2,13 @@ const postcss = require('postcss');
 const selectorParser = require('postcss-selector-parser');
 
 module.exports = postcss.plugin('react-vue-like-add-id', function (opts) {
+  // opts = opts || {
+  //   scoped: true,
+  //   id: 'v-data-123dse43'
+  // };
   opts = opts || {};
   return function (root) {
     if (!opts.scoped || !opts.id) return;
-    // opts = { id: 'aaaaaaaaaaaaaaa' };
     root.each(function rewriteSelector(node) {
       if (!node.selector) {
         if (node.type === 'atrule' && node.name === 'media') {
@@ -15,16 +18,13 @@ module.exports = postcss.plugin('react-vue-like-add-id', function (opts) {
       }
       node.selector = selectorParser(function (selectors) {
         selectors.each(function (selector) {
-          if (!opts.deep) {
-            let node = null;
-            selector.each(function (n) {
-              if (n.type !== 'pseudo') node = n;
-            });
-            selector.insertAfter(node, selectorParser.className({
+          let idx = selector.nodes.findIndex(n => n.type === 'combinator' && n.value === '>>>');
+          if (idx > 0) {
+            selector.nodes.splice(idx, 1, selectorParser.className({
               value: opts.id
-            }));
+            }), selectorParser.string({ value: ' ' }));
           } else {
-            selector.prepend(selectorParser.className({
+            selector.append(selectorParser.className({
               value: opts.id
             }));
           }
