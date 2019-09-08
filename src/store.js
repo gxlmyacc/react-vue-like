@@ -30,7 +30,7 @@ class Store {
     this.strict = Boolean(module.strict);
 
     this._commiting = false;
-    this._state = module.state || {};
+    this._state = observable.object(module.state || {});
     this.state = {};
     this.getters = {};
     this.mutations = {};
@@ -128,7 +128,7 @@ class Store {
   replaceState(state = {}) {
     const _state = { ...state };
     Object.keys(this.modules).forEach(moduleName => _state[moduleName] = this.modules[moduleName].state || {});
-    this._state = _state;
+    this._state = observable.object(_state);
     this.state = observable.object(wrapModuleState(this));
   }
 
@@ -164,7 +164,7 @@ class Store {
 
   commit(event, payload) {
     if (!event) return;
-    const [moduleName, eventName] = event.split('/')[0];
+    const [moduleName, eventName] = event.split('/');
     let ret;
 
     if (eventName) {
@@ -188,7 +188,7 @@ class Store {
 
   dispatch(event, payload) {
     if (!event) return;
-    const [moduleName, eventName] = event.split('/')[0];
+    const [moduleName, eventName] = event.split('/');
     let ret;
 
     if (eventName) {

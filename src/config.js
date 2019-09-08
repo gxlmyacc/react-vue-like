@@ -15,6 +15,8 @@ const config = {
   errorHandler: null,
   warnHandler: null,
 
+  inheritAttrs: ['className', 'style'],
+
   inheritMergeStrategies: {
 
   },

@@ -69,17 +69,38 @@ export function iterativeParent(ctx, callback, componentClass) {
   }
 }
 
-// export function findComponentEl(vm) {
-//   let node = vm && vm._reactInternalFiber;
-//   while (node) {
-//     let el = node.stateNode;
-//     if (el instanceof Element) return el;
-//     let child = node.child;
-//     if (!child) break;
-//     node = child.stateNode ? child : child._reactInternalFiber;
-//   }
-//   return null;
-// }
+export function findComponentEl(vm) {
+  if (!vm) return null;
+  let node = vm._owner || vm._reactInternalFiber;
+  while (node) {
+    let el = node.stateNode;
+    if (el instanceof Element) return el;
+    let child = node.child;
+    if (!child) break;
+    node = child.stateNode ? child : child._reactInternalFiber;
+  }
+  return null;
+}
+
+export function isPrimitive(value) {
+  return (
+    typeof value === 'string'
+    || typeof value === 'number'
+    || typeof value === 'symbol'
+    || typeof value === 'boolean'
+  );
+}
+
+export function isObject(obj) {
+  return obj !== null && typeof obj === 'object';
+}
+
+export function isFalsy(value) {
+  return value === undefined
+    || Number.isNaN(value)
+    || value === null
+    || value === false;
+}
 
 function warn(msg, vm) {
   let trace = vm ? generateComponentTrace(vm) : '';

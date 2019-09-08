@@ -89,7 +89,7 @@ function () {
     this.namespaced = module.namespaced || false;
     this.strict = Boolean(module.strict);
     this._commiting = false;
-    this._state = module.state || {};
+    this._state = _mobx.observable.object(module.state || {});
     this.state = {};
     this.getters = {};
     this.mutations = {};
@@ -223,7 +223,7 @@ function () {
       Object.keys(this.modules).forEach(function (moduleName) {
         return _state[moduleName] = _this5.modules[moduleName].state || {};
       });
-      this._state = _state;
+      this._state = _mobx.observable.object(_state);
       this.state = _mobx.observable.object(wrapModuleState(this));
     }
   }, {
@@ -270,9 +270,10 @@ function () {
 
       if (!event) return;
 
-      var _event$split$ = _slicedToArray(event.split('/')[0], 2),
-          moduleName = _event$split$[0],
-          eventName = _event$split$[1];
+      var _event$split = event.split('/'),
+          _event$split2 = _slicedToArray(_event$split, 2),
+          moduleName = _event$split2[0],
+          eventName = _event$split2[1];
 
       var ret;
 
@@ -307,9 +308,10 @@ function () {
 
       if (!event) return;
 
-      var _event$split$2 = _slicedToArray(event.split('/')[0], 2),
-          moduleName = _event$split$2[0],
-          eventName = _event$split$2[1];
+      var _event$split3 = event.split('/'),
+          _event$split4 = _slicedToArray(_event$split3, 2),
+          moduleName = _event$split4[0],
+          eventName = _event$split4[1];
 
       var ret;
 

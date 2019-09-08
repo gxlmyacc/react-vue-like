@@ -2,7 +2,32 @@
 const t = require('@babel/types');
 const template = require('@babel/template').default;
 const fs = require('fs');
+const findUp = require('find-up');
+const path = require('path');
 const types = require('./types');
+
+const DirectiveName = 'ReactVueLikeDirective';
+
+if (!Date.prototype.format) {
+  Date.prototype.format = function (fmt) {
+    let o = {
+      'M+': this.getMonth() + 1,
+      'd+': this.getDate(),
+      'h+': this.getHours(),
+      'm+': this.getMinutes(),
+      's+': this.getSeconds(),
+      'q+': Math.floor((this.getMonth() + 3) / 3),
+      S: this.getMilliseconds()
+    };
+    if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (this.getFullYear() + '').substr(4 - RegExp.$1.length));
+    Object.keys(o).forEach(k => {
+      if (new RegExp('(' + k + ')').test(fmt)) {
+        fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (('00' + o[k]).substr(('' + o[k]).length)));
+      }
+    });
+    return fmt;
+  };
+}
 
 function objValueStr2AST(objValueStr, t) {
   const values = objValueStr.split('.');
@@ -108,8 +133,32 @@ function extractNodeCode(path, node) {
   return ret.join('\n');
 }
 
+function expr2var(expr) {
+  if (!expr) return;
+  switch (expr.type) {
+    case 'MemberExpression':
+      return memberExpr2Str(expr);
+    case 'ThisExpression':
+      return 'this';
+    case 'Identifier':
+    case 'JSXIdentifier':
+      return expr.name;
+    case 'NumericLiteral':
+    case 'BooleanLiteral':
+    case 'StringLiteral':
+    case 'jSXText':
+      return expr.value;
+    case 'NullLiteral':
+      return null;
+    case 'RegExpLiteral':
+      return new RegExp(expr.pattern, expr.flags);
+    default:
+      throw new Error(`not support type: ${expr.type}!`);
+  }
+}
+
 function expr2str(expr) {
-  if (expr.extra) return expr.extra.raw;
+  // if (expr.extra) return expr.extra.raw;
   switch (expr.type) {
     case 'MemberExpression':
       return memberExpr2Str(expr);
@@ -496,7 +545,45 @@ function fileExists(path) {
   }
 }
 
+function getConfigPath(filename) {
+  let packagePath = findUp.sync('package.json', {
+    cwd: path.dirname(filename),
+    type: 'file'
+  });
+  if (packagePath && fileExists(packagePath)) return packagePath;
+}
+
+const NOW = (new Date()).format('yyyy-MM-dd hh:mm:ss');
+const constCached = [];
+function getConstCache(filename) {
+  const pkgPath = getConfigPath(filename);
+  if (!pkgPath || filename === path.resolve(pkgPath)) return {};
+
+  let cwd;
+
+  let cache = constCached[pkgPath];
+  if (!cache) {
+    let pkg = require(pkgPath);
+    if (!pkg || !Object.keys(pkg).length) return {};
+
+    cwd = path.dirname(pkgPath);
+
+    cache = { pkg, cwd };
+    constCached[pkgPath] = cache;
+
+    cache.now = NOW;
+  }
+  cwd = cache.cwd;
+
+  cache.filename = '/' + path.relative(cwd, filename).replace(/\\/g, '/');
+  cache.dirname = '/' + path.relative(cwd, path.dirname(filename)).replace(/\\/g, '/');
+
+  return cache;
+}
+
 module.exports = {
+  DirectiveName,
+  getConstCache,
   fileExists,
   camelize,
   isRequired,
@@ -527,5 +614,6 @@ module.exports = {
   createDisplayProp,
   requireStatement,
   extractNodeCode,
+  expr2var,
   log
 };

@@ -1,23 +1,7 @@
 
 const {
-  resolve,
-  relative,
-  dirname
-} = require('path');
-const findUp = require('find-up');
-const { fileExists } = require('../utils');
-
-function getConfigPath(filename) {
-  let packagePath = findUp.sync('package.json', {
-    cwd: dirname(filename),
-    type: 'file'
-  });
-  if (packagePath && fileExists(packagePath)) return packagePath;
-}
-
-const cached = {};
-
-const NOW = (new Date()).format('yyyy-MM-dd hh:mm:ss');
+  getConstCache
+} = require('../utils');
 
 module.exports = function ({ types: t }) {
   function IdentifierVisitor(path) {
@@ -51,25 +35,7 @@ module.exports = function ({ types: t }) {
               opts: { filename }
             },
           }) {
-          const pkgPath = getConfigPath(filename);
-          if (!pkgPath || filename === resolve(pkgPath)) return;
-
-          let cwd;
-
-          let cache = cached[pkgPath];
-          if (!cache) {
-            let pkg = require(pkgPath);
-            if (!pkg || !Object.keys(pkg).length) return;
-
-            cwd = dirname(pkgPath);
-
-            cache = { pkg, cwd };
-            cached[pkgPath] = cache;
-
-            cache.filename = '/' + relative(cwd, filename).replace(/\\/g, '/');
-            cache.dirname = '/' + relative(cwd, dirname(filename)).replace(/\\/g, '/');
-            cache.now = NOW;
-          }
+          const cache = getConstCache(filename);
 
           path.traverse({
             Identifier: IdentifierVisitor

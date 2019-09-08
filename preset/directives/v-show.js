@@ -15,13 +15,15 @@ module.exports = function ({ types: t }) {
     });
 
     function JSXAttributeVisitor(vShow) {
-      if (showAttrName !== vShow.node.name.name) return;
+      const attr = vShow.node;
+      if (!attr.name
+        || showAttrName !== attr.name.name) return;
 
-      const condition = parseCondition(vShow.node);
+      const condition = parseCondition(attr);
 
       removeAttributeVisitor(path, vShow);
 
-      const styleAttr = path.node.openingElement.attributes.find(attr => attr.name.name === 'style');
+      const styleAttr = path.node.openingElement.attributes.find(attr => attr.name && attr.name.name === 'style');
       if (styleAttr) {
         const styleProps = styleAttr.value.expression.properties;
         const displayProp = styleProps.find(prop => prop.key.name === 'display');

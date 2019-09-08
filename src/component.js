@@ -3,15 +3,25 @@ import ReactDOM from 'react-dom';
 import { extendObservable, observe, when, set, remove } from 'mobx';
 import { observer, runInAction } from 'mobx-react';
 import {
+  isPrimitive, isFalsy, isObject,
   parseExpr, camelize, isFunction, iterativeParent, handleError, defComputed
 } from './utils';
 import config from './config';
 import propcheck from './prop-check';
 
-function generateComputed(obj) {
+function generateComputed(obj, propData, data, target) {
   const ret = {};
-
   Object.keys(obj).forEach(key => {
+    if (key in propData) {
+      let e = new Error(`key '${key}' in computed cannot be duplicated with props`);
+      handleError(e, this, `constructor:${target.name}`);
+      throw e;
+    }
+    if (key in data) {
+      let e = new Error(`key '${key}' in computed cannot be duplicated with data()`);
+      handleError(e, this, `constructor:${target.name}`);
+      throw e;
+    }
     const v = obj[key];
     if (isFunction(v)) return defComputed(ret, key, v);
     defComputed(ret, key, v.get, v.set);
@@ -68,6 +78,25 @@ function initListeners(ctxs, props) {
   return listeners;
 }
 
+function parseProps(target, props, propTypes) {
+  const propData = {};
+  const attrs = {};
+  if (!propTypes) propTypes = {};
+  Object.keys(props).forEach(key => {
+    if (['ref', 'children'].includes(key)
+      || /^[$_]/.test(key)) {
+      if (propTypes[key]) propData[key] = props[key];
+      return;
+    }
+    if (target.inheritAttrs || target.inheritAttrs === undefined) {
+      if (Array.isArray(target.inheritAttrs) && ~target.inheritAttrs.indexOf(key)) return;
+      if (config.inheritAttrs.indexOf(key)) return;
+    }
+    attrs[key] = props[key];
+  });
+  return { propData, attrs };
+}
+
 @observer
 class ReactVueLike extends React.Component {
 
@@ -75,10 +104,13 @@ class ReactVueLike extends React.Component {
     super(_props);
 
     const target = new.target;
-    const { mixins, isRoot, isAbstract, inherits } = target;
+    // eslint-disable-next-line
+    const { propTypes, mixins, isRoot, isAbstract, inherits } = target;
 
     if (isRoot) this._isVueLikeRoot = true;
     if (isAbstract) this._isVueLikeAbstract = true;
+
+    const { propData, attrs } = parseProps(target, _props, propTypes);
 
     this._isVueLike = true;
     this._type = target;
@@ -87,12 +119,15 @@ class ReactVueLike extends React.Component {
     this._injects = [];
     this._inherits = null;
     this._el = null;
-    this._isMounted = false;
     this._mountedPending = [];
     this.$refs = {};
     this.$parent = null;
     this.$root = null;
     this.$children = [];
+    this.$attrs = attrs;
+    this.$slots = _props.$slots || {};
+
+    extendObservable(this, { _isMounted: false });
 
     defComputed(this, '$el', () => this._el || (this._el = ReactDOM.findDOMNode(this)), v => {
       throw new Error('ReactVueLike error: $el is readonly!');
@@ -109,6 +144,7 @@ class ReactVueLike extends React.Component {
 
     const ctxs = mixins ? [...ReactVueLike.mixins, ...mixins, target] : [...ReactVueLike.mixins, target];
     this.$listeners = initListeners(ctxs, _props);
+
 
     this.$emit('hook:beforeCreate', _props);
 
@@ -129,19 +165,26 @@ class ReactVueLike extends React.Component {
       if (ctx.inject) ctx.inject.forEach(key => !this._injects.includes(key) && this._injects.push(key));
     });
 
+    extendObservable(this, propData);
+
     this.$filters = _filters;
     this.$directives = _directives;
     this.$data = _data;
     let _deeps = {};
     let _shadows = {};
     Object.keys(_data).forEach(key => {
+      if (key in propData) {
+        let e = new Error(`key '${key}' in data() cannot be duplicated with props`);
+        handleError(e, this, `constructor:${target.name}`);
+        throw e;
+      }
       if (key.startsWith('_')) _shadows[key] = _data[key];
       else _deeps[key] = _data[key];
     });
     extendObservable(this, _deeps, {}, { deep: true });
     extendObservable(this, _shadows, {}, { deep: false });
 
-    extendObservable(this, generateComputed(_computed));
+    extendObservable(this, generateComputed(_computed, propData, _data, target));
 
     bindMethods(this, _methods);
     const pMethods = {};
@@ -166,17 +209,65 @@ class ReactVueLike extends React.Component {
   }
 
   _resolveRef(refName, el, key) {
-    if (!key) {
-      this.$refs[refName] = el;
-      return;
+    this.$refs[refName] = el;
+    // if (!key) {
+    //   this.$refs[refName] = el;
+    //   return;
+    // }
+    // if (typeof key === 'number') {
+    //   if (!this.$refs[refName]) this.$refs[refName] = [];
+    //   this.$refs[refName][key] = el;
+    //   return;
+    // }
+    // if (!this.$refs[refName]) this.$refs[refName] = {};
+    // this.$refs[refName][key] = el;
+  }
+
+  _resolveSlot(slotName, scope, children) {
+    let slot = this.$slots[slotName];
+    let ret;
+    if (Array.isArray(slot)) {
+      ret = slot.map((s, i) => (typeof s === 'function' ? s(scope) : s));
+      if (!ret.length) ret = null;
+    } else ret = typeof slot === 'function' ? slot(scope) : slot;
+    return ret || children;
+  }
+
+  _resolveSpreadAttrs(tagName, props) {
+    if (this._type.inheritAttrs === false) return props;
+
+    let inheritAttrs = Array.isArray(this._type.inheritAttrs)
+      ? this._type.inheritAttrs
+      : config.inheritAttrs;
+
+    const RETX_DOM = /^[a-z]/;
+    let attrs = {};
+    const isPrimitiveTag = RETX_DOM.test(tagName);
+    inheritAttrs.forEach(key => {
+      let v = this.props[key];
+      if (isFalsy(v)) return;
+      if (key !== 'style' && isPrimitiveTag && !isPrimitive(v)) v = '';
+      if (v === true) v = '';
+      attrs[key] = v;
+    });
+
+    if (attrs.className && props.className && attrs.className !== props.className) {
+      let ac = attrs.className.split(' ');
+      let pc = props.className.split(' ');
+      pc.forEach(c => {
+        if (!c) return;
+        if (~ac.indexOf(c)) return;
+        ac.push(c);
+      });
+      attrs.className = ac.join(' ');
+      delete props.className;
     }
-    if (typeof key === 'number') {
-      if (!this.$refs[refName]) this.$refs[refName] = [];
-      this.$refs[refName][key] = el;
-      return;
+    if (isObject(attrs.style) && isObject(props.style) && attrs.style !== props.style) {
+      Object.assign(attrs.style, props.style);
+      delete props.style;
     }
-    if (!this.$refs[refName]) this.$refs[refName] = {};
-    this.$refs[refName][key] = el;
+
+    return Object.assign(attrs, props);
   }
 
   _resolveFilter(filter, filterName) {
@@ -184,7 +275,6 @@ class ReactVueLike extends React.Component {
     try {
       return filter();
     } catch (e) {
-      // if (e && e.message) e.message = `['${filterName}' filter error]:${e.message}`;
       handleError(e, this, `filter:${filterName}`);
       return '';
     }
@@ -192,7 +282,7 @@ class ReactVueLike extends React.Component {
 
   _resolveMounted(done) {
     const _pending = () => {
-      if (!this._isVueLikeRoot) {
+      if (!this._isVueLikeRoot && this.$parent) {
         Object.keys(config.optionMergeStrategies).forEach(key => {
           let ret = config.optionMergeStrategies[key](this.$parent[key], this[key], this);
           if (ret !== this[key]) this[key] = ret;
@@ -200,8 +290,10 @@ class ReactVueLike extends React.Component {
       }
       this.$root = this.$parent ? this.$parent.$root : this;
 
-      this._resolveInherits();
-      this._resolveInject();
+      if (this.$parent) {
+        this._resolveInherits();
+        this._resolveInject();
+      }
 
       let pending = this._mountedPending;
       this._mountedPending = [];
@@ -323,19 +415,17 @@ class ReactVueLike extends React.Component {
 
   static isAbstract = false;
 
-  static inherits = {
+  static inheritAttrs = true;
 
-  }
+  static inherits = {}
 
-  static props = {
+  static props = {}
 
-  }
+  static mixins = []
 
-  static mixins = [];
+  static directives = {}
 
-  static directives = {};
-
-  static filters = {};
+  static filters = {}
 
   static data(props) {
     return {};
@@ -345,19 +435,13 @@ class ReactVueLike extends React.Component {
 
   }
 
-  static inject = [];
+  static inject = []
 
-  static computed = {
+  static computed = {}
 
-  }
+  static watch = {}
 
-  static watch = {
-
-  }
-
-  static methods = {
-
-  }
+  static methods = {}
 
   beforeCreate(props = {}) {
 
@@ -470,7 +554,29 @@ class ReactVueLike extends React.Component {
   }
 
   render(...args) {
-    return this._renderFn && this._renderFn(...args);
+    if (!this._isMounted) return null;
+    let node = this._renderFn && this._renderFn(...args);
+    // let el = this.$el;
+    // if (el) {
+    //   let inheritAttrs = Array.isArray(this._type.inheritAttrs)
+    //     ? this._type.inheritAttrs
+    //     : config.inheritAttrs;
+    //   inheritAttrs.forEach(key => {
+    //     let v = this.props[key];
+    //     if (!v) return;
+    //     switch (key) {
+    //       case 'className':
+    //         el.classList.add(...(v.split(' ').filter(Boolean)));
+    //         break;
+    //       case 'style':
+    //         if (isObject(v)) Object.assign(el.style, v);
+    //         break;
+    //       default: //
+    //     }
+    //   });
+    // }
+    // console.log('ReactVueLike.render', this._type.name, node);
+    return node;
   }
 
   getSnapshotBeforeUpdate(prevProps, prevState) {
@@ -513,15 +619,16 @@ ReactVueLike.Component = ReactVueLike;
 function ReactHook() {
   const _createElement = React.createElement;
   React.createElement = function createElement(Component, ...args) {
-    if (Component === 'ReactVueLike.Directive') Component = ReactVueLike.Directive;
-
     if (!Component || !Component.props) return _createElement.call(this, Component, ...args);
     // eslint-disable-next-line
     if (!Component.propTypes && (Component.prototype instanceof ReactVueLike)) {
       Component = propcheck(Component);
-      if (Component.beforeConstructor) Component.beforeConstructor(Component);
     }
-    return _createElement.call(this, Component, ...args);
+    let newComponent;
+    if (Component.beforeConstructor) {
+      newComponent = Component.beforeConstructor(...args);
+    }
+    return _createElement.call(this, newComponent || Component, ...args);
   };
 }
 

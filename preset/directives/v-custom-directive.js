@@ -1,15 +1,12 @@
 const {
-  addDefaultImport,
+  DirectiveName,
   iterativeAttrAST,
   var2Expression,
-  isRequired,
   removeAttrAST,
   extractNodeCode
 } = require('../utils');
 
 const options = require('../options');
-
-const DirectiveName = 'ReactVueLike.Directive';
 
 module.exports = function ({ types: t, template }) {
   function JSXElementVisitor(path) {
@@ -18,7 +15,6 @@ module.exports = function ({ types: t, template }) {
     const attrName = new RegExp(`^${prefix}([a-z0-9-]+)(?:_([a-z0-9-]+))?((?:\\$[a-z0-9-]+)*)$`, 'i');
 
     let bindings = [];
-
 
     iterativeAttrAST(path.node, attr => {
       if (path.node.openingElement.name.name === DirectiveName) return;
@@ -70,16 +66,38 @@ module.exports = function ({ types: t, template }) {
     visitor: {
       Program: {
         enter(path) {
-          const context = {
+          const ctx = {
+            declaration: null,
             hasDirectvie: false
           };
 
           path.traverse({
+            ImportDeclaration(path) {
+              if (path.node.source.value === 'react-vue-like') {
+                this.declaration = path.node;
+              }
+            },
             JSXElement: JSXElementVisitor,
-          }, context);
+          }, ctx);
 
-          if (context.hasDirectvie && !isRequired(path, 'react-vue-like')) {
-            addDefaultImport(path, 'ReactVueLike', 'react-vue-like');
+          if (ctx.hasDirectvie) {
+            if (ctx.declaration) {
+              if (!ctx.declaration.specifiers.find(v => v.local.name === DirectiveName)) {
+                ctx.declaration.specifiers.push(
+                  t.importSpecifier(t.identifier(DirectiveName), t.identifier(DirectiveName))
+                );
+              }
+            } else {
+              path.unshiftContainer(
+                'body',
+                t.importDeclaration(
+                  [
+                    t.importSpecifier(t.identifier(DirectiveName), t.identifier(DirectiveName))
+                  ],
+                  t.stringLiteral('react-vue-like'),
+                )
+              );
+            }
           }
         },
       },

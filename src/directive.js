@@ -4,13 +4,13 @@ import {
   handleError
 } from './utils';
 
-class Directive extends ReactVueLike {
+class ReactVueLikeDirective extends ReactVueLike {
 
   static props = {
-    // _source: {
-    //   type: [String, Object],
-    //   required: true
-    // },
+    _source: {
+      // type: [String, Object],
+      required: true
+    },
     _bindings: {
       type: Array,
       required: true
@@ -59,4 +59,4 @@ class Directive extends ReactVueLike {
 
 }
 
-export default Directive;
+export default ReactVueLikeDirective;

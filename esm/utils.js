@@ -8,6 +8,10 @@ exports.isFunction = isFunction;
 exports.parseExpr = parseExpr;
 exports.camelize = camelize;
 exports.iterativeParent = iterativeParent;
+exports.findComponentEl = findComponentEl;
+exports.isPrimitive = isPrimitive;
+exports.isObject = isObject;
+exports.isFalsy = isFalsy;
 exports.handleError = handleError;
 Object.defineProperty(exports, "observable", {
   enumerable: true,
@@ -100,9 +104,15 @@ Object.defineProperty(exports, "Observer", {
   }
 });
 
+require("core-js/modules/es7.symbol.async-iterator");
+
+require("core-js/modules/es6.symbol");
+
 require("core-js/modules/es6.regexp.to-string");
 
 require("core-js/modules/es6.object.to-string");
+
+require("core-js/modules/es6.number.constructor");
 
 require("core-js/modules/es6.regexp.replace");
 
@@ -115,6 +125,8 @@ var _config = _interopRequireDefault(require("./config"));
 var _mobxReact = require("mobx-react");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 // isArray support ObservableArray
 var arrayType = _mobx.observable.array([11, 22]);
@@ -185,18 +197,34 @@ function iterativeParent(ctx, callback, componentClass) {
     if (vm && vm._isVueLikeRoot) break;
     parentNode = parentNode.return;
   }
-} // export function findComponentEl(vm) {
-//   let node = vm && vm._reactInternalFiber;
-//   while (node) {
-//     let el = node.stateNode;
-//     if (el instanceof Element) return el;
-//     let child = node.child;
-//     if (!child) break;
-//     node = child.stateNode ? child : child._reactInternalFiber;
-//   }
-//   return null;
-// }
+}
 
+function findComponentEl(vm) {
+  if (!vm) return null;
+  var node = vm._owner || vm._reactInternalFiber;
+
+  while (node) {
+    var el = node.stateNode;
+    if (el instanceof Element) return el;
+    var child = node.child;
+    if (!child) break;
+    node = child.stateNode ? child : child._reactInternalFiber;
+  }
+
+  return null;
+}
+
+function isPrimitive(value) {
+  return typeof value === 'string' || typeof value === 'number' || _typeof(value) === 'symbol' || typeof value === 'boolean';
+}
+
+function isObject(obj) {
+  return obj !== null && _typeof(obj) === 'object';
+}
+
+function isFalsy(value) {
+  return value === undefined || Number.isNaN(value) || value === null || value === false;
+}
 
 function warn(msg, vm) {
   var trace = vm ? generateComponentTrace(vm) : '';

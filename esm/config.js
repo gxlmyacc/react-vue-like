@@ -23,6 +23,7 @@ var config = {
   silent: false,
   errorHandler: null,
   warnHandler: null,
+  inheritAttrs: ['className', 'style'],
   inheritMergeStrategies: {},
   optionMergeStrategies: {
     $directives: directivesMergeStrategies,

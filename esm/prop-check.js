@@ -21,6 +21,8 @@ require("core-js/modules/es6.object.to-string");
 
 require("core-js/modules/es6.object.keys");
 
+var _react = _interopRequireDefault(require("react"));
+
 var _propTypes2 = _interopRequireDefault(require("prop-types"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -71,6 +73,9 @@ function generateProps(aPropTypes, aProps) {
       }, {
         type: Symbol,
         value: _propTypes2.default.symbol
+      }, {
+        type: _react.default.Component,
+        value: _propTypes2.default.element
       }];
 
       function _getPropType(type, required) {

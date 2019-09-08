@@ -1,4 +1,5 @@
 
+import React from 'react';
 import PropTypes from 'prop-types';
 
 function generateProps(aPropTypes, aProps) {
@@ -26,6 +27,7 @@ function generateProps(aPropTypes, aProps) {
         { type: String, value: PropTypes.string },
         { type: Number, value: PropTypes.number },
         { type: Symbol, value: PropTypes.symbol },
+        { type: React.Component, value: PropTypes.element },
       ];
       function _getPropType(type, required) {
         let ret = PropTypes.any;

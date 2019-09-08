@@ -29,20 +29,20 @@ module.exports = function ({ types: t, template }) {
               this.scopeId = createScopeId(filename);
               path.node.source.value = source.replace(this.regx, `$1?react-vue-like&scoped=true&id=${this.scopeId}`);
             },
-            ClassDeclaration(path) {
-              if (!this.scopeId) return path.stop();
-              if (path.node.superClass && path.node.superClass.name === 'ReactVueLike') {
-                path.insertAfter(template(`${path.node.id.name}.__scopeId = $SCOPEID$;`)({
-                  $SCOPEID$: t.stringLiteral(this.scopeId)
-                }));
-              }
-            },
+            // ClassDeclaration(path) {
+            //   if (!this.scopeId) return path.stop();
+            //   if (path.node.superClass && path.node.superClass.name === 'ReactVueLike') {
+            //     path.insertAfter(template(`${path.node.id.name}.__scopeId = $SCOPEID$;`)({
+            //       $SCOPEID$: t.stringLiteral(this.scopeId)
+            //     }));
+            //   }
+            // },
           }, ctx);
 
           if (ctx.scopeId) {
             path.traverse({
               JSXElement(path) {
-                const classAttr = path.node.openingElement.attributes.find(attr => attr.name.name === 'className');
+                const classAttr = path.node.openingElement.attributes.find(attr => attr.name && attr.name.name === 'className');
                 if (classAttr) {
                   if (t.isStringLiteral(classAttr.value)) {
                     classAttr.value = t.stringLiteral(`${this.scopeId} ${classAttr.value.value}`);

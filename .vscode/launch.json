@@ -19,6 +19,18 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "babel-preset-demo-app",
+      "program": "${workspaceFolder}/node_modules/@babel/cli/bin/babel.js",
+      "args": [
+        "preset/demo/src/app.js",
+        "-d",
+        "preset/demo/out"
+      ],
+      "cwd":"${workspaceFolder}"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "babel-postcss-demo",
       "program": "${workspaceFolder}/node_modules/_postcss-cli@6.1.3@postcss-cli/bin/postcss",
       "args": [
@@ -27,6 +39,18 @@
         "postcss/demo/src/*.css",
       ],
       "cwd":"${workspaceFolder}"
-    }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "build-demo",
+      "program": "${workspaceFolder}/demo/node_modules/_webpack@4.39.3@webpack/bin/webpack.js",
+      "args": [
+        "--progress",
+        "--config",
+        "build/webpack-dev.config.js"
+      ],
+      "cwd":"${workspaceFolder}/demo"
+    },
   ]
 }

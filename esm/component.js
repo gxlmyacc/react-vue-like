@@ -23,13 +23,15 @@ require("regenerator-runtime/runtime");
 
 require("core-js/modules/es6.array.find-index");
 
+require("core-js/modules/es6.regexp.split");
+
 require("core-js/modules/es6.string.starts-with");
+
+require("core-js/modules/es6.object.assign");
 
 require("core-js/modules/es7.array.includes");
 
 require("core-js/modules/es6.string.includes");
-
-require("core-js/modules/es6.object.assign");
 
 require("core-js/modules/es6.regexp.match");
 
@@ -99,9 +101,24 @@ function _iterableToArrayLimit(arr, i) { var _arr = []; var _n = true; var _d = 
 
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
-function generateComputed(obj) {
+function generateComputed(obj, propData, data, target) {
+  var _this = this;
+
   var ret = {};
   Object.keys(obj).forEach(function (key) {
+    if (key in propData) {
+      var e = new Error("key '".concat(key, "' in computed cannot be duplicated with props"));
+      (0, _utils.handleError)(e, _this, "constructor:".concat(target.name));
+      throw e;
+    }
+
+    if (key in data) {
+      var _e = new Error("key '".concat(key, "' in computed cannot be duplicated with data()"));
+
+      (0, _utils.handleError)(_e, _this, "constructor:".concat(target.name));
+      throw _e;
+    }
+
     var v = obj[key];
     if ((0, _utils.isFunction)(v)) return (0, _utils.defComputed)(ret, key, v);
     (0, _utils.defComputed)(ret, key, v.get, v.set);
@@ -158,57 +175,91 @@ function initListeners(ctxs, props) {
   return listeners;
 }
 
+function parseProps(target, props, propTypes) {
+  var propData = {};
+  var attrs = {};
+  if (!propTypes) propTypes = {};
+  Object.keys(props).forEach(function (key) {
+    if (['ref', 'children'].includes(key) || /^[$_]/.test(key)) {
+      if (propTypes[key]) propData[key] = props[key];
+      return;
+    }
+
+    if (target.inheritAttrs || target.inheritAttrs === undefined) {
+      if (Array.isArray(target.inheritAttrs) && ~target.inheritAttrs.indexOf(key)) return;
+      if (_config2.default.inheritAttrs.indexOf(key)) return;
+    }
+
+    attrs[key] = props[key];
+  });
+  return {
+    propData: propData,
+    attrs: attrs
+  };
+}
+
 var ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 =
 /*#__PURE__*/
 function (_React$Component) {
   _inherits(ReactVueLike, _React$Component);
 
   function ReactVueLike(_props) {
-    var _this;
+    var _this2;
 
     _classCallCheck(this, ReactVueLike);
 
-    _this = _possibleConstructorReturn(this, _getPrototypeOf(ReactVueLike).call(this, _props));
-    var target = this instanceof ReactVueLike ? this.constructor : void 0;
-    var mixins = target.mixins,
+    _this2 = _possibleConstructorReturn(this, _getPrototypeOf(ReactVueLike).call(this, _props));
+    var target = this instanceof ReactVueLike ? this.constructor : void 0; // eslint-disable-next-line
+
+    var propTypes = target.propTypes,
+        mixins = target.mixins,
         isRoot = target.isRoot,
         isAbstract = target.isAbstract,
         inherits = target.inherits;
-    if (isRoot) _this._isVueLikeRoot = true;
-    if (isAbstract) _this._isVueLikeAbstract = true;
-    _this._isVueLike = true;
-    _this._type = target;
-    _this._ticks = [];
-    _this._provides = [];
-    _this._injects = [];
-    _this._inherits = null;
-    _this._el = null;
-    _this._isMounted = false;
-    _this._mountedPending = [];
-    _this.$refs = {};
-    _this.$parent = null;
-    _this.$root = null;
-    _this.$children = [];
-    (0, _utils.defComputed)(_assertThisInitialized(_this), '$el', function () {
-      return _this._el || (_this._el = _reactDom.default.findDOMNode(_assertThisInitialized(_this)));
+    if (isRoot) _this2._isVueLikeRoot = true;
+    if (isAbstract) _this2._isVueLikeAbstract = true;
+
+    var _parseProps = parseProps(target, _props, propTypes),
+        propData = _parseProps.propData,
+        attrs = _parseProps.attrs;
+
+    _this2._isVueLike = true;
+    _this2._type = target;
+    _this2._ticks = [];
+    _this2._provides = [];
+    _this2._injects = [];
+    _this2._inherits = null;
+    _this2._el = null;
+    _this2._mountedPending = [];
+    _this2.$refs = {};
+    _this2.$parent = null;
+    _this2.$root = null;
+    _this2.$children = [];
+    _this2.$attrs = attrs;
+    _this2.$slots = _props.$slots || {};
+    (0, _mobx.extendObservable)(_assertThisInitialized(_this2), {
+      _isMounted: false
+    });
+    (0, _utils.defComputed)(_assertThisInitialized(_this2), '$el', function () {
+      return _this2._el || (_this2._el = _reactDom.default.findDOMNode(_assertThisInitialized(_this2)));
     }, function (v) {
       throw new Error('ReactVueLike error: $el is readonly!');
     });
-    _this._renderFn = _this.render;
-    _this.render = ReactVueLike.prototype.render;
+    _this2._renderFn = _this2.render;
+    _this2.render = ReactVueLike.prototype.render;
     var inheritsKeys = inherits && Object.keys(inherits);
 
     if (inheritsKeys.length) {
-      _this._inherits = {};
+      _this2._inherits = {};
       inheritsKeys.forEach(function (key) {
-        return _this._inherits[key] = inherits[key];
+        return _this2._inherits[key] = inherits[key];
       });
     }
 
     var ctxs = mixins ? [].concat(_toConsumableArray(ReactVueLike.mixins), _toConsumableArray(mixins), [target]) : [].concat(_toConsumableArray(ReactVueLike.mixins), [target]);
-    _this.$listeners = initListeners(ctxs, _props);
+    _this2.$listeners = initListeners(ctxs, _props);
 
-    _this.$emit('hook:beforeCreate', _props);
+    _this2.$emit('hook:beforeCreate', _props);
 
     var _data = {};
     var _computed = {};
@@ -219,72 +270,129 @@ function (_React$Component) {
     ctxs.forEach(function (ctx) {
       if (ctx.filters) Object.assign(_filters, ctx.filters);
       if (ctx.directives) Object.assign(_directives, ctx.directives);
-      if (ctx.data) Object.assign(_data, ctx.data.call(_assertThisInitialized(_this), _props));
+      if (ctx.data) Object.assign(_data, ctx.data.call(_assertThisInitialized(_this2), _props));
       if (ctx.computed) Object.assign(_computed, ctx.computed);
       if (ctx.methods) Object.assign(_methods, ctx.methods);
       if (ctx.watch) Object.assign(_watch, ctx.watch);
-      if (ctx.provide) _this._provides.push(ctx.provide);
+      if (ctx.provide) _this2._provides.push(ctx.provide);
       if (ctx.inject) ctx.inject.forEach(function (key) {
-        return !_this._injects.includes(key) && _this._injects.push(key);
+        return !_this2._injects.includes(key) && _this2._injects.push(key);
       });
     });
-    _this.$filters = _filters;
-    _this.$directives = _directives;
-    _this.$data = _data;
+    (0, _mobx.extendObservable)(_assertThisInitialized(_this2), propData);
+    _this2.$filters = _filters;
+    _this2.$directives = _directives;
+    _this2.$data = _data;
     var _deeps = {};
     var _shadows = {};
     Object.keys(_data).forEach(function (key) {
+      if (key in propData) {
+        var e = new Error("key '".concat(key, "' in data() cannot be duplicated with props"));
+        (0, _utils.handleError)(e, _assertThisInitialized(_this2), "constructor:".concat(target.name));
+        throw e;
+      }
+
       if (key.startsWith('_')) _shadows[key] = _data[key];else _deeps[key] = _data[key];
     });
-    (0, _mobx.extendObservable)(_assertThisInitialized(_this), _deeps, {}, {
+    (0, _mobx.extendObservable)(_assertThisInitialized(_this2), _deeps, {}, {
       deep: true
     });
-    (0, _mobx.extendObservable)(_assertThisInitialized(_this), _shadows, {}, {
+    (0, _mobx.extendObservable)(_assertThisInitialized(_this2), _shadows, {}, {
       deep: false
     });
-    (0, _mobx.extendObservable)(_assertThisInitialized(_this), generateComputed(_computed));
-    bindMethods(_assertThisInitialized(_this), _methods);
+    (0, _mobx.extendObservable)(_assertThisInitialized(_this2), generateComputed(_computed, propData, _data, target));
+    bindMethods(_assertThisInitialized(_this2), _methods);
     var pMethods = {};
     Object.getOwnPropertyNames(target.prototype).filter(function (key) {
       return ReactVueLike.prototype[key];
     }).map(function (key) {
-      return (0, _utils.isFunction)(_this[key]) && (pMethods[key] = _this[key]);
+      return (0, _utils.isFunction)(_this2[key]) && (pMethods[key] = _this2[key]);
     });
-    bindMethods(_assertThisInitialized(_this), pMethods);
-    bindWatch(_assertThisInitialized(_this), _watch);
+    bindMethods(_assertThisInitialized(_this2), pMethods);
+    bindWatch(_assertThisInitialized(_this2), _watch);
     Object.keys(_config2.default.inheritMergeStrategies).forEach(function (key) {
-      var child = _this._inherits[key];
-      var parent = _this[key];
+      var child = _this2._inherits[key];
+      var parent = _this2[key];
       if (!parent) return;
 
       if (child) {
-        var v = _config2.default.inheritMergeStrategies[key](parent, child, _assertThisInitialized(_this));
+        var v = _config2.default.inheritMergeStrategies[key](parent, child, _assertThisInitialized(_this2));
 
-        if (v !== child) _this._inherits[key] = v;
-      } else _this._inherits[key] = parent;
+        if (v !== child) _this2._inherits[key] = v;
+      } else _this2._inherits[key] = parent;
     });
 
-    _this.$emit('hook:created');
+    _this2.$emit('hook:created');
 
-    return _this;
+    return _this2;
   }
 
   _createClass(ReactVueLike, [{
     key: "_resolveRef",
     value: function _resolveRef(refName, el, key) {
-      if (!key) {
-        this.$refs[refName] = el;
-        return;
+      this.$refs[refName] = el; // if (!key) {
+      //   this.$refs[refName] = el;
+      //   return;
+      // }
+      // if (typeof key === 'number') {
+      //   if (!this.$refs[refName]) this.$refs[refName] = [];
+      //   this.$refs[refName][key] = el;
+      //   return;
+      // }
+      // if (!this.$refs[refName]) this.$refs[refName] = {};
+      // this.$refs[refName][key] = el;
+    }
+  }, {
+    key: "_resolveSlot",
+    value: function _resolveSlot(slotName, scope, children) {
+      var slot = this.$slots[slotName];
+      var ret;
+
+      if (Array.isArray(slot)) {
+        ret = slot.map(function (s, i) {
+          return typeof s === 'function' ? s(scope) : s;
+        });
+        if (!ret.length) ret = null;
+      } else ret = typeof slot === 'function' ? slot(scope) : slot;
+
+      return ret || children;
+    }
+  }, {
+    key: "_resolveSpreadAttrs",
+    value: function _resolveSpreadAttrs(tagName, props) {
+      var _this3 = this;
+
+      if (this._type.inheritAttrs === false) return props;
+      var inheritAttrs = Array.isArray(this._type.inheritAttrs) ? this._type.inheritAttrs : _config2.default.inheritAttrs;
+      var RETX_DOM = /^[a-z]/;
+      var attrs = {};
+      var isPrimitiveTag = RETX_DOM.test(tagName);
+      inheritAttrs.forEach(function (key) {
+        var v = _this3.props[key];
+        if ((0, _utils.isFalsy)(v)) return;
+        if (key !== 'style' && isPrimitiveTag && !(0, _utils.isPrimitive)(v)) v = '';
+        if (v === true) v = '';
+        attrs[key] = v;
+      });
+
+      if (attrs.className && props.className && attrs.className !== props.className) {
+        var ac = attrs.className.split(' ');
+        var pc = props.className.split(' ');
+        pc.forEach(function (c) {
+          if (!c) return;
+          if (~ac.indexOf(c)) return;
+          ac.push(c);
+        });
+        attrs.className = ac.join(' ');
+        delete props.className;
       }
 
-      if (typeof key === 'number') {
-        if (!this.$refs[refName]) this.$refs[refName] = [];
-        this.$refs[refName][key] = el;
-        return;
+      if ((0, _utils.isObject)(attrs.style) && (0, _utils.isObject)(props.style) && attrs.style !== props.style) {
+        Object.assign(attrs.style, props.style);
+        delete props.style;
       }
 
-      if (!this.$refs[refName]) this.$refs[refName] = {};
-      this.$refs[refName][key] = el;
+      return Object.assign(attrs, props);
     }
   }, {
     key: "_resolveFilter",
@@ -294,7 +402,6 @@ function (_React$Component) {
       try {
         return filter();
       } catch (e) {
-        // if (e && e.message) e.message = `['${filterName}' filter error]:${e.message}`;
         (0, _utils.handleError)(e, this, "filter:".concat(filterName));
         return '';
       }
@@ -302,25 +409,27 @@ function (_React$Component) {
   }, {
     key: "_resolveMounted",
     value: function _resolveMounted(done) {
-      var _this2 = this;
+      var _this4 = this;
 
       var _pending = function _pending() {
-        if (!_this2._isVueLikeRoot) {
+        if (!_this4._isVueLikeRoot && _this4.$parent) {
           Object.keys(_config2.default.optionMergeStrategies).forEach(function (key) {
-            var ret = _config2.default.optionMergeStrategies[key](_this2.$parent[key], _this2[key], _this2);
+            var ret = _config2.default.optionMergeStrategies[key](_this4.$parent[key], _this4[key], _this4);
 
-            if (ret !== _this2[key]) _this2[key] = ret;
+            if (ret !== _this4[key]) _this4[key] = ret;
           });
         }
 
-        _this2.$root = _this2.$parent ? _this2.$parent.$root : _this2;
+        _this4.$root = _this4.$parent ? _this4.$parent.$root : _this4;
 
-        _this2._resolveInherits();
+        if (_this4.$parent) {
+          _this4._resolveInherits();
 
-        _this2._resolveInject();
+          _this4._resolveInject();
+        }
 
-        var pending = _this2._mountedPending;
-        _this2._mountedPending = [];
+        var pending = _this4._mountedPending;
+        _this4._mountedPending = [];
         pending.forEach(function (v) {
           return v();
         });
@@ -332,7 +441,7 @@ function (_React$Component) {
   }, {
     key: "_resolveInherits",
     value: function _resolveInherits() {
-      var _this3 = this;
+      var _this5 = this;
 
       if (!this._isVueLikeRoot && this.$parent) {
         if (this.$parent._inherits) {
@@ -343,21 +452,21 @@ function (_React$Component) {
 
       if (this._inherits) {
         Object.keys(this._inherits).forEach(function (key) {
-          var child = _this3[key];
-          var parent = _this3._inherits[key];
+          var child = _this5[key];
+          var parent = _this5._inherits[key];
           var merge = _config2.default.inheritMergeStrategies[key];
-          _this3[key] = merge ? merge(parent, child, _this3) : parent;
+          _this5[key] = merge ? merge(parent, child, _this5) : parent;
         });
       }
     }
   }, {
     key: "_resolveParent",
     value: function _resolveParent() {
-      var _this4 = this;
+      var _this6 = this;
 
       if (!this._isVueLikeRoot) {
         (0, _utils.iterativeParent)(this, function (parent) {
-          return _this4.$parent = parent;
+          return _this6.$parent = parent;
         }, ReactVueLike);
         if (this.$parent) this.$parent.$children.push(this);
       }
@@ -365,7 +474,7 @@ function (_React$Component) {
   }, {
     key: "_resolveInject",
     value: function _resolveInject() {
-      var _this5 = this;
+      var _this7 = this;
 
       try {
         var injects = this._injects;
@@ -390,7 +499,7 @@ function (_React$Component) {
                 var v = _provide[key];
 
                 if (v !== undefined) {
-                  _this5.$set(_this5, key, v);
+                  _this7.$set(_this7, key, v);
 
                   injects.splice(i, 1);
                 }
@@ -413,13 +522,13 @@ function (_React$Component) {
   }, {
     key: "_resolveDestory",
     value: function _resolveDestory() {
-      var _this6 = this;
+      var _this8 = this;
 
       this._flushTicks();
 
       if (this.$parent) {
         var idx = this.$parent.$children.findIndex(function (c) {
-          return c === _this6;
+          return c === _this8;
         });
         if (~idx) this.$parent.$children.splice(idx, 1);
       }
@@ -655,13 +764,13 @@ function (_React$Component) {
   }, {
     key: "$on",
     value: function $on(eventName, handler) {
-      var _this7 = this;
+      var _this9 = this;
 
       eventName = (0, _utils.camelize)(eventName);
       if (!this.$listeners[eventName]) this.$listeners[eventName] = [];
       this.$listeners[eventName].push(handler);
       return function () {
-        return _this7.$off(eventName, handler);
+        return _this9.$off(eventName, handler);
       };
     }
   }, {
@@ -700,7 +809,31 @@ function (_React$Component) {
   }, {
     key: "render",
     value: function render() {
-      return this._renderFn && this._renderFn.apply(this, arguments);
+      if (!this._isMounted) return null;
+
+      var node = this._renderFn && this._renderFn.apply(this, arguments); // let el = this.$el;
+      // if (el) {
+      //   let inheritAttrs = Array.isArray(this._type.inheritAttrs)
+      //     ? this._type.inheritAttrs
+      //     : config.inheritAttrs;
+      //   inheritAttrs.forEach(key => {
+      //     let v = this.props[key];
+      //     if (!v) return;
+      //     switch (key) {
+      //       case 'className':
+      //         el.classList.add(...(v.split(' ').filter(Boolean)));
+      //         break;
+      //       case 'style':
+      //         if (isObject(v)) Object.assign(el.style, v);
+      //         break;
+      //       default: //
+      //     }
+      //   });
+      // }
+      // console.log('ReactVueLike.render', this._type.name, node);
+
+
+      return node;
     }
   }, {
     key: "getSnapshotBeforeUpdate",
@@ -711,7 +844,7 @@ function (_React$Component) {
   }, {
     key: "componentDidMount",
     value: function componentDidMount() {
-      var _this8 = this;
+      var _this10 = this;
 
       this.$emit('hook:beforeMount');
 
@@ -720,7 +853,7 @@ function (_React$Component) {
       this._isMounted = true;
 
       this._resolveMounted(function () {
-        return _this8.$emit('hook:mounted');
+        return _this10.$emit('hook:mounted');
       });
     }
   }, {
@@ -774,7 +907,7 @@ function (_React$Component) {
   }]);
 
   return ReactVueLike;
-}(_react.default.Component), _defineProperty(_class2, "isRoot", false), _defineProperty(_class2, "isAbstract", false), _defineProperty(_class2, "inherits", {}), _defineProperty(_class2, "props", {}), _defineProperty(_class2, "mixins", []), _defineProperty(_class2, "directives", {}), _defineProperty(_class2, "filters", {}), _defineProperty(_class2, "inject", []), _defineProperty(_class2, "computed", {}), _defineProperty(_class2, "watch", {}), _defineProperty(_class2, "methods", {}), _temp)) || _class;
+}(_react.default.Component), _defineProperty(_class2, "isRoot", false), _defineProperty(_class2, "isAbstract", false), _defineProperty(_class2, "inheritAttrs", true), _defineProperty(_class2, "inherits", {}), _defineProperty(_class2, "props", {}), _defineProperty(_class2, "mixins", []), _defineProperty(_class2, "directives", {}), _defineProperty(_class2, "filters", {}), _defineProperty(_class2, "inject", []), _defineProperty(_class2, "computed", {}), _defineProperty(_class2, "watch", {}), _defineProperty(_class2, "methods", {}), _temp)) || _class;
 
 ReactVueLike.config.optionMergeStrategies = _config2.default.optionMergeStrategies;
 ReactVueLike.config.inheritMergeStrategies = _config2.default.inheritMergeStrategies;
@@ -784,8 +917,6 @@ function ReactHook() {
   var _createElement = _react.default.createElement;
 
   _react.default.createElement = function createElement(Component) {
-    if (Component === 'ReactVueLike.Directive') Component = ReactVueLike.Directive;
-
     for (var _len3 = arguments.length, args = new Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
       args[_key3 - 1] = arguments[_key3];
     }
@@ -794,10 +925,17 @@ function ReactHook() {
 
     if (!Component.propTypes && Component.prototype instanceof ReactVueLike) {
       Component = (0, _propCheck.default)(Component);
-      if (Component.beforeConstructor) Component.beforeConstructor(Component);
     }
 
-    return _createElement.call.apply(_createElement, [this, Component].concat(args));
+    var newComponent;
+
+    if (Component.beforeConstructor) {
+      var _Component;
+
+      newComponent = (_Component = Component).beforeConstructor.apply(_Component, args);
+    }
+
+    return _createElement.call.apply(_createElement, [this, newComponent || Component].concat(args));
   };
 }
 

@@ -6,6 +6,7 @@ const transformClass = require('./transforms/transform-class');
 const transformFilter = require('./transforms/transform-filter');
 const transformConst = require('./transforms/transform-const');
 const transformRef = require('./transforms/transform-ref');
+const transformSlot = require('./transforms/transform-slot');
 // const vFor = require('./directives/v-for');
 const vIf = require('./directives/v-if');
 const vShow = require('./directives/v-show');
@@ -14,6 +15,7 @@ const vCustomDirective = require('./directives/v-custom-directive');
 
 const injectFile = require('./injects/inject-file');
 const injectScope = require('./injects/inject-scope');
+const injectAttrs = require('./injects/inject-attrs');
 
 let pkg;
 if (fileExists(path.join(process.cwd(), 'package.json'))) {
@@ -40,18 +42,20 @@ module.exports = declare((api, opts = {}) => {
 
   const plugins = [];
 
-  if (options.inject.file) plugins.push(injectFile);
-  if (options.inject.scope) plugins.push(injectScope);
-
   if (options.transform.class) plugins.push(transformClass);
   if (options.transform.filter) plugins.push(transformFilter);
   if (options.transform.const) plugins.push(transformConst);
   if (options.transform.ref) plugins.push(transformRef);
+  if (options.transform.slot) plugins.push(transformSlot);
 
   if (options.directive.if) plugins.push(vIf);
   if (options.directive.show) plugins.push(vShow);
   if (options.directive.model) plugins.push(vModel);
   if (options.directive.custom) plugins.push(vCustomDirective);
+
+  if (options.inject.file) plugins.push(injectFile);
+  if (options.inject.scope) plugins.push(injectScope);
+  if (options.inject.attrs) plugins.push(injectAttrs);
 
   return {
     plugins

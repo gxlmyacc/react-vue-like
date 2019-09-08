@@ -11,22 +11,23 @@ module.exports = function ({ types: t }) {
     });
   }
 
-  function JSXAttributeVisitor(node) {
-    if (!attrName.test(node.node.name.name)) return;
+  function JSXAttributeVisitor(path) {
+    const attr = path.node;
+    if (!attr.name
+      || !attrName.test(attr.name.name)
+      || !t.isJSXExpressionContainer(attr.value)) return;
 
-    let modelStr = memberExpr2Str(node.node.value.expression).split('.');
-    if (modelStr[0] !== 'this') return;
 
-    modelStr = modelStr.slice(1, modelStr.length).join('.');
+    let value = memberExpr2Str(attr.value.expression);
 
-    node.node.name.name = 'value';
-    appendAttrEvent(node, 'onChange', t.arrowFunctionExpression(
+    attr.name.name = 'value';
+    appendAttrEvent(path, 'onChange', t.arrowFunctionExpression(
       [t.identifier('e')],
       t.blockStatement([
         t.expressionStatement(
           t.assignmentExpression(
             '=',
-            objValueStr2AST('this.' + modelStr, t),
+            objValueStr2AST(value, t),
             objValueStr2AST('e.target.value', t)
           )
         )

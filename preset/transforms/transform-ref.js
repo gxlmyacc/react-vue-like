@@ -15,7 +15,7 @@ module.exports = function ({ types: t, template }) {
 
               if (path.node.name.name === 'ref' && t.isStringLiteral(path.node.value)) {
                 const ref = path.node.value;
-                const keyAttr = path.parent.attributes.find(attr => attr.name.name === 'key');
+                const keyAttr = path.parent.attributes.find(attr => attr.name && attr.name.name === 'key');
                 let key = keyAttr ? keyAttr.value : t.identifier('undefined');
                 if (t.isJSXExpressionContainer(key)) key = key.expression;
                 path.node.value = t.jsxExpressionContainer(template('el => this._resolveRef($REF$, el, $KEY$)')({

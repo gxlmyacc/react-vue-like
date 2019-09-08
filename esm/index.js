@@ -12,8 +12,15 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 var _exportNames = {
+  ReactVueLikeDirective: true,
   propcheck: true
 };
+Object.defineProperty(exports, "ReactVueLikeDirective", {
+  enumerable: true,
+  get: function get() {
+    return _directive.default;
+  }
+});
 Object.defineProperty(exports, "propcheck", {
   enumerable: true,
   get: function get() {
@@ -22,9 +29,11 @@ Object.defineProperty(exports, "propcheck", {
 });
 exports.default = void 0;
 
+var _mobx = require("mobx");
+
 var _component = _interopRequireDefault(require("./component"));
 
-var _Directive = _interopRequireDefault(require("./Directive"));
+var _directive = _interopRequireDefault(require("./directive"));
 
 var _store = _interopRequireDefault(require("./store"));
 
@@ -46,6 +55,6 @@ Object.keys(_utils).forEach(function (key) {
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 _component.default.Store = _store.default;
-_component.default.Directive = _Directive.default;
+_component.default.observable = _mobx.observable;
 var _default = _component.default;
 exports.default = _default;

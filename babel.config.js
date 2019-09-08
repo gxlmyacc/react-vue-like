@@ -5,14 +5,14 @@ module.exports = {
     [
       '@babel/preset-env',
       {
-        modules: false,
         useBuiltIns: 'usage',
+        targets: { browsers: ['Chrome >= 31'] },
         corejs: 2,
-        targets: { browsers: ['Chrome >= 31'] }
+        modules: false,
       }
     ],
+    '@babel/preset-react',
     path.resolve('./preset/index.js'),
-    '@babel/preset-react'
   ],
   plugins: [
     ['@babel/plugin-proposal-decorators', { legacy: true }],
