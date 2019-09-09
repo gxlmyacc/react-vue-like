@@ -1,7 +1,5 @@
 import React from 'react';
 
-import './index.scss?scoped';
-
 class App extends ReactVueLike {
 
   static data() {
@@ -21,11 +19,19 @@ class App extends ReactVueLike {
 
   render() {
     let a = true;
-    let ret = <div></div>;
-    if (a) ret = <span></span>
-    else ret = <p></p>;
+    // let ret = () => <div></div>;
+    let ret = function() {
+      return <div></div>;
+    }
+    if (a) {
+      ret = () => {
+        console.log('ddd');
+        return <span></span>;
+      }
+    }
+    // else ret = () => <p></p>;
     console.log('ddd', ret);
-    return ret;
+    return ret();
 
     // return this.cc();
     // return a && <div>dd</div>

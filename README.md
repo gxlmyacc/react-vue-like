@@ -1,10 +1,9 @@
 # react-vue-like
 
-
 [![NPM version](https://img.shields.io/npm/v/react-vue-like.svg?style=flat)](https://npmjs.com/package/react-vue-like)
 [![NPM downloads](https://img.shields.io/npm/dm/react-vue-like.svg?style=flat)](https://npmjs.com/package/react-vue-like)
 
-write react component like vue
+write react component like vue, implementation based on mbox@4.
 
 ## Support Vue feature
 
@@ -21,8 +20,6 @@ write react component like vue
 - `slot`
 - `v-if`,`v-show`,`v-model`
 - `Vuex.Store` see `ReactVueLike.Store`
-
-
 
 ## Installation
 
@@ -42,7 +39,6 @@ webpack.config.js:
       {
         test: /\.css$/,
         use: [
-          ...
           'css-loader',
           'react-vue-like/loader',
           ...
@@ -51,7 +47,6 @@ webpack.config.js:
       {
         test: /\.scss$/,
         use: [
-          ...
           'css-loader',
           'react-vue-like/loader',
           ...
@@ -60,7 +55,6 @@ webpack.config.js:
       {
         test: /\.less$/,
         use: [
-          ...
           'css-loader',
           'react-vue-like/loader',
           ...

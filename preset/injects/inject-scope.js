@@ -3,7 +3,7 @@ const options = require('../options');
 
 function createScopeId(filename) {
   if (options.pkg) filename = `${options.pkg.name}!${filename}`;
-  return `data-v-${hash(filename.replace(/\\/g, '/'))}`;
+  return `v-${hash(filename.replace(/\\/g, '/'))}`;
 }
 
 module.exports = function ({ types: t, template }) {

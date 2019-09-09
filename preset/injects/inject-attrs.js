@@ -6,6 +6,8 @@ const {
 
 module.exports = function ({ types: t, template }) {
   function wrapElementAttrs(path, element) {
+    if (this.cached.includes(element)) return;
+    this.cached.push(element);
     let attrs = [];
     // let hasSpread = false;
     element.openingElement.attributes.forEach(attr => {
@@ -40,41 +42,62 @@ module.exports = function ({ types: t, template }) {
   function traverseReturn(methodPath) {
     methodPath.traverse({
       ReturnStatement(returnPath) {
-        wrapNode.call(this, returnPath, returnPath.node.argument, methodPath);
+        if (methodPath.scope.block !== returnPath.scope.block) return;
+        wrapNode.call(this, returnPath.get('argument'), returnPath.node.argument, methodPath);
       }
     }, this);
   }
 
-  function wrapNode(path, node, returnMethodPath) {
+  function wrapNode(path, node, returnMethodPath, doBreak) {
+    if (this.cached.includes(node)) return;
+    this.cached.push(node);
     switch (node.type) {
       case 'Identifier': {
-        let constantViolations = path.scope.bindings[node.name]
-          && path.scope.bindings[node.name].constantViolations;
-        if (!constantViolations) return;
-        constantViolations.forEach(p => wrapNode.call(this, p, p.node));
+        let binding = path.scope.bindings[node.name];
+        if (!binding) return;
+        let constantViolations = binding.constantViolations;
+        let isBreak = false;
+        [binding.path, ...constantViolations].some(p => {
+          wrapNode.call(this, p, p.node, () => isBreak = true);
+          return isBreak;
+        });
       }
         break;
       case 'JSXElement':
         wrapElementAttrs.call(this, path, node);
         break;
       case 'ConditionalExpression':
-        wrapNode.call(this, path, node.consequent);
-        wrapNode.call(this, path, node.alternate);
+        wrapNode.call(this, path.get('consequent'), node.consequent);
+        wrapNode.call(this, path.get('alternate'), node.alternate);
+        break;
+      case 'VariableDeclarator':
+        wrapNode.call(this, path.get('init'), node.init);
+        break;
+      case 'FunctionExpression':
+        traverseReturn.call(this, path);
+        break;
+      case 'ArrowFunctionExpression':
+        if (t.isBlockStatement(node.body)) traverseReturn.call(this, path);
+        else wrapNode.call(this, path.get('body'), node.body);
         break;
       case 'AssignmentExpression':
         if (node.operator !== '=') return;
-        wrapNode.call(this, path, node.right);
+        // if (doBreak) {
+        // }
+        wrapNode.call(this, path.get('right'), node.right);
         break;
       case 'LogicalExpression':
         if (['&&', '||'].includes(node.operator)) {
-          // wrapNode.call(this, path, node.left);
-          wrapNode.call(this, path, node.right);
+          // wrapNode.call(this, path.get('left'), node.left);
+          wrapNode.call(this, path.get('right'), node.right);
         }
         break;
       case 'CallExpression':
-        if (t.isMemberExpression(node.callee)
-          && t.isThisExpression(node.callee.object)
-          && t.isIdentifier(node.callee.property)) {
+        if (t.isIdentifier(node.callee)) {
+          wrapNode.call(this, path.get('callee'), node.callee);
+        } else if (t.isMemberExpression(node.callee)
+            && t.isThisExpression(node.callee.object)
+            && t.isIdentifier(node.callee.property)) {
           let methodName = node.callee.property.name;
           let methodPath;
           if (this.methodsPath) {
@@ -111,6 +134,7 @@ module.exports = function ({ types: t, template }) {
         if (!path.node.superClass || path.node.superClass.name !== 'ReactVueLike') return;
         const className = path.node.id.name;
         const ctx = {
+          cached: [],
           classPath: path,
           methodsPath: null
         };
