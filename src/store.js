@@ -164,7 +164,15 @@ class Store {
 
   commit(event, payload) {
     if (!event) return;
-    const [moduleName, eventName] = event.split('/');
+
+    const splitIdx = event.indexOf('/');
+    let moduleName = '';
+    let eventName = '';
+    if (~splitIdx) {
+      moduleName = event.substr(0, splitIdx);
+      eventName = event.substr(splitIdx + 1, event.length);
+    }
+
     let ret;
 
     if (eventName) {
@@ -188,7 +196,15 @@ class Store {
 
   dispatch(event, payload) {
     if (!event) return;
-    const [moduleName, eventName] = event.split('/');
+
+    const splitIdx = event.indexOf('/');
+    let moduleName = '';
+    let eventName = '';
+    if (~splitIdx) {
+      moduleName = event.substr(0, splitIdx);
+      eventName = event.substr(splitIdx + 1, event.length);
+    }
+
     let ret;
 
     if (eventName) {
