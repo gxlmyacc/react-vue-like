@@ -309,16 +309,16 @@ function (_React$Component) {
       return (0, _utils.isFunction)(_this2[key]) && (pMethods[key] = _this2[key]);
     });
     bindMethods(_assertThisInitialized(_this2), pMethods);
-    bindWatch(_assertThisInitialized(_this2), _watch);
+    _this2._watch = _watch;
     Object.keys(_config2.default.inheritMergeStrategies).forEach(function (key) {
       var child = _this2._inherits[key];
       var parent = _this2[key];
       if (!parent) return;
 
       if (child) {
-        var v = _config2.default.inheritMergeStrategies[key](parent, child, _assertThisInitialized(_this2));
+        var v = _config2.default.inheritMergeStrategies[key](parent, child, _assertThisInitialized(_this2), key);
 
-        if (v !== child) _this2._inherits[key] = v;
+        if (v !== undefined && v !== child) _this2._inherits[key] = v;
       } else _this2._inherits[key] = parent;
     });
 
@@ -414,7 +414,7 @@ function (_React$Component) {
       var _pending = function _pending() {
         if (!_this4._isVueLikeRoot && _this4.$parent) {
           Object.keys(_config2.default.optionMergeStrategies).forEach(function (key) {
-            var ret = _config2.default.optionMergeStrategies[key](_this4.$parent[key], _this4[key], _this4);
+            var ret = _config2.default.optionMergeStrategies[key](_this4.$parent[key], _this4[key], _this4, key);
 
             if (ret !== _this4[key]) _this4[key] = ret;
           });
@@ -422,11 +422,11 @@ function (_React$Component) {
 
         _this4.$root = _this4.$parent ? _this4.$parent.$root : _this4;
 
-        if (_this4.$parent) {
-          _this4._resolveInherits();
+        _this4._resolveInherits();
 
-          _this4._resolveInject();
-        }
+        _this4._resolveInject();
+
+        _this4._resolveWatch();
 
         var pending = _this4._mountedPending;
         _this4._mountedPending = [];
@@ -455,9 +455,15 @@ function (_React$Component) {
           var child = _this5[key];
           var parent = _this5._inherits[key];
           var merge = _config2.default.inheritMergeStrategies[key];
-          _this5[key] = merge ? merge(parent, child, _this5) : parent;
+          var v = merge ? merge(parent, child, _this5, key) : parent;
+          if (v !== undefined) _this5[key] = v;
         });
       }
+    }
+  }, {
+    key: "_resolveWatch",
+    value: function _resolveWatch() {
+      bindWatch(this, this._watch);
     }
   }, {
     key: "_resolveParent",
@@ -475,6 +481,8 @@ function (_React$Component) {
     key: "_resolveInject",
     value: function _resolveInject() {
       var _this7 = this;
+
+      if (!this.$parent) return;
 
       try {
         var injects = this._injects;
@@ -733,20 +741,41 @@ function (_React$Component) {
       }
     }
   }, {
-    key: "$set",
-    value: function $set(target, expr, value) {
+    key: "$computed",
+    value: function $computed(target, expr, value) {
+      var force = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
+
       var _parseExpr2 = (0, _utils.parseExpr)(target, expr),
           obj = _parseExpr2.obj,
           key = _parseExpr2.key;
+
+      if (obj && key) {
+        if (!force && obj[key]) {
+          var e = new Error("key '".concat(expr, "' has aleady exist!"));
+          (0, _utils.handleError)(e, this, "$computed:".concat(expr));
+          throw e;
+        }
+
+        var computedObj = {};
+        if ((0, _utils.isFunction)(value)) (0, _utils.defComputed)(computedObj, key, value);else (0, _utils.defComputed)(computedObj, key, value.get, value.set);
+        (0, _mobx.extendObservable)(obj, computedObj);
+      }
+    }
+  }, {
+    key: "$set",
+    value: function $set(target, expr, value) {
+      var _parseExpr3 = (0, _utils.parseExpr)(target, expr),
+          obj = _parseExpr3.obj,
+          key = _parseExpr3.key;
 
       if (obj && key) (0, _mobx.set)(obj, key, value);
     }
   }, {
     key: "$delete",
     value: function $delete(target, expr) {
-      var _parseExpr3 = (0, _utils.parseExpr)(target, expr),
-          obj = _parseExpr3.obj,
-          key = _parseExpr3.key;
+      var _parseExpr4 = (0, _utils.parseExpr)(target, expr),
+          obj = _parseExpr4.obj,
+          key = _parseExpr4.key;
 
       if (obj && key) (0, _mobx.remove)(obj, key);
     }

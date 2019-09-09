@@ -8,11 +8,11 @@ exports.default = void 0;
 
 require("core-js/modules/es6.object.assign");
 
-function defaultMergeStrategies(parent, child, vm) {
+function defaultMergeStrategies(parent, child, vm, key) {
   return child;
 }
 
-function directivesMergeStrategies(parent, child, vm) {
+function directivesMergeStrategies(parent, child, vm, key) {
   var ret = {};
   if (parent) return Object.assign(ret, parent);
   if (child) return Object.assign(ret, child);

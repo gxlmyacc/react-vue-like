@@ -1,8 +1,8 @@
-export function defaultMergeStrategies(parent, child, vm) {
+export function defaultMergeStrategies(parent, child, vm, key) {
   return child;
 }
 
-function directivesMergeStrategies(parent, child, vm) {
+function directivesMergeStrategies(parent, child, vm, key) {
   let ret = {};
   if (parent) return Object.assign(ret, parent);
   if (child) return Object.assign(ret, child);

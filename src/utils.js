@@ -2,6 +2,7 @@ import { observable } from 'mobx';
 import config from './config';
 
 export {
+  toJS, isObservableObject,
   observable, extendObservable, observe,
   computed, action, autorun, when, runInAction,
   set, get, remove, has

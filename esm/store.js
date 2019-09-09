@@ -5,8 +5,6 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
-require("core-js/modules/es7.symbol.async-iterator");
-
 require("core-js/modules/es7.object.get-own-property-descriptors");
 
 require("core-js/modules/es6.symbol");
@@ -14,8 +12,6 @@ require("core-js/modules/es6.symbol");
 require("core-js/modules/es7.array.includes");
 
 require("core-js/modules/es6.string.includes");
-
-require("core-js/modules/es6.regexp.split");
 
 require("core-js/modules/es6.object.assign");
 
@@ -30,14 +26,6 @@ require("core-js/modules/es6.object.keys");
 var _mobx = require("mobx");
 
 var _utils = require("./utils");
-
-function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
-
-function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance"); }
-
-function _iterableToArrayLimit(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
-function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
@@ -269,11 +257,14 @@ function () {
       var _this7 = this;
 
       if (!event) return;
+      var splitIdx = event.indexOf('/');
+      var moduleName = '';
+      var eventName = '';
 
-      var _event$split = event.split('/'),
-          _event$split2 = _slicedToArray(_event$split, 2),
-          moduleName = _event$split2[0],
-          eventName = _event$split2[1];
+      if (~splitIdx) {
+        moduleName = event.substr(0, splitIdx);
+        eventName = event.substr(splitIdx + 1, event.length);
+      }
 
       var ret;
 
@@ -307,11 +298,14 @@ function () {
       var _this8 = this;
 
       if (!event) return;
+      var splitIdx = event.indexOf('/');
+      var moduleName = '';
+      var eventName = '';
 
-      var _event$split3 = event.split('/'),
-          _event$split4 = _slicedToArray(_event$split3, 2),
-          moduleName = _event$split4[0],
-          eventName = _event$split4[1];
+      if (~splitIdx) {
+        moduleName = event.substr(0, splitIdx);
+        eventName = event.substr(splitIdx + 1, event.length);
+      }
 
       var ret;
 

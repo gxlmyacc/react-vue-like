@@ -193,15 +193,15 @@ class ReactVueLike extends React.Component {
       .map(key => isFunction(this[key]) && (pMethods[key] = this[key]));
     bindMethods(this, pMethods);
 
-    bindWatch(this, _watch);
+    this._watch = _watch;
 
     Object.keys(config.inheritMergeStrategies).forEach(key => {
       let child = this._inherits[key];
       let parent = this[key];
       if (!parent) return;
       if (child) {
-        let v = config.inheritMergeStrategies[key](parent, child, this);
-        if (v !== child) this._inherits[key] = v;
+        let v = config.inheritMergeStrategies[key](parent, child, this, key);
+        if (v !== undefined && v !== child) this._inherits[key] = v;
       } else this._inherits[key] = parent;
     });
 
@@ -284,16 +284,15 @@ class ReactVueLike extends React.Component {
     const _pending = () => {
       if (!this._isVueLikeRoot && this.$parent) {
         Object.keys(config.optionMergeStrategies).forEach(key => {
-          let ret = config.optionMergeStrategies[key](this.$parent[key], this[key], this);
+          let ret = config.optionMergeStrategies[key](this.$parent[key], this[key], this, key);
           if (ret !== this[key]) this[key] = ret;
         });
       }
       this.$root = this.$parent ? this.$parent.$root : this;
 
-      if (this.$parent) {
-        this._resolveInherits();
-        this._resolveInject();
-      }
+      this._resolveInherits();
+      this._resolveInject();
+      this._resolveWatch();
 
       let pending = this._mountedPending;
       this._mountedPending = [];
@@ -318,9 +317,14 @@ class ReactVueLike extends React.Component {
         let child = this[key];
         let parent = this._inherits[key];
         const merge = config.inheritMergeStrategies[key];
-        this[key] = merge ? merge(parent, child, this) : parent;
+        let v = merge ? merge(parent, child, this, key) : parent;
+        if (v !== undefined) this[key] = v;
       });
     }
+  }
+
+  _resolveWatch() {
+    bindWatch(this, this._watch);
   }
 
   _resolveParent() {
@@ -331,6 +335,7 @@ class ReactVueLike extends React.Component {
   }
 
   _resolveInject() {
+    if (!this.$parent) return;
     try {
       const injects = this._injects;
       const getProvides = vm => {
@@ -508,6 +513,21 @@ class ReactVueLike extends React.Component {
     } else if (isFunction(expOrFn)) {
       let oldValue;
       return when(() => oldValue !== expOrFn(), callback);
+    }
+  }
+
+  $computed(target, expr, value, force = false) {
+    let { obj, key } = parseExpr(target, expr);
+    if (obj && key) {
+      if (!force && obj[key]) {
+        let e = new Error(`key '${expr}' has aleady exist!`);
+        handleError(e, this, `$computed:${expr}`);
+        throw e;
+      }
+      let computedObj = {};
+      if (isFunction(value)) defComputed(computedObj, key, value);
+      else defComputed(computedObj, key, value.get, value.set);
+      extendObservable(obj, computedObj);
     }
   }
 

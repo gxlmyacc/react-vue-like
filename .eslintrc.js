@@ -14,6 +14,9 @@ module.exports = {
     es6: true,
     node: true
   },
+  globals: {
+    '__packagename': true,
+  },
   extends: [
     'airbnb-base',
     'react-app'
@@ -56,7 +59,7 @@ module.exports = {
     // 如果一个类方法没有使用this，那么必须将该方法转换为静态函数
     'class-methods-use-this': 0,
     // 数组和对象键值对最后一个逗号，never参数：不能带末尾的逗号, always参数：必须带末尾的逗号，always-multiline：多行模式必须带逗号，单行模式不能带逗号
-    'comma-dangle': [0, { arrays: 'ignore', exports: 'never', functions: 'ignore', imports: 'never', objects: 'ignore' }],
+    'comma-dangle': [2, { arrays: 'ignore', exports: 'never', functions: 'ignore', imports: 'never', objects: 'ignore' }],
     // 要求 return 语句要么总是指定返回的值，要么不指定
     'consistent-return': 0,
     // 强制所有控制语句使用一致的括号风格
@@ -71,6 +74,7 @@ module.exports = {
     'func-names': 0,
     // 要求 require() 出现在顶层模块作用域中
     'global-require': 0,
+    'implicit-arrow-linebreak': 0,
     // 禁止使用动态require语句
     'import/no-dynamic-require': 0,
     'import/no-extraneous-dependencies': 0,
@@ -87,6 +91,8 @@ module.exports = {
     'linebreak-style': 0,
     // 强制一行的最大长度
     'max-len': [2, { code: 150, tabWidth: 2, ignoreRegExpLiterals: true }],
+    // 禁止promise使用async函数
+    'no-async-promise-executor': 0,
     // 禁止在循环中使用await
     'no-await-in-loop': 0,
     // 禁用按位运算符
@@ -138,7 +144,7 @@ module.exports = {
     // 禁止抛出非异常字面量
     'no-throw-literal': 0,
     // 禁用行尾空格
-    'no-trailing-spaces': 1,
+    'no-trailing-spaces': 0,
     // 禁止标识符中有下划线
     'no-underscore-dangle': 0,
     // 禁止在finally语句中使用return，throw，break，和continue
@@ -150,18 +156,18 @@ module.exports = {
     // 禁用不必要的转义字符
     'no-useless-escape': 2,
     // 强制花括号内换行符的一致性
-    "object-curly-newline": [2, { multiline: true, consistent: true }],
+    'object-curly-newline': [2, { multiline: true, consistent: true }],
     // 强制将对象的属性放在不同的行上
-    "object-property-newline": [2, { allowAllPropertiesOnSameLine: true }],
+    'object-property-newline': [2, { allowAllPropertiesOnSameLine: true }],
     // 要求对象字面量中方法和属性使用简写语法
-    "object-shorthand": [2, 'always'],
+    'object-shorthand': [2, 'always'],
     // 强制函数中的变量要么一起声明要么分开声明
-    "one-var": [2, { initialized: 'never', uninitialized: 'never' }],
+    'one-var': [2, { initialized: 'never', uninitialized: 'never' }],
     // 在变量声明周围执行一致的换行符。这条规则忽略了for循环条件中的变量声明
-    "one-var-declaration-per-line": [2, 'initializations'],
+    'one-var-declaration-per-line': [2, 'initializations'],
     // 强制操作符使用一致的换行符
-    "operator-linebreak": [2, 'before', { overrides: { ':': 'before', '?': 'before' } }],
-    "padded-blocks": [2, { blocks: 'never', switches: 'never', classes: 'always' }],
+    'operator-linebreak': [2, 'before', { overrides: { ':': 'before', '?': 'before' } }],
+    'padded-blocks': [2, { blocks: 'never', switches: 'never', classes: 'always' }],
     // 要求使用箭头函数作为回调
     'prefer-arrow-callback': 0,
     // 要求使用 const 声明那些声明后不再被修改的变量

@@ -13,6 +13,18 @@ exports.isPrimitive = isPrimitive;
 exports.isObject = isObject;
 exports.isFalsy = isFalsy;
 exports.handleError = handleError;
+Object.defineProperty(exports, "toJS", {
+  enumerable: true,
+  get: function get() {
+    return _mobx.toJS;
+  }
+});
+Object.defineProperty(exports, "isObservableObject", {
+  enumerable: true,
+  get: function get() {
+    return _mobx.isObservableObject;
+  }
+});
 Object.defineProperty(exports, "observable", {
   enumerable: true,
   get: function get() {
