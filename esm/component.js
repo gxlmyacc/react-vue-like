@@ -180,10 +180,8 @@ function parseProps(target, props, propTypes) {
   var attrs = {};
   if (!propTypes) propTypes = {};
   Object.keys(props).forEach(function (key) {
-    if (['ref', 'children'].includes(key) || /^[$_]/.test(key)) {
-      if (propTypes[key]) propData[key] = props[key];
-      return;
-    }
+    if (propTypes[key]) propData[key] = props[key];
+    if (['ref', 'children'].includes(key) || /^[$_]/.test(key)) return;
 
     if (target.inheritAttrs || target.inheritAttrs === undefined) {
       if (Array.isArray(target.inheritAttrs) && ~target.inheritAttrs.indexOf(key)) return;
@@ -238,6 +236,7 @@ function (_React$Component) {
     _this2.$attrs = attrs;
     _this2.$slots = _props.$slots || {};
     (0, _mobx.extendObservable)(_assertThisInitialized(_this2), {
+      _isWillMount: false,
       _isMounted: false
     });
     (0, _utils.defComputed)(_assertThisInitialized(_this2), '$el', function () {
@@ -283,8 +282,8 @@ function (_React$Component) {
     _this2.$filters = _filters;
     _this2.$directives = _directives;
     _this2.$data = _data;
-    var _deeps = {};
-    var _shadows = {};
+    var deeps = {};
+    var shadows = {};
     Object.keys(_data).forEach(function (key) {
       if (key in propData) {
         var e = new Error("key '".concat(key, "' in data() cannot be duplicated with props"));
@@ -292,15 +291,12 @@ function (_React$Component) {
         throw e;
       }
 
-      if (key.startsWith('_')) _shadows[key] = _data[key];else _deeps[key] = _data[key];
+      if (key.startsWith('_')) shadows[key] = _data[key];else deeps[key] = _data[key];
     });
-    (0, _mobx.extendObservable)(_assertThisInitialized(_this2), _deeps, {}, {
-      deep: true
-    });
-    (0, _mobx.extendObservable)(_assertThisInitialized(_this2), _shadows, {}, {
-      deep: false
-    });
-    (0, _mobx.extendObservable)(_assertThisInitialized(_this2), generateComputed(_computed, propData, _data, target));
+    _this2._data = {
+      deeps: deeps,
+      shadows: shadows
+    };
     bindMethods(_assertThisInitialized(_this2), _methods);
     var pMethods = {};
     Object.getOwnPropertyNames(target.prototype).filter(function (key) {
@@ -309,6 +305,7 @@ function (_React$Component) {
       return (0, _utils.isFunction)(_this2[key]) && (pMethods[key] = _this2[key]);
     });
     bindMethods(_assertThisInitialized(_this2), pMethods);
+    _this2._computed = generateComputed(_computed, propData, _data, target);
     _this2._watch = _watch;
     Object.keys(_config2.default.inheritMergeStrategies).forEach(function (key) {
       var child = _this2._inherits[key];
@@ -407,8 +404,8 @@ function (_React$Component) {
       }
     }
   }, {
-    key: "_resolveMounted",
-    value: function _resolveMounted(done) {
+    key: "_resolveWillMount",
+    value: function _resolveWillMount(beforeMount, mounted) {
       var _this4 = this;
 
       var _pending = function _pending() {
@@ -426,6 +423,10 @@ function (_React$Component) {
 
         _this4._resolveInject();
 
+        _this4._resolveData();
+
+        _this4._resolveComputed();
+
         _this4._resolveWatch();
 
         var pending = _this4._mountedPending;
@@ -433,10 +434,12 @@ function (_React$Component) {
         pending.forEach(function (v) {
           return v();
         });
-        done && done();
+        beforeMount && beforeMount();
+        _this4._isMounted = true;
+        mounted && _this4.$nextTick(mounted);
       };
 
-      if (!this.$parent || this.$parent._isMounted) _pending();else this.$parent._mountedPending.push(_pending);
+      if (!this.$parent || this.$parent._isWillMount) _pending();else this.$parent._mountedPending.push(_pending);
     }
   }, {
     key: "_resolveInherits",
@@ -459,6 +462,21 @@ function (_React$Component) {
           if (v !== undefined) _this5[key] = v;
         });
       }
+    }
+  }, {
+    key: "_resolveData",
+    value: function _resolveData() {
+      (0, _mobx.extendObservable)(this, this._data.deeps, {}, {
+        deep: true
+      });
+      (0, _mobx.extendObservable)(this, this._data.shadows, {}, {
+        deep: false
+      });
+    }
+  }, {
+    key: "_resolveComputed",
+    value: function _resolveComputed() {
+      (0, _mobx.extendObservable)(this, this._computed);
     }
   }, {
     key: "_resolveWatch",
@@ -875,13 +893,13 @@ function (_React$Component) {
     value: function componentDidMount() {
       var _this10 = this;
 
-      this.$emit('hook:beforeMount');
-
       this._resolveParent();
 
-      this._isMounted = true;
+      this._isWillMount = true;
 
-      this._resolveMounted(function () {
+      this._resolveWillMount(function () {
+        return _this10.$emit('hook:beforeMount');
+      }, function () {
         return _this10.$emit('hook:mounted');
       });
     }

@@ -83,11 +83,9 @@ function parseProps(target, props, propTypes) {
   const attrs = {};
   if (!propTypes) propTypes = {};
   Object.keys(props).forEach(key => {
-    if (['ref', 'children'].includes(key)
-      || /^[$_]/.test(key)) {
-      if (propTypes[key]) propData[key] = props[key];
-      return;
-    }
+    if (propTypes[key]) propData[key] = props[key];
+    if (['ref', 'children'].includes(key) || /^[$_]/.test(key)) return;
+
     if (target.inheritAttrs || target.inheritAttrs === undefined) {
       if (Array.isArray(target.inheritAttrs) && ~target.inheritAttrs.indexOf(key)) return;
       if (config.inheritAttrs.indexOf(key)) return;
@@ -127,7 +125,7 @@ class ReactVueLike extends React.Component {
     this.$attrs = attrs;
     this.$slots = _props.$slots || {};
 
-    extendObservable(this, { _isMounted: false });
+    extendObservable(this, { _isWillMount: false, _isMounted: false });
 
     defComputed(this, '$el', () => this._el || (this._el = ReactDOM.findDOMNode(this)), v => {
       throw new Error('ReactVueLike error: $el is readonly!');
@@ -170,21 +168,19 @@ class ReactVueLike extends React.Component {
     this.$filters = _filters;
     this.$directives = _directives;
     this.$data = _data;
-    let _deeps = {};
-    let _shadows = {};
+    let deeps = {};
+    let shadows = {};
+
     Object.keys(_data).forEach(key => {
       if (key in propData) {
         let e = new Error(`key '${key}' in data() cannot be duplicated with props`);
         handleError(e, this, `constructor:${target.name}`);
         throw e;
       }
-      if (key.startsWith('_')) _shadows[key] = _data[key];
-      else _deeps[key] = _data[key];
+      if (key.startsWith('_')) shadows[key] = _data[key];
+      else deeps[key] = _data[key];
     });
-    extendObservable(this, _deeps, {}, { deep: true });
-    extendObservable(this, _shadows, {}, { deep: false });
-
-    extendObservable(this, generateComputed(_computed, propData, _data, target));
+    this._data = { deeps, shadows };
 
     bindMethods(this, _methods);
     const pMethods = {};
@@ -193,6 +189,7 @@ class ReactVueLike extends React.Component {
       .map(key => isFunction(this[key]) && (pMethods[key] = this[key]));
     bindMethods(this, pMethods);
 
+    this._computed = generateComputed(_computed, propData, _data, target);
     this._watch = _watch;
 
     Object.keys(config.inheritMergeStrategies).forEach(key => {
@@ -280,7 +277,7 @@ class ReactVueLike extends React.Component {
     }
   }
 
-  _resolveMounted(done) {
+  _resolveWillMount(beforeMount, mounted) {
     const _pending = () => {
       if (!this._isVueLikeRoot && this.$parent) {
         Object.keys(config.optionMergeStrategies).forEach(key => {
@@ -292,16 +289,21 @@ class ReactVueLike extends React.Component {
 
       this._resolveInherits();
       this._resolveInject();
+      this._resolveData();
+      this._resolveComputed();
       this._resolveWatch();
 
       let pending = this._mountedPending;
       this._mountedPending = [];
       pending.forEach(v => v());
 
-      done && done();
+      beforeMount && beforeMount();
+
+      this._isMounted = true;
+      mounted && this.$nextTick(mounted);
     };
 
-    if (!this.$parent || this.$parent._isMounted) _pending();
+    if (!this.$parent || this.$parent._isWillMount) _pending();
     else this.$parent._mountedPending.push(_pending);
   }
 
@@ -321,6 +323,15 @@ class ReactVueLike extends React.Component {
         if (v !== undefined) this[key] = v;
       });
     }
+  }
+
+  _resolveData() {
+    extendObservable(this, this._data.deeps, {}, { deep: true });
+    extendObservable(this, this._data.shadows, {}, { deep: false });
+  }
+
+  _resolveComputed() {
+    extendObservable(this, this._computed);
   }
 
   _resolveWatch() {
@@ -605,12 +616,13 @@ class ReactVueLike extends React.Component {
   }
 
   componentDidMount() {
-    this.$emit('hook:beforeMount');
-
     this._resolveParent();
-    this._isMounted = true;
+    this._isWillMount = true;
 
-    this._resolveMounted(() => this.$emit('hook:mounted'));
+    this._resolveWillMount(
+      () => this.$emit('hook:beforeMount'),
+      () => this.$emit('hook:mounted')
+    );
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {

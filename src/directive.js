@@ -33,8 +33,11 @@ class ReactVueLikeDirective extends ReactVueLike {
     }
   }
 
-  mounted() {
+  beforeMount() {
     this._callDirective('bind');
+  }
+
+  mounted() {
     this._callDirective('inserted');
   }
 
