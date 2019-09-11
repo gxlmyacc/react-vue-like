@@ -1,15 +1,19 @@
-.dd.bb.v-data-123dse43 .aa {
+.aa .bb.v-123dse43::after {
+  height: 11px;
+}
+
+.dd.bb.v-123dse43 .aa {
   height: 11;
 }
 
-.sel1 .selc2.v-data-123dse43 {
+.sel1 .selc2.v-123dse43 {
   height: 1px;
 }
 
-div .selet.v-data-123dse43 {
+div .selet.v-123dse43 {
   height: 1px;
 }
 
-[dd].v-data-123dse43 {
+[dd].v-123dse43 {
   height: 1px;
 }

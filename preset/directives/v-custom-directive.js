@@ -60,6 +60,9 @@ module.exports = function ({ types: t, template }) {
       t.jSXIdentifier('_bindings'),
       t.JSXExpressionContainer($bindings.expression)
     ));
+
+    // const refAttr = path.node.openingElement.attributes.find(a => a.name && a.name === 'ref');
+    // if (refAttr) refAttr.name.name = '$ref';
   }
 
   return {

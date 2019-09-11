@@ -3,6 +3,7 @@ const {
   expr2var,
   // extractNodeCode
 } = require('../utils');
+const options = require('../options');
 
 module.exports = function ({ types: t, template }) {
   function wrapElementAttrs(path, element) {
@@ -19,7 +20,7 @@ module.exports = function ({ types: t, template }) {
         //     || (t.isMemberExpression(expr)
         //       && ['this.props', 'this.$attrs'].includes(extractNodeCode(path, expr)));
         // }
-      } else if (t.isJSXAttribute(attr)) {
+      } else if (t.isJSXAttribute(attr) && !attr.name.name.startsWith(options.prefix)) {
         let value = attr.value;
         if (t.isJSXExpressionContainer(value)) value = value.expression;
         attrs.push(t.objectProperty(

@@ -108,6 +108,9 @@ class ReactVueLike extends React.Component {
     if (isRoot) this._isVueLikeRoot = true;
     if (isAbstract) this._isVueLikeAbstract = true;
 
+    this._renderFn = this.render;
+    this.render = ReactVueLike.prototype.render;
+
     const { propData, attrs } = parseProps(target, _props, propTypes);
 
     this._isVueLike = true;
@@ -115,9 +118,10 @@ class ReactVueLike extends React.Component {
     this._ticks = [];
     this._provides = [];
     this._injects = [];
-    this._inherits = null;
+    this._inherits = inherits ? { ...inherits } : null;
     this._el = null;
     this._mountedPending = [];
+    this._isWillMount = false;
     this.$refs = {};
     this.$parent = null;
     this.$root = null;
@@ -125,28 +129,15 @@ class ReactVueLike extends React.Component {
     this.$attrs = attrs;
     this.$slots = _props.$slots || {};
 
-    extendObservable(this, { _isWillMount: false, _isMounted: false });
+    extendObservable(this, { _isMounted: false });
 
     defComputed(this, '$el', () => this._el || (this._el = ReactDOM.findDOMNode(this)), v => {
       throw new Error('ReactVueLike error: $el is readonly!');
     });
 
-    this._renderFn = this.render;
-    this.render = ReactVueLike.prototype.render;
-
-    const inheritsKeys = (inherits && Object.keys(inherits));
-    if (inheritsKeys.length) {
-      this._inherits = {};
-      inheritsKeys.forEach(key => this._inherits[key] = inherits[key]);
-    }
-
     const ctxs = mixins ? [...ReactVueLike.mixins, ...mixins, target] : [...ReactVueLike.mixins, target];
-    this.$listeners = initListeners(ctxs, _props);
 
-
-    this.$emit('hook:beforeCreate', _props);
-
-    let _data = {};
+    let _datas = [];
     let _computed = {};
     let _methods = {};
     let _watch = {};
@@ -155,7 +146,7 @@ class ReactVueLike extends React.Component {
     ctxs.forEach(ctx => {
       if (ctx.filters) Object.assign(_filters, ctx.filters);
       if (ctx.directives) Object.assign(_directives, ctx.directives);
-      if (ctx.data) Object.assign(_data, ctx.data.call(this, _props));
+      if (ctx.data) _datas.push(ctx.data);
       if (ctx.computed) Object.assign(_computed, ctx.computed);
       if (ctx.methods) Object.assign(_methods, ctx.methods);
       if (ctx.watch) Object.assign(_watch, ctx.watch);
@@ -165,32 +156,17 @@ class ReactVueLike extends React.Component {
 
     extendObservable(this, propData);
 
+    this.$listeners = initListeners(ctxs, _props);
     this.$filters = _filters;
     this.$directives = _directives;
-    this.$data = _data;
-    let deeps = {};
-    let shadows = {};
 
-    Object.keys(_data).forEach(key => {
-      if (key in propData) {
-        let e = new Error(`key '${key}' in data() cannot be duplicated with props`);
-        handleError(e, this, `constructor:${target.name}`);
-        throw e;
-      }
-      if (key.startsWith('_')) shadows[key] = _data[key];
-      else deeps[key] = _data[key];
-    });
-    this._data = { deeps, shadows };
-
-    bindMethods(this, _methods);
-    const pMethods = {};
-    Object.getOwnPropertyNames(target.prototype)
-      .filter(key => ReactVueLike.prototype[key])
-      .map(key => isFunction(this[key]) && (pMethods[key] = this[key]));
-    bindMethods(this, pMethods);
-
-    this._computed = generateComputed(_computed, propData, _data, target);
+    this._datas = _datas;
+    this._propData = propData;
+    this._methods = _methods;
+    this._computed = _computed;
     this._watch = _watch;
+
+    this.$emit('hook:beforeCreate', _props);
 
     Object.keys(config.inheritMergeStrategies).forEach(key => {
       let child = this._inherits[key];
@@ -201,8 +177,14 @@ class ReactVueLike extends React.Component {
         if (v !== undefined && v !== child) this._inherits[key] = v;
       } else this._inherits[key] = parent;
     });
+  }
 
-    this.$emit('hook:created');
+  _resolvePropRef() {
+    const $ref = this.props.$ref;
+    if (!this._isVueLikeAbstract && $ref) {
+      if (isObject($ref)) $ref.current = this;
+      else if (isFunction($ref)) $ref(this);
+    }
   }
 
   _resolveRef(refName, el, key) {
@@ -288,10 +270,14 @@ class ReactVueLike extends React.Component {
       this.$root = this.$parent ? this.$parent.$root : this;
 
       this._resolveInherits();
-      this._resolveInject();
+      this._resolveMethods();
       this._resolveData();
       this._resolveComputed();
+      this._resolveInject();
       this._resolveWatch();
+      this._resolvePropRef();
+
+      this.$emit('hook:created');
 
       let pending = this._mountedPending;
       this._mountedPending = [];
@@ -326,16 +312,44 @@ class ReactVueLike extends React.Component {
   }
 
   _resolveData() {
-    extendObservable(this, this._data.deeps, {}, { deep: true });
-    extendObservable(this, this._data.shadows, {}, { deep: false });
+    const _data = {};
+    this._datas.forEach(data => {
+      Object.assign(_data, data.call(this, this.props));
+    });
+
+    this.$data = _data;
+
+    let deeps = {};
+    let shadows = {};
+    Object.keys(_data).forEach(key => {
+      if (key in this._propData) {
+        let e = new Error(`key '${key}' in data() cannot be duplicated with props`);
+        handleError(e, this, `constructor:${this._type.name}`);
+        throw e;
+      }
+      if (key.startsWith('_')) shadows[key] = _data[key];
+      else deeps[key] = _data[key];
+    });
+    extendObservable(this, deeps, {}, { deep: true });
+    extendObservable(this, shadows, {}, { deep: false });
   }
 
   _resolveComputed() {
-    extendObservable(this, this._computed);
+    let _computed = generateComputed(this._computed, this._propData, this.$data, this._type);
+    extendObservable(this, _computed);
   }
 
   _resolveWatch() {
     bindWatch(this, this._watch);
+  }
+
+  _resolveMethods() {
+    bindMethods(this, this._methods);
+    const pMethods = {};
+    Object.getOwnPropertyNames(this._type.prototype)
+      .filter(key => ReactVueLike.prototype[key])
+      .map(key => isFunction(this[key]) && (pMethods[key] = this[key]));
+    bindMethods(this, pMethods);
   }
 
   _resolveParent() {
@@ -384,6 +398,12 @@ class ReactVueLike extends React.Component {
 
   _resolveDestory() {
     this._flushTicks();
+
+    const $ref = this.props.$ref;
+    if (!this._isVueLikeAbstract && $ref) {
+      if (isObject($ref)) $ref.current = null;
+      else if (isFunction($ref)) $ref(null);
+    }
 
     if (this.$parent) {
       const idx = this.$parent.$children.findIndex(c => c === this);
@@ -650,17 +670,25 @@ ReactVueLike.Component = ReactVueLike;
 
 function ReactHook() {
   const _createElement = React.createElement;
-  React.createElement = function createElement(Component, ...args) {
-    if (!Component || !Component.props) return _createElement.call(this, Component, ...args);
-    // eslint-disable-next-line
-    if (!Component.propTypes && (Component.prototype instanceof ReactVueLike)) {
-      Component = propcheck(Component);
+  React.createElement = function createElement(Component, props, ...children) {
+    if (!Component) return _createElement.call(this, Component, props, ...children);
+    if (Component.prototype instanceof ReactVueLike) {
+      // eslint-disable-next-line
+      if (Component.props && !Component.propTypes) {
+        Component = propcheck(Component);
+      }
+      if (props) {
+        if (props.ref) {
+          props.$ref = props.ref;
+          delete props.ref;
+        }
+      }
     }
     let newComponent;
     if (Component.beforeConstructor) {
-      newComponent = Component.beforeConstructor(...args);
+      newComponent = Component.beforeConstructor(props, ...children);
     }
-    return _createElement.call(this, newComponent || Component, ...args);
+    return _createElement.call(this, newComponent || Component, props, ...children);
   };
 }
 

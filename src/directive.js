@@ -57,7 +57,7 @@ class ReactVueLikeDirective extends ReactVueLike {
     // eslint-disable-next-line
     const { _source, _bindings, ...props } = this.props;
     const Source = _source;
-    return <Source {...props} />;
+    return <Source {...props} ref={this.$ref} />;
   }
 
 }

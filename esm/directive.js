@@ -7,6 +7,8 @@ exports.default = void 0;
 
 require("core-js/modules/es7.symbol.async-iterator");
 
+require("core-js/modules/es6.object.assign");
+
 require("core-js/modules/es6.symbol");
 
 require("core-js/modules/web.dom.iterable");
@@ -32,6 +34,8 @@ var _utils = require("./utils");
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _extends() { _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
 
 function _objectWithoutProperties(source, excluded) { if (source == null) return {}; var target = _objectWithoutPropertiesLoose(source, excluded); var key, i; if (Object.getOwnPropertySymbols) { var sourceSymbolKeys = Object.getOwnPropertySymbols(source); for (i = 0; i < sourceSymbolKeys.length; i++) { key = sourceSymbolKeys[i]; if (excluded.indexOf(key) >= 0) continue; if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue; target[key] = source[key]; } } return target; }
 
@@ -115,10 +119,13 @@ function (_ReactVueLike) {
       return _callDirective;
     }()
   }, {
+    key: "beforeMount",
+    value: function beforeMount() {
+      this._callDirective('bind');
+    }
+  }, {
     key: "mounted",
     value: function mounted() {
-      this._callDirective('bind');
-
       this._callDirective('inserted');
     }
   }, {
@@ -146,7 +153,9 @@ function (_ReactVueLike) {
           props = _objectWithoutProperties(_this$props, ["_source", "_bindings"]);
 
       var Source = _source;
-      return _react.default.createElement(Source, props);
+      return _react.default.createElement(Source, _extends({}, props, {
+        ref: this.$ref
+      }));
     }
   }]);
 

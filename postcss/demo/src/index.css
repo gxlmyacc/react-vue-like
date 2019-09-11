@@ -1,3 +1,7 @@
+.aa .bb::after {
+  height: 11px;
+}
+
 .dd.bb >>> .aa {
   height: 11;
 }

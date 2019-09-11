@@ -13,6 +13,8 @@ require("core-js/modules/es6.array.from");
 
 require("core-js/modules/es6.regexp.to-string");
 
+require("core-js/modules/es7.object.get-own-property-descriptors");
+
 require("core-js/modules/es6.object.set-prototype-of");
 
 require("core-js/modules/es7.symbol.async-iterator");
@@ -23,9 +25,9 @@ require("regenerator-runtime/runtime");
 
 require("core-js/modules/es6.array.find-index");
 
-require("core-js/modules/es6.regexp.split");
-
 require("core-js/modules/es6.string.starts-with");
+
+require("core-js/modules/es6.regexp.split");
 
 require("core-js/modules/es6.object.assign");
 
@@ -74,6 +76,10 @@ function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread n
 function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
 
 function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -216,6 +222,8 @@ function (_React$Component) {
         inherits = target.inherits;
     if (isRoot) _this2._isVueLikeRoot = true;
     if (isAbstract) _this2._isVueLikeAbstract = true;
+    _this2._renderFn = _this2.render;
+    _this2.render = ReactVueLike.prototype.render;
 
     var _parseProps = parseProps(target, _props, propTypes),
         propData = _parseProps.propData,
@@ -226,9 +234,10 @@ function (_React$Component) {
     _this2._ticks = [];
     _this2._provides = [];
     _this2._injects = [];
-    _this2._inherits = null;
+    _this2._inherits = inherits ? _objectSpread({}, inherits) : null;
     _this2._el = null;
     _this2._mountedPending = [];
+    _this2._isWillMount = false;
     _this2.$refs = {};
     _this2.$parent = null;
     _this2.$root = null;
@@ -236,7 +245,6 @@ function (_React$Component) {
     _this2.$attrs = attrs;
     _this2.$slots = _props.$slots || {};
     (0, _mobx.extendObservable)(_assertThisInitialized(_this2), {
-      _isWillMount: false,
       _isMounted: false
     });
     (0, _utils.defComputed)(_assertThisInitialized(_this2), '$el', function () {
@@ -244,23 +252,8 @@ function (_React$Component) {
     }, function (v) {
       throw new Error('ReactVueLike error: $el is readonly!');
     });
-    _this2._renderFn = _this2.render;
-    _this2.render = ReactVueLike.prototype.render;
-    var inheritsKeys = inherits && Object.keys(inherits);
-
-    if (inheritsKeys.length) {
-      _this2._inherits = {};
-      inheritsKeys.forEach(function (key) {
-        return _this2._inherits[key] = inherits[key];
-      });
-    }
-
     var ctxs = mixins ? [].concat(_toConsumableArray(ReactVueLike.mixins), _toConsumableArray(mixins), [target]) : [].concat(_toConsumableArray(ReactVueLike.mixins), [target]);
-    _this2.$listeners = initListeners(ctxs, _props);
-
-    _this2.$emit('hook:beforeCreate', _props);
-
-    var _data = {};
+    var _datas = [];
     var _computed = {};
     var _methods = {};
     var _watch = {};
@@ -269,7 +262,7 @@ function (_React$Component) {
     ctxs.forEach(function (ctx) {
       if (ctx.filters) Object.assign(_filters, ctx.filters);
       if (ctx.directives) Object.assign(_directives, ctx.directives);
-      if (ctx.data) Object.assign(_data, ctx.data.call(_assertThisInitialized(_this2), _props));
+      if (ctx.data) _datas.push(ctx.data);
       if (ctx.computed) Object.assign(_computed, ctx.computed);
       if (ctx.methods) Object.assign(_methods, ctx.methods);
       if (ctx.watch) Object.assign(_watch, ctx.watch);
@@ -279,34 +272,17 @@ function (_React$Component) {
       });
     });
     (0, _mobx.extendObservable)(_assertThisInitialized(_this2), propData);
+    _this2.$listeners = initListeners(ctxs, _props);
     _this2.$filters = _filters;
     _this2.$directives = _directives;
-    _this2.$data = _data;
-    var deeps = {};
-    var shadows = {};
-    Object.keys(_data).forEach(function (key) {
-      if (key in propData) {
-        var e = new Error("key '".concat(key, "' in data() cannot be duplicated with props"));
-        (0, _utils.handleError)(e, _assertThisInitialized(_this2), "constructor:".concat(target.name));
-        throw e;
-      }
-
-      if (key.startsWith('_')) shadows[key] = _data[key];else deeps[key] = _data[key];
-    });
-    _this2._data = {
-      deeps: deeps,
-      shadows: shadows
-    };
-    bindMethods(_assertThisInitialized(_this2), _methods);
-    var pMethods = {};
-    Object.getOwnPropertyNames(target.prototype).filter(function (key) {
-      return ReactVueLike.prototype[key];
-    }).map(function (key) {
-      return (0, _utils.isFunction)(_this2[key]) && (pMethods[key] = _this2[key]);
-    });
-    bindMethods(_assertThisInitialized(_this2), pMethods);
-    _this2._computed = generateComputed(_computed, propData, _data, target);
+    _this2._datas = _datas;
+    _this2._propData = propData;
+    _this2._methods = _methods;
+    _this2._computed = _computed;
     _this2._watch = _watch;
+
+    _this2.$emit('hook:beforeCreate', _props);
+
     Object.keys(_config2.default.inheritMergeStrategies).forEach(function (key) {
       var child = _this2._inherits[key];
       var parent = _this2[key];
@@ -318,13 +294,19 @@ function (_React$Component) {
         if (v !== undefined && v !== child) _this2._inherits[key] = v;
       } else _this2._inherits[key] = parent;
     });
-
-    _this2.$emit('hook:created');
-
     return _this2;
   }
 
   _createClass(ReactVueLike, [{
+    key: "_resolvePropRef",
+    value: function _resolvePropRef() {
+      var $ref = this.props.$ref;
+
+      if (!this._isVueLikeAbstract && $ref) {
+        if ((0, _utils.isObject)($ref)) $ref.current = this;else if ((0, _utils.isFunction)($ref)) $ref(this);
+      }
+    }
+  }, {
     key: "_resolveRef",
     value: function _resolveRef(refName, el, key) {
       this.$refs[refName] = el; // if (!key) {
@@ -421,13 +403,19 @@ function (_React$Component) {
 
         _this4._resolveInherits();
 
-        _this4._resolveInject();
+        _this4._resolveMethods();
 
         _this4._resolveData();
 
         _this4._resolveComputed();
 
+        _this4._resolveInject();
+
         _this4._resolveWatch();
+
+        _this4._resolvePropRef();
+
+        _this4.$emit('hook:created');
 
         var pending = _this4._mountedPending;
         _this4._mountedPending = [];
@@ -466,17 +454,39 @@ function (_React$Component) {
   }, {
     key: "_resolveData",
     value: function _resolveData() {
-      (0, _mobx.extendObservable)(this, this._data.deeps, {}, {
+      var _this6 = this;
+
+      var _data = {};
+
+      this._datas.forEach(function (data) {
+        Object.assign(_data, data.call(_this6, _this6.props));
+      });
+
+      this.$data = _data;
+      var deeps = {};
+      var shadows = {};
+      Object.keys(_data).forEach(function (key) {
+        if (key in _this6._propData) {
+          var e = new Error("key '".concat(key, "' in data() cannot be duplicated with props"));
+          (0, _utils.handleError)(e, _this6, "constructor:".concat(_this6._type.name));
+          throw e;
+        }
+
+        if (key.startsWith('_')) shadows[key] = _data[key];else deeps[key] = _data[key];
+      });
+      (0, _mobx.extendObservable)(this, deeps, {}, {
         deep: true
       });
-      (0, _mobx.extendObservable)(this, this._data.shadows, {}, {
+      (0, _mobx.extendObservable)(this, shadows, {}, {
         deep: false
       });
     }
   }, {
     key: "_resolveComputed",
     value: function _resolveComputed() {
-      (0, _mobx.extendObservable)(this, this._computed);
+      var _computed = generateComputed(this._computed, this._propData, this.$data, this._type);
+
+      (0, _mobx.extendObservable)(this, _computed);
     }
   }, {
     key: "_resolveWatch",
@@ -484,13 +494,27 @@ function (_React$Component) {
       bindWatch(this, this._watch);
     }
   }, {
+    key: "_resolveMethods",
+    value: function _resolveMethods() {
+      var _this7 = this;
+
+      bindMethods(this, this._methods);
+      var pMethods = {};
+      Object.getOwnPropertyNames(this._type.prototype).filter(function (key) {
+        return ReactVueLike.prototype[key];
+      }).map(function (key) {
+        return (0, _utils.isFunction)(_this7[key]) && (pMethods[key] = _this7[key]);
+      });
+      bindMethods(this, pMethods);
+    }
+  }, {
     key: "_resolveParent",
     value: function _resolveParent() {
-      var _this6 = this;
+      var _this8 = this;
 
       if (!this._isVueLikeRoot) {
         (0, _utils.iterativeParent)(this, function (parent) {
-          return _this6.$parent = parent;
+          return _this8.$parent = parent;
         }, ReactVueLike);
         if (this.$parent) this.$parent.$children.push(this);
       }
@@ -498,7 +522,7 @@ function (_React$Component) {
   }, {
     key: "_resolveInject",
     value: function _resolveInject() {
-      var _this7 = this;
+      var _this9 = this;
 
       if (!this.$parent) return;
 
@@ -525,7 +549,7 @@ function (_React$Component) {
                 var v = _provide[key];
 
                 if (v !== undefined) {
-                  _this7.$set(_this7, key, v);
+                  _this9.$set(_this9, key, v);
 
                   injects.splice(i, 1);
                 }
@@ -548,13 +572,19 @@ function (_React$Component) {
   }, {
     key: "_resolveDestory",
     value: function _resolveDestory() {
-      var _this8 = this;
+      var _this10 = this;
 
       this._flushTicks();
 
+      var $ref = this.props.$ref;
+
+      if (!this._isVueLikeAbstract && $ref) {
+        if ((0, _utils.isObject)($ref)) $ref.current = null;else if ((0, _utils.isFunction)($ref)) $ref(null);
+      }
+
       if (this.$parent) {
         var idx = this.$parent.$children.findIndex(function (c) {
-          return c === _this8;
+          return c === _this10;
         });
         if (~idx) this.$parent.$children.splice(idx, 1);
       }
@@ -811,13 +841,13 @@ function (_React$Component) {
   }, {
     key: "$on",
     value: function $on(eventName, handler) {
-      var _this9 = this;
+      var _this11 = this;
 
       eventName = (0, _utils.camelize)(eventName);
       if (!this.$listeners[eventName]) this.$listeners[eventName] = [];
       this.$listeners[eventName].push(handler);
       return function () {
-        return _this9.$off(eventName, handler);
+        return _this11.$off(eventName, handler);
       };
     }
   }, {
@@ -891,16 +921,16 @@ function (_React$Component) {
   }, {
     key: "componentDidMount",
     value: function componentDidMount() {
-      var _this10 = this;
+      var _this12 = this;
 
       this._resolveParent();
 
       this._isWillMount = true;
 
       this._resolveWillMount(function () {
-        return _this10.$emit('hook:beforeMount');
+        return _this12.$emit('hook:beforeMount');
       }, function () {
-        return _this10.$emit('hook:mounted');
+        return _this12.$emit('hook:mounted');
       });
     }
   }, {
@@ -963,15 +993,25 @@ ReactVueLike.Component = ReactVueLike;
 function ReactHook() {
   var _createElement = _react.default.createElement;
 
-  _react.default.createElement = function createElement(Component) {
-    for (var _len3 = arguments.length, args = new Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
-      args[_key3 - 1] = arguments[_key3];
+  _react.default.createElement = function createElement(Component, props) {
+    for (var _len3 = arguments.length, children = new Array(_len3 > 2 ? _len3 - 2 : 0), _key3 = 2; _key3 < _len3; _key3++) {
+      children[_key3 - 2] = arguments[_key3];
     }
 
-    if (!Component || !Component.props) return _createElement.call.apply(_createElement, [this, Component].concat(args)); // eslint-disable-next-line
+    if (!Component) return _createElement.call.apply(_createElement, [this, Component, props].concat(children));
 
-    if (!Component.propTypes && Component.prototype instanceof ReactVueLike) {
-      Component = (0, _propCheck.default)(Component);
+    if (Component.prototype instanceof ReactVueLike) {
+      // eslint-disable-next-line
+      if (Component.props && !Component.propTypes) {
+        Component = (0, _propCheck.default)(Component);
+      }
+
+      if (props) {
+        if (props.ref) {
+          props.$ref = props.ref;
+          delete props.ref;
+        }
+      }
     }
 
     var newComponent;
@@ -979,10 +1019,10 @@ function ReactHook() {
     if (Component.beforeConstructor) {
       var _Component;
 
-      newComponent = (_Component = Component).beforeConstructor.apply(_Component, args);
+      newComponent = (_Component = Component).beforeConstructor.apply(_Component, [props].concat(children));
     }
 
-    return _createElement.call.apply(_createElement, [this, newComponent || Component].concat(args));
+    return _createElement.call.apply(_createElement, [this, newComponent || Component, props].concat(children));
   };
 }
 
