@@ -12,6 +12,7 @@ exports.findComponentEl = findComponentEl;
 exports.isPrimitive = isPrimitive;
 exports.isObject = isObject;
 exports.isFalsy = isFalsy;
+exports.warn = warn;
 exports.handleError = handleError;
 Object.defineProperty(exports, "toJS", {
   enumerable: true,
@@ -127,6 +128,7 @@ Object.defineProperty(exports, "Observer", {
     return _mobxReact.Observer;
   }
 });
+exports.isProduction = void 0;
 
 require("core-js/modules/es7.symbol.async-iterator");
 
@@ -151,6 +153,9 @@ var _mobxReact = require("mobx-react");
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+var isProduction = process.env.NODE_ENV === 'production';
+exports.isProduction = isProduction;
 
 // isArray support ObservableArray
 var arrayType = _mobx.observable.array([11, 22]);

@@ -595,13 +595,8 @@ function (_React$Component) {
         comp = this.$root._type.components[compName];
       }
 
-      if (!comp) {
-        var e = new Error("can not resolve component '".concat(compName, "'!"));
-        (0, _utils.handleError)(e, this, '_resolveComp');
-        throw e;
-      }
-
-      return comp;
+      if (!_utils.isProduction && !comp) (0, _utils.warn)("can not resolve component '".concat(compName, "'!"), this);
+      return comp || compName;
     }
   }, {
     key: "_resolveUpdated",

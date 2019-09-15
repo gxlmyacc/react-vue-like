@@ -21,8 +21,8 @@ function directivesMergeStrategies(parent, child, vm, key) {
 
 var config = {
   // silent: false,
-  // errorHandler: null,
-  // warnHandler: null,
+  errorHandler: null,
+  warnHandler: null,
   useAction: true,
   inheritAttrs: ['className', 'style'],
   inheritMergeStrategies: {},
