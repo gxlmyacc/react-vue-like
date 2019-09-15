@@ -1,6 +1,8 @@
 
 const {
   expr2var,
+  findClassStaticPath,
+  isReactVueLike,
   // extractNodeCode
 } = require('../utils');
 const options = require('../options');
@@ -129,47 +131,28 @@ module.exports = function ({ types: t, template }) {
     }
   }
 
+  function ClassVisitor(path) {
+    if (!isReactVueLike(path)) return;
+    const ctx = {
+      cached: [],
+      classPath: path,
+      methodsPath: findClassStaticPath(path, 'methods')
+    };
+    path.traverse({
+      ClassMethod(path) {
+        const node = path.node;
+        if (node.kind === 'method' && expr2var(node.key) === 'render') {
+          traverseReturn.call(this, path);
+          path.stop();
+        }
+      }
+    }, ctx);
+  }
+
   return {
     visitor: {
-      ClassDeclaration(path) {
-        if (!path.node.superClass || path.node.superClass.name !== 'ReactVueLike') return;
-        const className = path.node.id.name;
-        const ctx = {
-          cached: [],
-          classPath: path,
-          methodsPath: null
-        };
-        path.parentPath.traverse({
-          ExpressionStatement(path) {
-            const expr = path.node;
-            if (this.methodsPath) return path.stop();
-            if (!t.isCallExpression(expr)
-              && t.isIdentifier(expr.expression.callee)
-              && expr2var(expr.expression.callee) !== '_defineProperty'
-              && t.isIdentifier(expr.expression.arguments[0])
-              && expr2var(expr.expression.arguments[0]) !== className
-              && expr2var(expr.expression.arguments[1]) !== 'methods') return path.skip();
-            path.traverse({
-              ObjectExpression(path) {
-                if (path.parent !== expr.expression) return path.skip();
-                this.methodsPath = path;
-                path.stop();
-              }
-            }, this);
-            if (this.methodsPath) path.stop();
-          }
-        }, ctx);
-
-        path.traverse({
-          ClassMethod(path) {
-            const node = path.node;
-            if (node.kind === 'method' && expr2var(node.key) === 'render') {
-              traverseReturn.call(this, path);
-              path.stop();
-            }
-          }
-        }, ctx);
-      },
+      ClassDeclaration: ClassVisitor,
+      ClassExpression: ClassVisitor
     }
   };
 };

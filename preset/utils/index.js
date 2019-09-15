@@ -319,9 +319,11 @@ function removeAttributeVisitor(path, attr) {
 }
 
 function transformIfBinding(path, ifBinding) {
-  const { attrBinding, index, node } = ifBinding;
+  let { attrBinding, index, node } = ifBinding;
 
   removeAttrASTByIndex(node, index);
+
+  if (node.openingElement.name.name === 'template') node = childrenToArrayExpr(node.children);
 
   const targetAST = t.conditionalExpression(
     attrBinding.value.expression,
@@ -332,18 +334,21 @@ function transformIfBinding(path, ifBinding) {
 }
 
 function transformElseBinding(path, ifBinding, elseBinding) {
-  const {
+  let {
     attrBinding: ifAttr,
     index: ifIndex,
     node: ifNode
   } = ifBinding;
-  const {
+  let {
     node: elseNode,
     index: elseIndex
   } = elseBinding;
 
   removeAttrASTByIndex(ifNode, ifIndex);
   removeAttrASTByIndex(elseNode, elseIndex);
+
+  if (ifNode.openingElement.name.name === 'template') ifNode = childrenToArrayExpr(ifNode.children);
+  if (elseNode.openingElement.name.name === 'template') elseNode = childrenToArrayExpr(elseNode.children);
 
   const targetAST = t.conditionalExpression(
     ifAttr.value.expression,
@@ -354,11 +359,12 @@ function transformElseBinding(path, ifBinding, elseBinding) {
 }
 
 function transformElseIfBindings(path, ifBinding, elseIfBindings, elseBinding) {
-  const {
+  let {
     attrBinding: ifAttr,
     index: ifIndex,
     node: ifNode
   } = ifBinding;
+  if (ifNode.openingElement.name.name === 'template') ifNode = childrenToArrayExpr(ifNode.children);
 
   removeAttrASTByIndex(ifNode, ifIndex);
   if (elseBinding) {
@@ -387,18 +393,23 @@ function transformElseIfBindings(path, ifBinding, elseIfBindings, elseBinding) {
 function getAlternteAST(elseIfBindings, elseBinding, index = 0) {
   if (index + 1 < elseIfBindings.length) {
     const elseIfBinding = elseIfBindings[index];
-    const {
+    let {
       attrBinding,
-      node
+      node: elseIfNode
     } = elseIfBinding;
+    if (elseIfNode.openingElement.name.name === 'template') elseIfNode = childrenToArrayExpr(elseIfNode.children);
     return t.ifStatement(
       attrBinding.value.expression,
-      t.returnStatement(node),
+      t.returnStatement(elseIfNode),
       getAlternteAST(elseIfBindings, elseBinding, index + 1)
     );
   }
   if (elseBinding) {
-    return t.returnStatement(elseBinding.node);
+    let {
+      node: elseNode
+    } = elseBinding;
+    if (elseNode.openingElement.name.name === 'template') elseNode = childrenToArrayExpr(elseNode.children);
+    return t.returnStatement(elseNode);
   }
   return null;
 }
@@ -581,6 +592,86 @@ function getConstCache(filename) {
   return cache;
 }
 
+function childrenToArrayExpr(children, trim) {
+  children = children.slice();
+  for (let i = children.length - 1; i > -1; i--) {
+    let c = children[i];
+    if (t.isJSXText(c)) {
+      if (trim && (i === 0 || i === children.length - 1) && !c.value.trim()) children.splice(i, 1);
+      else children[i] = t.stringLiteral(c.value);
+    } else if (t.isJSXExpressionContainer(c)) children[i] = c.expression;
+  }
+  return children.length === 1 ? children[0] : t.arrayExpression(children);
+}
+
+function findClassStaticPath(classDeclarationPath, propertyName) {
+  let bodyPath;
+  let isArg1Ok;
+  let scope;
+  // if (expr2var(classDeclarationPath.node.superClass) === 'ReactVueLike.Mixin') {
+  //   classDeclarationPath.traverse({
+  //     ClassMethod(path) {
+  //       if (path.parent !== classDeclarationPath.node.body) return;
+  //       if (path.node.kind !== 'constructor') return path.skip();
+  //       bodyPath = path;
+  //       path.stop();
+  //     }
+  //   });
+  //   if (!bodyPath) return;
+  //   cope = bodyPath.scope.block;
+  //   isArg1Ok = function (arg) {
+  //     return t.isThisExpression(arg);
+  //   };
+  // } else {
+  if (t.isClassExpression(classDeclarationPath) && classDeclarationPath.key === 'right') {
+    let left = classDeclarationPath.parent.left;
+    let leftName = expr2var(left);
+    bodyPath = classDeclarationPath.findParent(path => t.isSequenceExpression(path));
+    if (!bodyPath) return;
+    scope = bodyPath.scope.block;
+    isArg1Ok = function (arg) {
+      return arg.type === left.type && expr2var(arg) === leftName;
+    };
+  } else {
+    const className = expr2var(classDeclarationPath.node.id);
+    bodyPath = classDeclarationPath.parentPath;
+    scope = bodyPath.scope.block;
+    isArg1Ok = function (arg) {
+      return t.isIdentifier(arg) && expr2var(arg) === className;
+    };
+  }
+  // }
+
+  let methodsPath;
+  bodyPath.traverse({
+    CallExpression(path) {
+      if (path.scope.block !== scope) return path.skip();
+      const expr = path.node;
+      if (!expr || methodsPath) return path.stop();
+      if (!t.isCallExpression(expr)
+        || !t.isIdentifier(expr.callee)
+        || expr2var(expr.callee) !== '_defineProperty'
+        || !isArg1Ok(expr.arguments[0])
+        || expr2var(expr.arguments[1]) !== propertyName) return path.skip();
+      path.traverse({
+        ObjectExpression(path) {
+          if (path.parent !== expr) return path.skip();
+          methodsPath = path;
+          path.stop();
+        }
+      });
+      if (methodsPath) path.stop();
+    }
+  });
+
+  return methodsPath;
+}
+
+function isReactVueLike(classDeclarationPath) {
+  return classDeclarationPath.node.superClass
+    && (['ReactVueLike', 'ReactVueLike.Mixin'].includes(expr2var(classDeclarationPath.node.superClass)));
+}
+
 module.exports = {
   DirectiveName,
   getConstCache,
@@ -615,5 +706,8 @@ module.exports = {
   requireStatement,
   extractNodeCode,
   expr2var,
+  childrenToArrayExpr,
+  findClassStaticPath,
+  isReactVueLike,
   log
 };

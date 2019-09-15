@@ -1,6 +1,7 @@
 
 const {
-  getConstCache
+  getConstCache,
+  isReactVueLike,
 } = require('../utils');
 
 module.exports = function ({ types: t, template }) {
@@ -9,12 +10,11 @@ module.exports = function ({ types: t, template }) {
       opts: { filename }
     },
   }) {
-    if (path.node.superClass && path.node.superClass.name === 'ReactVueLike') {
-      const cache = getConstCache(filename);
-      path.insertAfter(template(`${path.node.id.name}.__file = $FILE$;`)({
-        $FILE$: t.stringLiteral(cache.filename)
-      }));
-    }
+    if (!isReactVueLike(path)) return;
+    const cache = getConstCache(filename);
+    path.insertAfter(template(`${path.node.id.name}.__file = $FILE$;`)({
+      $FILE$: t.stringLiteral(cache.filename)
+    }));
   }
 
 

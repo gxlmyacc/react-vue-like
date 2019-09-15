@@ -1,13 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { extendObservable, observe, when, set, remove } from 'mobx';
-import { observer, runInAction } from 'mobx-react';
+import { observer } from 'mobx-react';
+import { configure } from 'mobx';
+import { extendObservable, observe, when, set, remove, action, runInAction } from './mobx';
 import {
-  isPrimitive, isFalsy, isObject,
+  isPrimitive, isFalsy, isObject, warn, isProduction,
   parseExpr, camelize, isFunction, iterativeParent, handleError, defComputed
 } from './utils';
 import config from './config';
-import propcheck from './prop-check';
 
 function generateComputed(obj, propData, data, target) {
   const ret = {};
@@ -24,13 +24,17 @@ function generateComputed(obj, propData, data, target) {
     }
     const v = obj[key];
     if (isFunction(v)) return defComputed(ret, key, v);
-    defComputed(ret, key, v.get, v.set);
+    defComputed(ret, key, v.get, action(key, v.set));
   });
   return ret;
 }
 
 function bindMethods(ctx, methods) {
-  methods && Object.keys(methods).forEach(key => ctx[key] = (methods[key].bind(ctx)));
+  methods && Object.keys(methods).forEach(key => {
+    // let method = methods[key].bind(ctx);
+    // ctx[key] = action(key, method);
+    ctx[key] = methods[key].bind(ctx);
+  });
 }
 
 function bindWatch(ctx, watch) {
@@ -57,7 +61,7 @@ function initListeners(ctxs, props) {
   let listeners = {};
   const addListener = (key, handler) => {
     if (!listeners[key]) listeners[key] = [];
-    listeners[key].push(handler);
+    listeners[key].push(action(key, handler));
   };
   ctxs.forEach(ctx => {
     LIFECYCLE_HOOKS.forEach(key => {
@@ -88,7 +92,7 @@ function parseProps(target, props, propTypes) {
 
     if (target.inheritAttrs || target.inheritAttrs === undefined) {
       if (Array.isArray(target.inheritAttrs) && ~target.inheritAttrs.indexOf(key)) return;
-      if (config.inheritAttrs.indexOf(key)) return;
+      if (~config.inheritAttrs.indexOf(key)) return;
     }
     attrs[key] = props[key];
   });
@@ -116,20 +120,20 @@ class ReactVueLike extends React.Component {
     this._isVueLike = true;
     this._type = target;
     this._ticks = [];
-    this._provides = [];
-    this._injects = [];
     this._inherits = inherits ? { ...inherits } : null;
     this._el = null;
     this._mountedPending = [];
     this._isWillMount = false;
-    this.$refs = {};
     this.$parent = null;
     this.$root = null;
     this.$children = [];
     this.$attrs = attrs;
     this.$slots = _props.$slots || {};
 
+    if (this.$slots.default === undefined) this.$slots.default = _props.children;
+
     extendObservable(this, { _isMounted: false });
+    extendObservable(this, { $refs: {} }, {}, { deep: false });
 
     defComputed(this, '$el', () => this._el || (this._el = ReactDOM.findDOMNode(this)), v => {
       throw new Error('ReactVueLike error: $el is readonly!');
@@ -143,6 +147,8 @@ class ReactVueLike extends React.Component {
     let _watch = {};
     let _directives = {};
     let _filters = {};
+    let _provides = [];
+    let _injects = [];
     ctxs.forEach(ctx => {
       if (ctx.filters) Object.assign(_filters, ctx.filters);
       if (ctx.directives) Object.assign(_directives, ctx.directives);
@@ -150,33 +156,40 @@ class ReactVueLike extends React.Component {
       if (ctx.computed) Object.assign(_computed, ctx.computed);
       if (ctx.methods) Object.assign(_methods, ctx.methods);
       if (ctx.watch) Object.assign(_watch, ctx.watch);
-      if (ctx.provide) this._provides.push(ctx.provide);
-      if (ctx.inject) ctx.inject.forEach(key => !this._injects.includes(key) && this._injects.push(key));
+      if (ctx.provide) _provides.push(ctx.provide);
+      if (ctx.inject) ctx.inject.forEach(key => !_injects.includes(key) && _injects.push(key));
     });
 
     extendObservable(this, propData);
 
     this.$listeners = initListeners(ctxs, _props);
+
     this.$filters = _filters;
     this.$directives = _directives;
-
     this._datas = _datas;
     this._propData = propData;
     this._methods = _methods;
     this._computed = _computed;
     this._watch = _watch;
+    this._provides = _provides;
+    this._injects = _injects;
+
+    this._inheritMergeStrategies = Object.assign({}, config.inheritMergeStrategies, this._type.inheritMergeStrategies);
+    action(() => {
+      Object.keys(this._inheritMergeStrategies).forEach(key => {
+        let merge = this._inheritMergeStrategies[key];
+        let child = this._inherits[key];
+        let parent = this[key];
+        if (!parent) return;
+        if (child) {
+          let v = merge(parent, child, this, key);
+          if (v !== undefined && v !== child) this._inherits[key] = v;
+        } else this._inherits[key] = parent;
+      });
+    })();
+    this._optionMergeStrategies = Object.assign({}, config.optionMergeStrategies, this._type.optionMergeStrategies);
 
     this.$emit('hook:beforeCreate', _props);
-
-    Object.keys(config.inheritMergeStrategies).forEach(key => {
-      let child = this._inherits[key];
-      let parent = this[key];
-      if (!parent) return;
-      if (child) {
-        let v = config.inheritMergeStrategies[key](parent, child, this, key);
-        if (v !== undefined && v !== child) this._inherits[key] = v;
-      } else this._inherits[key] = parent;
-    });
   }
 
   _resolvePropRef() {
@@ -206,10 +219,10 @@ class ReactVueLike extends React.Component {
     let slot = this.$slots[slotName];
     let ret;
     if (Array.isArray(slot)) {
-      ret = slot.map((s, i) => (typeof s === 'function' ? s(scope) : s));
+      ret = slot.map(s => (isFunction(s) ? s(scope) : s));
       if (!ret.length) ret = null;
-    } else ret = typeof slot === 'function' ? slot(scope) : slot;
-    return ret || children;
+    } else ret = isFunction(slot) ? slot(scope) : slot;
+    return ret || children || null;
   }
 
   _resolveSpreadAttrs(tagName, props) {
@@ -260,10 +273,10 @@ class ReactVueLike extends React.Component {
   }
 
   _resolveWillMount(beforeMount, mounted) {
-    const _pending = () => {
+    let _pending = action(() => {
       if (!this._isVueLikeRoot && this.$parent) {
-        Object.keys(config.optionMergeStrategies).forEach(key => {
-          let ret = config.optionMergeStrategies[key](this.$parent[key], this[key], this, key);
+        Object.keys(this._optionMergeStrategies).forEach(key => {
+          let ret = this._optionMergeStrategies[key](this.$parent[key], this[key], this, key);
           if (ret !== this[key]) this[key] = ret;
         });
       }
@@ -287,7 +300,7 @@ class ReactVueLike extends React.Component {
 
       this._isMounted = true;
       mounted && this.$nextTick(mounted);
-    };
+    });
 
     if (!this.$parent || this.$parent._isWillMount) _pending();
     else this.$parent._mountedPending.push(_pending);
@@ -301,14 +314,21 @@ class ReactVueLike extends React.Component {
       }
     }
     if (this._inherits) {
-      Object.keys(this._inherits).forEach(key => {
-        let child = this[key];
-        let parent = this._inherits[key];
-        const merge = config.inheritMergeStrategies[key];
-        let v = merge ? merge(parent, child, this, key) : parent;
-        if (v !== undefined) this[key] = v;
-      });
+      action(() => {
+        Object.keys(this._inherits).forEach(key => {
+          let child = this[key];
+          let parent = this._inherits[key];
+          const merge = this._inheritMergeStrategies[key];
+          let v = merge ? merge(parent, child, this, key) : parent;
+          if (v !== undefined) this[key] = v;
+        });
+      })();
     }
+  }
+
+  _resolveEvent(handler) {
+    if (!handler) return handler;
+    return action(handler);
   }
 
   _resolveData() {
@@ -347,7 +367,7 @@ class ReactVueLike extends React.Component {
     bindMethods(this, this._methods);
     const pMethods = {};
     Object.getOwnPropertyNames(this._type.prototype)
-      .filter(key => ReactVueLike.prototype[key])
+      .filter(key => !ReactVueLike.prototype[key])
       .map(key => isFunction(this[key]) && (pMethods[key] = this[key]));
     bindMethods(this, pMethods);
   }
@@ -390,6 +410,17 @@ class ReactVueLike extends React.Component {
       handleError(e, this, 'resolveInject');
       throw e;
     }
+  }
+
+  _resolveComp(compName) {
+    let comp;
+    if (this._type.components) comp = this._type.components[compName];
+    if (!this._isVueLikeRoot && !comp && this.$root._type.components) {
+      comp = this.$root._type.components[compName];
+    }
+
+    if (!isProduction && !comp) warn(`can not resolve component '${compName}'!`, this);
+    return comp || compName;
   }
 
   _resolveUpdated() {
@@ -440,6 +471,7 @@ class ReactVueLike extends React.Component {
 
   static config(options = {}) {
     Object.assign(config, options);
+    if (config.useAction !== undefined) configure({ enforceActions: config.action ? 'observed' : 'never' });
   }
 
   static mixin(m) {
@@ -453,9 +485,13 @@ class ReactVueLike extends React.Component {
 
   static inheritAttrs = true;
 
+  static inheritMergeStrategies = {}
+
   static inherits = {}
 
   static props = {}
+
+  static components = {}
 
   static mixins = []
 
@@ -520,17 +556,18 @@ class ReactVueLike extends React.Component {
   //   ReactDOM.render(<App />, el);
   // }
 
-  $runInAction(...args) {
+  $runAction(...args) {
     return runInAction(...args);
   }
 
   $nextTick(cb, ctx) {
-    this._ticks.push(ctx ? cb.bind(ctx) : cb);
+    if (ctx) cb = cb.bind(ctx);
+    this._ticks.push(action(cb));
   }
 
   $watch(expOrFn, callback, options = {}) {
     if (!expOrFn || !callback) return;
-    callback = callback.bind(this);
+    callback = action(callback.bind(this));
     if (typeof expOrFn === 'string') {
       let { obj, key } = parseExpr(this, expOrFn);
       if (obj && key)  {
@@ -589,7 +626,7 @@ class ReactVueLike extends React.Component {
     if (handler) {
       const handlers = this.$listeners[eventName];
       if (handlers) {
-        const idx = handlers.findIndex(v => v === handler);
+        const idx = handlers.findIndex((v => (v === handler) || (v === handler._source)));
         if (~idx) handlers.splice(idx, 1);
       }
       if (handlers.length) return;
@@ -666,32 +703,6 @@ class ReactVueLike extends React.Component {
 
 ReactVueLike.config.optionMergeStrategies = config.optionMergeStrategies;
 ReactVueLike.config.inheritMergeStrategies = config.inheritMergeStrategies;
-ReactVueLike.Component = ReactVueLike;
-
-function ReactHook() {
-  const _createElement = React.createElement;
-  React.createElement = function createElement(Component, props, ...children) {
-    if (!Component) return _createElement.call(this, Component, props, ...children);
-    if (Component.prototype instanceof ReactVueLike) {
-      // eslint-disable-next-line
-      if (Component.props && !Component.propTypes) {
-        Component = propcheck(Component);
-      }
-      if (props) {
-        if (props.ref) {
-          props.$ref = props.ref;
-          delete props.ref;
-        }
-      }
-    }
-    let newComponent;
-    if (Component.beforeConstructor) {
-      newComponent = Component.beforeConstructor(props, ...children);
-    }
-    return _createElement.call(this, newComponent || Component, props, ...children);
-  };
-}
-
-ReactHook();
+ReactVueLike.runAction = runInAction;
 
 export default ReactVueLike;

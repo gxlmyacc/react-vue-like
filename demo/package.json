@@ -35,7 +35,7 @@
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
     "react-router-dom": "^5.0.1",
-    "react-view-router": "^1.1.8",
+    "react-view-router": "^1.1.13",
     "stack-source-map": "^1.0.7",
     "tiny-cookie": "^2.3.1"
   },

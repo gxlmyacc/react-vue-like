@@ -11,8 +11,20 @@ import ReactVueLike from 'react-vue-like';
 
 import routes from './pages';
 
-module.exports = function (param) {
+module.exports = async function (param) {
   router.use({ routes });
+
+  // function bb() {
+  //   return new Promise((resolve, reject) => {
+  //     setTimeout(() => resolve(10), 4000);
+  //   });
+  // }
+  // function* aa() {
+  //   console.log('start');
+  //   let a = yield action(bb)();
+  //   return a;
+  // }
+  // console.log('aa', await flow(aa)());
 
   ReactVueLike.use(config, { App });
   ReactVueLike.use(util, { App });

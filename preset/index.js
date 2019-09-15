@@ -3,6 +3,8 @@ const path = require('path');
 const { fileExists } = require('./utils');
 const options = require('./options');
 const transformClass = require('./transforms/transform-class');
+const transformComponent = require('./transforms/transform-component');
+const transformAction = require('./transforms/transform-action');
 const transformFilter = require('./transforms/transform-filter');
 const transformConst = require('./transforms/transform-const');
 const transformRef = require('./transforms/transform-ref');
@@ -11,6 +13,7 @@ const transformSlot = require('./transforms/transform-slot');
 const vIf = require('./directives/v-if');
 const vShow = require('./directives/v-show');
 const vModel = require('./directives/v-model');
+const vHtml = require('./directives/v-html');
 const vCustomDirective = require('./directives/v-custom-directive');
 
 const injectFile = require('./injects/inject-file');
@@ -40,9 +43,12 @@ module.exports = declare((api, opts = {}) => {
 
   options.pkg = pkg;
 
-  const plugins = [];
+  const plugins = [
+  ];
 
   if (options.transform.class) plugins.push(transformClass);
+  if (options.transform.component) plugins.push(transformComponent);
+  if (options.transform.action) plugins.push(transformAction);
   if (options.transform.filter) plugins.push(transformFilter);
   if (options.transform.const) plugins.push(transformConst);
   if (options.transform.ref) plugins.push(transformRef);
@@ -51,6 +57,7 @@ module.exports = declare((api, opts = {}) => {
   if (options.directive.if) plugins.push(vIf);
   if (options.directive.show) plugins.push(vShow);
   if (options.directive.model) plugins.push(vModel);
+  if (options.directive.html) plugins.push(vHtml);
   if (options.directive.custom) plugins.push(vCustomDirective);
 
   if (options.inject.file) plugins.push(injectFile);

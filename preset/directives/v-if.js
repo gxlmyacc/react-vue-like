@@ -10,13 +10,13 @@ const {
 const options = require('../options');
 
 module.exports = function () {
-  function JSXElementVisitor(path) {
-    const {
-      if: ifAttrName,
-      else: elseAttrName,
-      elseIf: elseIfAttrName
-    } = options.attrName;
+  const {
+    if: ifAttrName,
+    else: elseAttrName,
+    elseIf: elseIfAttrName
+  } = options.attrName;
 
+  function JSXElementVisitor(path) {
     const ifBinding = getAttrASTAndIndexByName(path.node, ifAttrName);
     if (!ifBinding) return;
 

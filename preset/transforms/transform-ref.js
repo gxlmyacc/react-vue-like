@@ -1,15 +1,18 @@
+const { isReactVueLike } = require('../utils');
+
 module.exports = function ({ types: t, template }) {
+  function ClassVisitor(path) {
+    if (!isReactVueLike(path)) return;
+    this.isReactVueLike = true;
+  }
   return {
     visitor: {
       Program: {
         enter(path) {
           const ctx = {};
           path.traverse({
-            ClassDeclaration(path) {
-              if (path.node.superClass && path.node.superClass.name === 'ReactVueLike') {
-                this.isReactVueLike = true;
-              }
-            },
+            ClassDeclaration: ClassVisitor,
+            ClassExpression: ClassVisitor,
             JSXAttribute(path) {
               if (!this.isReactVueLike) return path.stop();
 

@@ -8,6 +8,7 @@ write react component like vue, implementation based on mbox@4.
 ## Support Vue feature
 
 - `props`
+- `components`
 - `filter`
 - `directive`
 - `mixin`

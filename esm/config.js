@@ -20,9 +20,10 @@ function directivesMergeStrategies(parent, child, vm, key) {
 }
 
 var config = {
-  silent: false,
-  errorHandler: null,
-  warnHandler: null,
+  // silent: false,
+  // errorHandler: null,
+  // warnHandler: null,
+  useAction: true,
   inheritAttrs: ['className', 'style'],
   inheritMergeStrategies: {},
   optionMergeStrategies: {

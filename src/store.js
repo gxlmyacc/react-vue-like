@@ -1,20 +1,26 @@
-import { observable, extendObservable, when, set, remove } from 'mobx';
+import { observable, extendObservable, when, set, remove, action } from './mobx';
 import { defComputed } from './utils';
+import config from './config';
 
 function wrapModuleState(module) {
   let ret = {};
   if (!module._state) return ret;
-  Object.keys(module._state).forEach(key => defComputed(
-    ret,
-    key,
-    () => module._state[key],
-    v => {
+
+  Object.keys(module._state).forEach(key => {
+    let set = v => {
       if (module.strict && !module._commiting) {
         throw new Error(`ReactVueLike.Store error: ''${key}' state can only be modified in mutation!`);
       }
       module._state[key] = v;
-    }
-  ));
+    };
+    if (config.useAction) set = action(set);
+    defComputed(
+      ret,
+      key,
+      () => module._state[key],
+      set
+    );
+  });
   return ret;
 }
 
@@ -46,10 +52,16 @@ class Store {
       }));
     }
 
+
     this.state = observable.object(wrapModuleState(this));
     this.getters = observable.object(_getters);
-    this.mutations = module.mutations ? { ...module.mutations } : {};
+
+    let _mutations = module.mutations || {};
+    this.mutations = {};
+    Object.keys(_mutations).forEach(key => this.mutations[key] = action(key, _mutations[key]));
+
     this.actions = module.actions ? { ...module.actions } : {};
+
 
     if (this.parent && moduleName) {
       this._mergeState(this.moduleName, this.state);
@@ -102,8 +114,8 @@ class Store {
     const keys = Object.keys(newAtions);
     if (!keys.length) return;
     keys.forEach(key => newAtions[this._getModuleKey(moduleName, key)] = actions[key]);
-    Object.assign(this.mutations, newAtions);
-    if (this.parent) this.parent._mergeMutations(this.moduleName, actions);
+    Object.assign(this.actions, newAtions);
+    if (this.parent) this.parent._mergeActions(this.moduleName, actions);
   }
 
   _removeState(key) {

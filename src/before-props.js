@@ -60,14 +60,24 @@ function generateProps(aPropTypes, aProps) {
   return ret;
 }
 
-export default function propcheck(target) {
-  const { props } = target;
-  if (!props) return target;
+export default function beforeProps(source, target) {
+  if (!target) target = source;
+  const { props } = source;
+  if (!props) return source;
 
   // eslint-disable-next-line
   const { propTypes, defaultProps } = generateProps(props || {});
-  if (defaultProps && !target.defaultProps) target.defaultProps = defaultProps;
+  if (defaultProps) {
+    if (!target.defaultProps) target.defaultProps = {};
+    Object.assign(target.defaultProps, defaultProps);
+  }
+
   // eslint-disable-next-line
-  if (propTypes && !target.propTypes) target.propTypes = propTypes;
+  if (propTypes && !target.propTypes) {
+    // eslint-disable-next-line
+    if (!target.propTypes) target.propTypes = {};
+    // eslint-disable-next-line
+    Object.assign(target.propTypes, propTypes);
+  }
   return target;
 }

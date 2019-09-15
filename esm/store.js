@@ -23,9 +23,13 @@ require("core-js/modules/es6.object.to-string");
 
 require("core-js/modules/es6.object.keys");
 
-var _mobx = require("mobx");
+var _mobx = require("./mobx");
 
 var _utils = require("./utils");
+
+var _config = _interopRequireDefault(require("./config"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
@@ -43,15 +47,18 @@ function wrapModuleState(module) {
   var ret = {};
   if (!module._state) return ret;
   Object.keys(module._state).forEach(function (key) {
-    return (0, _utils.defComputed)(ret, key, function () {
-      return module._state[key];
-    }, function (v) {
+    var set = function set(v) {
       if (module.strict && !module._commiting) {
         throw new Error("ReactVueLike.Store error: ''".concat(key, "' state can only be modified in mutation!"));
       }
 
       module._state[key] = v;
-    });
+    };
+
+    if (_config.default.useAction) set = (0, _mobx.action)(set);
+    (0, _utils.defComputed)(ret, key, function () {
+      return module._state[key];
+    }, set);
   });
   return ret;
 }
@@ -97,7 +104,13 @@ function () {
 
     this.state = _mobx.observable.object(wrapModuleState(this));
     this.getters = _mobx.observable.object(_getters);
-    this.mutations = module.mutations ? _objectSpread({}, module.mutations) : {};
+
+    var _mutations = module.mutations || {};
+
+    this.mutations = {};
+    Object.keys(_mutations).forEach(function (key) {
+      return _this.mutations[key] = (0, _mobx.action)(key, _mutations[key]);
+    });
     this.actions = module.actions ? _objectSpread({}, module.actions) : {};
 
     if (this.parent && moduleName) {
@@ -173,8 +186,8 @@ function () {
       keys.forEach(function (key) {
         return newAtions[_this4._getModuleKey(moduleName, key)] = actions[key];
       });
-      Object.assign(this.mutations, newAtions);
-      if (this.parent) this.parent._mergeMutations(this.moduleName, actions);
+      Object.assign(this.actions, newAtions);
+      if (this.parent) this.parent._mergeActions(this.moduleName, actions);
     }
   }, {
     key: "_removeState",
@@ -314,12 +327,12 @@ function () {
         if (!module) throw new Error("commit error: module '".concat(moduleName, "' not be found!"));
         ret = module.dispatch(eventName, payload);
       } else {
-        var action = this.actions[event];
-        if (!action) throw new Error("commit error: event '".concat(event, "' not be found!"));
+        var _action = this.actions[event];
+        if (!_action) throw new Error("commit error: event '".concat(event, "' not be found!"));
         var state = this.state,
             getters = this.getters,
             commit = this.commit;
-        ret = action.call(this, {
+        ret = _action.call(this, {
           state: state,
           getters: getters,
           commit: commit

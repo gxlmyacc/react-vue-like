@@ -1,5 +1,6 @@
 const hash = require('hash-sum');
 const options = require('../options');
+// const { isReactVueLike } = require('../utils');
 
 function createScopeId(filename) {
   if (options.pkg) filename = `${options.pkg.name}!${filename}`;
@@ -21,6 +22,16 @@ module.exports = function ({ types: t, template }) {
             filename,
             regx: options.inject.scopeRegx
           };
+
+          // const ClassVisitor = function ClassVisitor(path) {
+          //   if (!this.scopeId) return path.stop();
+          //   if (isReactVueLike(path)) {
+          //     path.insertAfter(template(`${path.node.id.name}.__scopeId = $SCOPEID$;`)({
+          //       $SCOPEID$: t.stringLiteral(this.scopeId)
+          //     }));
+          //   }
+          // };
+
           path.traverse({
             ImportDeclaration(path) {
               const source = path.node.source.value;
@@ -29,14 +40,8 @@ module.exports = function ({ types: t, template }) {
               this.scopeId = createScopeId(filename);
               path.node.source.value = source.replace(this.regx, `$1?react-vue-like&scoped=true&id=${this.scopeId}`);
             },
-            // ClassDeclaration(path) {
-            //   if (!this.scopeId) return path.stop();
-            //   if (path.node.superClass && path.node.superClass.name === 'ReactVueLike') {
-            //     path.insertAfter(template(`${path.node.id.name}.__scopeId = $SCOPEID$;`)({
-            //       $SCOPEID$: t.stringLiteral(this.scopeId)
-            //     }));
-            //   }
-            // },
+            // ClassDeclaration: ClassVisitor,
+            // ClassExpression: ClassVisitor
           }, ctx);
 
           if (ctx.scopeId) {

@@ -25,6 +25,12 @@ Object.defineProperty(exports, "isObservableObject", {
     return _mobx.isObservableObject;
   }
 });
+Object.defineProperty(exports, "flow", {
+  enumerable: true,
+  get: function get() {
+    return _mobx.flow;
+  }
+});
 Object.defineProperty(exports, "observable", {
   enumerable: true,
   get: function get() {
@@ -97,6 +103,12 @@ Object.defineProperty(exports, "has", {
     return _mobx.has;
   }
 });
+Object.defineProperty(exports, "isGenerator", {
+  enumerable: true,
+  get: function get() {
+    return _mobx.isGenerator;
+  }
+});
 Object.defineProperty(exports, "observer", {
   enumerable: true,
   get: function get() {
@@ -130,7 +142,7 @@ require("core-js/modules/es6.regexp.replace");
 
 require("core-js/modules/es6.regexp.split");
 
-var _mobx = require("mobx");
+var _mobx = require("./mobx");
 
 var _config = _interopRequireDefault(require("./config"));
 

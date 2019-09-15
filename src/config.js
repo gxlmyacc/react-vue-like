@@ -10,10 +10,11 @@ function directivesMergeStrategies(parent, child, vm, key) {
 }
 
 const config = {
-  silent: false,
-
+  // silent: false,
   errorHandler: null,
   warnHandler: null,
+
+  useAction: true,
 
   inheritAttrs: ['className', 'style'],
 

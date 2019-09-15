@@ -49,15 +49,15 @@ var _react = _interopRequireDefault(require("react"));
 
 var _reactDom = _interopRequireDefault(require("react-dom"));
 
+var _mobxReact = require("mobx-react");
+
 var _mobx = require("mobx");
 
-var _mobxReact = require("mobx-react");
+var _mobx2 = require("./mobx");
 
 var _utils = require("./utils");
 
 var _config2 = _interopRequireDefault(require("./config"));
-
-var _propCheck = _interopRequireDefault(require("./prop-check"));
 
 var _class, _class2, _temp;
 
@@ -103,7 +103,7 @@ function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArra
 
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance"); }
 
-function _iterableToArrayLimit(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+function _iterableToArrayLimit(arr, i) { if (!(Symbol.iterator in Object(arr) || Object.prototype.toString.call(arr) === "[object Arguments]")) { return; } var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
 
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
@@ -127,14 +127,16 @@ function generateComputed(obj, propData, data, target) {
 
     var v = obj[key];
     if ((0, _utils.isFunction)(v)) return (0, _utils.defComputed)(ret, key, v);
-    (0, _utils.defComputed)(ret, key, v.get, v.set);
+    (0, _utils.defComputed)(ret, key, v.get, (0, _mobx2.action)(key, v.set));
   });
   return ret;
 }
 
 function bindMethods(ctx, methods) {
   methods && Object.keys(methods).forEach(function (key) {
-    return ctx[key] = methods[key].bind(ctx);
+    // let method = methods[key].bind(ctx);
+    // ctx[key] = action(key, method);
+    ctx[key] = methods[key].bind(ctx);
   });
 }
 
@@ -153,7 +155,7 @@ function initListeners(ctxs, props) {
 
   var addListener = function addListener(key, handler) {
     if (!listeners[key]) listeners[key] = [];
-    listeners[key].push(handler);
+    listeners[key].push((0, _mobx2.action)(key, handler));
   };
 
   ctxs.forEach(function (ctx) {
@@ -191,7 +193,7 @@ function parseProps(target, props, propTypes) {
 
     if (target.inheritAttrs || target.inheritAttrs === undefined) {
       if (Array.isArray(target.inheritAttrs) && ~target.inheritAttrs.indexOf(key)) return;
-      if (_config2.default.inheritAttrs.indexOf(key)) return;
+      if (~_config2.default.inheritAttrs.indexOf(key)) return;
     }
 
     attrs[key] = props[key];
@@ -232,20 +234,23 @@ function (_React$Component) {
     _this2._isVueLike = true;
     _this2._type = target;
     _this2._ticks = [];
-    _this2._provides = [];
-    _this2._injects = [];
     _this2._inherits = inherits ? _objectSpread({}, inherits) : null;
     _this2._el = null;
     _this2._mountedPending = [];
     _this2._isWillMount = false;
-    _this2.$refs = {};
     _this2.$parent = null;
     _this2.$root = null;
     _this2.$children = [];
     _this2.$attrs = attrs;
     _this2.$slots = _props.$slots || {};
-    (0, _mobx.extendObservable)(_assertThisInitialized(_this2), {
+    if (_this2.$slots.default === undefined) _this2.$slots.default = _props.children;
+    (0, _mobx2.extendObservable)(_assertThisInitialized(_this2), {
       _isMounted: false
+    });
+    (0, _mobx2.extendObservable)(_assertThisInitialized(_this2), {
+      $refs: {}
+    }, {}, {
+      deep: false
     });
     (0, _utils.defComputed)(_assertThisInitialized(_this2), '$el', function () {
       return _this2._el || (_this2._el = _reactDom.default.findDOMNode(_assertThisInitialized(_this2)));
@@ -259,6 +264,8 @@ function (_React$Component) {
     var _watch = {};
     var _directives = {};
     var _filters = {};
+    var _provides = [];
+    var _injects = [];
     ctxs.forEach(function (ctx) {
       if (ctx.filters) Object.assign(_filters, ctx.filters);
       if (ctx.directives) Object.assign(_directives, ctx.directives);
@@ -266,12 +273,12 @@ function (_React$Component) {
       if (ctx.computed) Object.assign(_computed, ctx.computed);
       if (ctx.methods) Object.assign(_methods, ctx.methods);
       if (ctx.watch) Object.assign(_watch, ctx.watch);
-      if (ctx.provide) _this2._provides.push(ctx.provide);
+      if (ctx.provide) _provides.push(ctx.provide);
       if (ctx.inject) ctx.inject.forEach(function (key) {
-        return !_this2._injects.includes(key) && _this2._injects.push(key);
+        return !_injects.includes(key) && _injects.push(key);
       });
     });
-    (0, _mobx.extendObservable)(_assertThisInitialized(_this2), propData);
+    (0, _mobx2.extendObservable)(_assertThisInitialized(_this2), propData);
     _this2.$listeners = initListeners(ctxs, _props);
     _this2.$filters = _filters;
     _this2.$directives = _directives;
@@ -280,20 +287,26 @@ function (_React$Component) {
     _this2._methods = _methods;
     _this2._computed = _computed;
     _this2._watch = _watch;
+    _this2._provides = _provides;
+    _this2._injects = _injects;
+    _this2._inheritMergeStrategies = Object.assign({}, _config2.default.inheritMergeStrategies, _this2._type.inheritMergeStrategies);
+    (0, _mobx2.action)(function () {
+      Object.keys(_this2._inheritMergeStrategies).forEach(function (key) {
+        var merge = _this2._inheritMergeStrategies[key];
+        var child = _this2._inherits[key];
+        var parent = _this2[key];
+        if (!parent) return;
+
+        if (child) {
+          var v = merge(parent, child, _assertThisInitialized(_this2), key);
+          if (v !== undefined && v !== child) _this2._inherits[key] = v;
+        } else _this2._inherits[key] = parent;
+      });
+    })();
+    _this2._optionMergeStrategies = Object.assign({}, _config2.default.optionMergeStrategies, _this2._type.optionMergeStrategies);
 
     _this2.$emit('hook:beforeCreate', _props);
 
-    Object.keys(_config2.default.inheritMergeStrategies).forEach(function (key) {
-      var child = _this2._inherits[key];
-      var parent = _this2[key];
-      if (!parent) return;
-
-      if (child) {
-        var v = _config2.default.inheritMergeStrategies[key](parent, child, _assertThisInitialized(_this2), key);
-
-        if (v !== undefined && v !== child) _this2._inherits[key] = v;
-      } else _this2._inherits[key] = parent;
-    });
     return _this2;
   }
 
@@ -328,13 +341,13 @@ function (_React$Component) {
       var ret;
 
       if (Array.isArray(slot)) {
-        ret = slot.map(function (s, i) {
-          return typeof s === 'function' ? s(scope) : s;
+        ret = slot.map(function (s) {
+          return (0, _utils.isFunction)(s) ? s(scope) : s;
         });
         if (!ret.length) ret = null;
-      } else ret = typeof slot === 'function' ? slot(scope) : slot;
+      } else ret = (0, _utils.isFunction)(slot) ? slot(scope) : slot;
 
-      return ret || children;
+      return ret || children || null;
     }
   }, {
     key: "_resolveSpreadAttrs",
@@ -390,10 +403,10 @@ function (_React$Component) {
     value: function _resolveWillMount(beforeMount, mounted) {
       var _this4 = this;
 
-      var _pending = function _pending() {
+      var _pending = (0, _mobx2.action)(function () {
         if (!_this4._isVueLikeRoot && _this4.$parent) {
-          Object.keys(_config2.default.optionMergeStrategies).forEach(function (key) {
-            var ret = _config2.default.optionMergeStrategies[key](_this4.$parent[key], _this4[key], _this4, key);
+          Object.keys(_this4._optionMergeStrategies).forEach(function (key) {
+            var ret = _this4._optionMergeStrategies[key](_this4.$parent[key], _this4[key], _this4, key);
 
             if (ret !== _this4[key]) _this4[key] = ret;
           });
@@ -425,7 +438,7 @@ function (_React$Component) {
         beforeMount && beforeMount();
         _this4._isMounted = true;
         mounted && _this4.$nextTick(mounted);
-      };
+      });
 
       if (!this.$parent || this.$parent._isWillMount) _pending();else this.$parent._mountedPending.push(_pending);
     }
@@ -442,14 +455,22 @@ function (_React$Component) {
       }
 
       if (this._inherits) {
-        Object.keys(this._inherits).forEach(function (key) {
-          var child = _this5[key];
-          var parent = _this5._inherits[key];
-          var merge = _config2.default.inheritMergeStrategies[key];
-          var v = merge ? merge(parent, child, _this5, key) : parent;
-          if (v !== undefined) _this5[key] = v;
-        });
+        (0, _mobx2.action)(function () {
+          Object.keys(_this5._inherits).forEach(function (key) {
+            var child = _this5[key];
+            var parent = _this5._inherits[key];
+            var merge = _this5._inheritMergeStrategies[key];
+            var v = merge ? merge(parent, child, _this5, key) : parent;
+            if (v !== undefined) _this5[key] = v;
+          });
+        })();
       }
+    }
+  }, {
+    key: "_resolveEvent",
+    value: function _resolveEvent(handler) {
+      if (!handler) return handler;
+      return (0, _mobx2.action)(handler);
     }
   }, {
     key: "_resolveData",
@@ -474,10 +495,10 @@ function (_React$Component) {
 
         if (key.startsWith('_')) shadows[key] = _data[key];else deeps[key] = _data[key];
       });
-      (0, _mobx.extendObservable)(this, deeps, {}, {
+      (0, _mobx2.extendObservable)(this, deeps, {}, {
         deep: true
       });
-      (0, _mobx.extendObservable)(this, shadows, {}, {
+      (0, _mobx2.extendObservable)(this, shadows, {}, {
         deep: false
       });
     }
@@ -486,7 +507,7 @@ function (_React$Component) {
     value: function _resolveComputed() {
       var _computed = generateComputed(this._computed, this._propData, this.$data, this._type);
 
-      (0, _mobx.extendObservable)(this, _computed);
+      (0, _mobx2.extendObservable)(this, _computed);
     }
   }, {
     key: "_resolveWatch",
@@ -501,7 +522,7 @@ function (_React$Component) {
       bindMethods(this, this._methods);
       var pMethods = {};
       Object.getOwnPropertyNames(this._type.prototype).filter(function (key) {
-        return ReactVueLike.prototype[key];
+        return !ReactVueLike.prototype[key];
       }).map(function (key) {
         return (0, _utils.isFunction)(_this7[key]) && (pMethods[key] = _this7[key]);
       });
@@ -563,6 +584,24 @@ function (_React$Component) {
         (0, _utils.handleError)(e, this, 'resolveInject');
         throw e;
       }
+    }
+  }, {
+    key: "_resolveComp",
+    value: function _resolveComp(compName) {
+      var comp;
+      if (this._type.components) comp = this._type.components[compName];
+
+      if (!this._isVueLikeRoot && !comp && this.$root._type.components) {
+        comp = this.$root._type.components[compName];
+      }
+
+      if (!comp) {
+        var e = new Error("can not resolve component '".concat(compName, "'!"));
+        (0, _utils.handleError)(e, this, '_resolveComp');
+        throw e;
+      }
+
+      return comp;
     }
   }, {
     key: "_resolveUpdated",
@@ -755,21 +794,23 @@ function (_React$Component) {
     // }
 
   }, {
-    key: "$runInAction",
-    value: function $runInAction() {
-      return _mobxReact.runInAction.apply(void 0, arguments);
+    key: "$runAction",
+    value: function $runAction() {
+      return _mobx2.runInAction.apply(void 0, arguments);
     }
   }, {
     key: "$nextTick",
     value: function $nextTick(cb, ctx) {
-      this._ticks.push(ctx ? cb.bind(ctx) : cb);
+      if (ctx) cb = cb.bind(ctx);
+
+      this._ticks.push((0, _mobx2.action)(cb));
     }
   }, {
     key: "$watch",
     value: function $watch(expOrFn, callback) {
       var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
       if (!expOrFn || !callback) return;
-      callback = callback.bind(this);
+      callback = (0, _mobx2.action)(callback.bind(this));
 
       if (typeof expOrFn === 'string') {
         var _parseExpr = (0, _utils.parseExpr)(this, expOrFn),
@@ -777,13 +818,13 @@ function (_React$Component) {
             key = _parseExpr.key;
 
         if (obj && key) {
-          return (0, _mobx.observe)(obj, key, function (change) {
+          return (0, _mobx2.observe)(obj, key, function (change) {
             return callback(change.newValue, change.oldValue);
           }, options.immediate);
         }
       } else if ((0, _utils.isFunction)(expOrFn)) {
         var oldValue;
-        return (0, _mobx.when)(function () {
+        return (0, _mobx2.when)(function () {
           return oldValue !== expOrFn();
         }, callback);
       }
@@ -806,7 +847,7 @@ function (_React$Component) {
 
         var computedObj = {};
         if ((0, _utils.isFunction)(value)) (0, _utils.defComputed)(computedObj, key, value);else (0, _utils.defComputed)(computedObj, key, value.get, value.set);
-        (0, _mobx.extendObservable)(obj, computedObj);
+        (0, _mobx2.extendObservable)(obj, computedObj);
       }
     }
   }, {
@@ -816,7 +857,7 @@ function (_React$Component) {
           obj = _parseExpr3.obj,
           key = _parseExpr3.key;
 
-      if (obj && key) (0, _mobx.set)(obj, key, value);
+      if (obj && key) (0, _mobx2.set)(obj, key, value);
     }
   }, {
     key: "$delete",
@@ -825,7 +866,7 @@ function (_React$Component) {
           obj = _parseExpr4.obj,
           key = _parseExpr4.key;
 
-      if (obj && key) (0, _mobx.remove)(obj, key);
+      if (obj && key) (0, _mobx2.remove)(obj, key);
     }
   }, {
     key: "$emit",
@@ -860,7 +901,7 @@ function (_React$Component) {
 
         if (handlers) {
           var idx = handlers.findIndex(function (v) {
-            return v === handler;
+            return v === handler || v === handler._source;
           });
           if (~idx) handlers.splice(idx, 1);
         }
@@ -966,6 +1007,9 @@ function (_React$Component) {
     value: function config() {
       var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
       Object.assign(_config2.default, options);
+      if (_config2.default.useAction !== undefined) (0, _mobx.configure)({
+        enforceActions: _config2.default.action ? 'observed' : 'never'
+      });
     }
   }, {
     key: "mixin",
@@ -984,48 +1028,10 @@ function (_React$Component) {
   }]);
 
   return ReactVueLike;
-}(_react.default.Component), _defineProperty(_class2, "isRoot", false), _defineProperty(_class2, "isAbstract", false), _defineProperty(_class2, "inheritAttrs", true), _defineProperty(_class2, "inherits", {}), _defineProperty(_class2, "props", {}), _defineProperty(_class2, "mixins", []), _defineProperty(_class2, "directives", {}), _defineProperty(_class2, "filters", {}), _defineProperty(_class2, "inject", []), _defineProperty(_class2, "computed", {}), _defineProperty(_class2, "watch", {}), _defineProperty(_class2, "methods", {}), _temp)) || _class;
+}(_react.default.Component), _defineProperty(_class2, "isRoot", false), _defineProperty(_class2, "isAbstract", false), _defineProperty(_class2, "inheritAttrs", true), _defineProperty(_class2, "inheritMergeStrategies", {}), _defineProperty(_class2, "inherits", {}), _defineProperty(_class2, "props", {}), _defineProperty(_class2, "components", {}), _defineProperty(_class2, "mixins", []), _defineProperty(_class2, "directives", {}), _defineProperty(_class2, "filters", {}), _defineProperty(_class2, "inject", []), _defineProperty(_class2, "computed", {}), _defineProperty(_class2, "watch", {}), _defineProperty(_class2, "methods", {}), _temp)) || _class;
 
 ReactVueLike.config.optionMergeStrategies = _config2.default.optionMergeStrategies;
 ReactVueLike.config.inheritMergeStrategies = _config2.default.inheritMergeStrategies;
-ReactVueLike.Component = ReactVueLike;
-
-function ReactHook() {
-  var _createElement = _react.default.createElement;
-
-  _react.default.createElement = function createElement(Component, props) {
-    for (var _len3 = arguments.length, children = new Array(_len3 > 2 ? _len3 - 2 : 0), _key3 = 2; _key3 < _len3; _key3++) {
-      children[_key3 - 2] = arguments[_key3];
-    }
-
-    if (!Component) return _createElement.call.apply(_createElement, [this, Component, props].concat(children));
-
-    if (Component.prototype instanceof ReactVueLike) {
-      // eslint-disable-next-line
-      if (Component.props && !Component.propTypes) {
-        Component = (0, _propCheck.default)(Component);
-      }
-
-      if (props) {
-        if (props.ref) {
-          props.$ref = props.ref;
-          delete props.ref;
-        }
-      }
-    }
-
-    var newComponent;
-
-    if (Component.beforeConstructor) {
-      var _Component;
-
-      newComponent = (_Component = Component).beforeConstructor.apply(_Component, [props].concat(children));
-    }
-
-    return _createElement.call.apply(_createElement, [this, newComponent || Component, props].concat(children));
-  };
-}
-
-ReactHook();
+ReactVueLike.runAction = _mobx2.runInAction;
 var _default = ReactVueLike;
 exports.default = _default;

@@ -1,12 +1,16 @@
-import { observable } from 'mobx';
+import { observable } from './mobx';
 import config from './config';
 
 export {
-  toJS, isObservableObject,
+  toJS, isObservableObject, flow,
   observable, extendObservable, observe,
   computed, action, autorun, when, runInAction,
-  set, get, remove, has
-} from 'mobx';
+  set, get, remove, has,
+  isGenerator
+} from './mobx';
+
+export const isProduction = process.env.NODE_ENV === 'production';
+
 export { observer, Provider, Observer } from 'mobx-react';
 
 // isArray support ObservableArray
@@ -103,7 +107,7 @@ export function isFalsy(value) {
     || value === false;
 }
 
-function warn(msg, vm) {
+export function warn(msg, vm) {
   let trace = vm ? generateComponentTrace(vm) : '';
 
   if (config.warnHandler) {

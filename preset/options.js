@@ -7,6 +7,7 @@ module.exports = {
     else: 'else',
     elseIf: 'else-if',
     model: 'model',
+    html: 'html',
   },
   inject: {
     attrs: true,
@@ -16,6 +17,8 @@ module.exports = {
   },
   transform: {
     class: false,
+    component: true,
+    action: true,
     filter: true,
     const: true,
     ref: true,
