@@ -207,9 +207,11 @@ function parseExpr(ctx, expr) {
 }
 
 function camelize(str) {
-  return str.replace(/-(\w)/g, function (_, c) {
+  var ret = str.replace(/-(\w)/g, function (_, c) {
     return c ? c.toUpperCase() : '';
   });
+  if (/^[A-Z]/.test(ret)) ret = ret.charAt(0).toLowerCase() + ret.substr(1);
+  return ret;
 }
 
 function iterativeParent(ctx, callback, componentClass) {

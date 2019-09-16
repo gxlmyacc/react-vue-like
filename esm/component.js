@@ -5,8 +5,6 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
-require("core-js/modules/es6.promise");
-
 require("core-js/modules/es6.string.iterator");
 
 require("core-js/modules/es6.array.from");
@@ -20,8 +18,6 @@ require("core-js/modules/es6.object.set-prototype-of");
 require("core-js/modules/es7.symbol.async-iterator");
 
 require("core-js/modules/es6.symbol");
-
-require("regenerator-runtime/runtime");
 
 require("core-js/modules/es6.array.find-index");
 
@@ -64,10 +60,6 @@ var _class, _class2, _temp;
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
-
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
-
-function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
 
@@ -639,119 +631,41 @@ function (_React$Component) {
     }
   }, {
     key: "_callListener",
-    value: function () {
-      var _callListener2 = _asyncToGenerator(
-      /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee(eventName, handlers, args) {
-        var ret, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, handler;
+    value: function _callListener(eventName, handlers, args) {
+      try {
+        if (!handlers) return;
+        if ((0, _utils.isFunction)(handlers)) return handlers.call.apply(handlers, [this].concat(_toConsumableArray(args)));
+        var ret;
+        var _iteratorNormalCompletion = true;
+        var _didIteratorError = false;
+        var _iteratorError = undefined;
 
-        return regeneratorRuntime.wrap(function _callee$(_context) {
-          while (1) {
-            switch (_context.prev = _context.next) {
-              case 0:
-                _context.prev = 0;
-
-                if (handlers) {
-                  _context.next = 3;
-                  break;
-                }
-
-                return _context.abrupt("return");
-
-              case 3:
-                if (!(0, _utils.isFunction)(handlers)) {
-                  _context.next = 7;
-                  break;
-                }
-
-                _context.next = 6;
-                return handlers.call.apply(handlers, [this].concat(_toConsumableArray(args)));
-
-              case 6:
-                return _context.abrupt("return", _context.sent);
-
-              case 7:
-                _iteratorNormalCompletion = true;
-                _didIteratorError = false;
-                _iteratorError = undefined;
-                _context.prev = 10;
-                _iterator = handlers[Symbol.iterator]();
-
-              case 12:
-                if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
-                  _context.next = 20;
-                  break;
-                }
-
-                handler = _step.value;
-                _context.next = 16;
-                return handler.call.apply(handler, [this].concat(_toConsumableArray(args)));
-
-              case 16:
-                ret = _context.sent;
-
-              case 17:
-                _iteratorNormalCompletion = true;
-                _context.next = 12;
-                break;
-
-              case 20:
-                _context.next = 26;
-                break;
-
-              case 22:
-                _context.prev = 22;
-                _context.t0 = _context["catch"](10);
-                _didIteratorError = true;
-                _iteratorError = _context.t0;
-
-              case 26:
-                _context.prev = 26;
-                _context.prev = 27;
-
-                if (!_iteratorNormalCompletion && _iterator.return != null) {
-                  _iterator.return();
-                }
-
-              case 29:
-                _context.prev = 29;
-
-                if (!_didIteratorError) {
-                  _context.next = 32;
-                  break;
-                }
-
-                throw _iteratorError;
-
-              case 32:
-                return _context.finish(29);
-
-              case 33:
-                return _context.finish(26);
-
-              case 34:
-                return _context.abrupt("return", ret);
-
-              case 37:
-                _context.prev = 37;
-                _context.t1 = _context["catch"](0);
-                (0, _utils.handleError)(_context.t1, this, "$emit:".concat(eventName));
-                throw _context.t1;
-
-              case 41:
-              case "end":
-                return _context.stop();
+        try {
+          for (var _iterator = handlers[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+            var handler = _step.value;
+            ret = handler.call.apply(handler, [this].concat(_toConsumableArray(args)));
+          }
+        } catch (err) {
+          _didIteratorError = true;
+          _iteratorError = err;
+        } finally {
+          try {
+            if (!_iteratorNormalCompletion && _iterator.return != null) {
+              _iterator.return();
+            }
+          } finally {
+            if (_didIteratorError) {
+              throw _iteratorError;
             }
           }
-        }, _callee, this, [[0, 37], [10, 22, 26, 34], [27,, 29, 33]]);
-      }));
+        }
 
-      function _callListener(_x, _x2, _x3) {
-        return _callListener2.apply(this, arguments);
+        return ret;
+      } catch (e) {
+        (0, _utils.handleError)(e, this, "$emit:".concat(eventName));
+        throw e;
       }
-
-      return _callListener;
-    }()
+    }
   }, {
     key: "beforeCreate",
     value: function beforeCreate() {

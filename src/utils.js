@@ -56,7 +56,9 @@ export function parseExpr(ctx, expr) {
 }
 
 export function camelize(str) {
-  return str.replace(/-(\w)/g, function (_, c) { return c ? c.toUpperCase() : ''; });
+  let ret = str.replace(/-(\w)/g, function (_, c) { return c ? c.toUpperCase() : ''; });
+  if (/^[A-Z]/.test(ret)) ret = ret.charAt(0).toLowerCase() + ret.substr(1);
+  return ret;
 }
 
 export function iterativeParent(ctx, callback, componentClass) {

@@ -15,12 +15,14 @@ module.exports = function ({ types: t, template }) {
     asyncPath.node.generator = true;
     asyncPath.traverse({
       AwaitExpression(awaitPath) {
+        let parent = awaitPath.getFunctionParent();
+        if (parent !== asyncPath) return;
         awaitPath.replaceWith(t.yieldExpression(awaitPath.node.argument));
       }
     });
   }
 
-  const handled = [];
+  let handled = [];
   function FunctionExprVisitor(exprPath) {
     let expression = exprPath.node;
     if (handled.includes(expression)) return;
@@ -29,7 +31,7 @@ module.exports = function ({ types: t, template }) {
     let hasAssgin = false;
     exprPath.traverse({
       AssignmentExpression(path) {
-        if (path.scope.block !== expression) return;
+        if (path.getFunctionParent() !== exprPath) return;
         if (!t.isMemberExpression(path.node.left)) return;
         hasAssgin = true;
         path.stop();
@@ -39,7 +41,8 @@ module.exports = function ({ types: t, template }) {
 
     if (expression.async) {
       asyncToGen(exprPath);
-      expression = template('ReactVueLike.flow($1)')({ $1: expression }).expression;
+      exprPath.replaceWith(template('ReactVueLike.flow($1)')({ $1: expression }).expression);
+      return;
     }
 
     exprPath.replaceWith(template('this._resolveEvent($HANDER$)')({
@@ -70,8 +73,8 @@ module.exports = function ({ types: t, template }) {
 
     allMethods.forEach(path => {
       path.traverse({
-        // ArrowFunctionExpression: FunctionExprVisitor,
-        FunctionExpression: FunctionExprVisitor,
+        ArrowFunctionExpression: FunctionExprVisitor,
+        // FunctionExpression: FunctionExprVisitor,
       });
 
       if (COMP_METHS.includes(expr2var(path.node.key))) return;
@@ -87,6 +90,11 @@ module.exports = function ({ types: t, template }) {
 
   return {
     visitor: {
+      Program: {
+        enter() {
+          handled = [];
+        },
+      },
       ClassDeclaration: ClassVisitor,
       ClassExpression: ClassVisitor,
       CallExpression(path) {
@@ -99,6 +107,10 @@ module.exports = function ({ types: t, template }) {
           //
         } else return;
         path.traverse({
+          ArrowFunctionExpression(funcPath) {
+            if (funcPath.parent !== path.node) return;
+            if (funcPath.node.async) asyncToGen(funcPath);
+          },
           FunctionExpression(funcPath) {
             if (funcPath.parent !== path.node) return;
             if (funcPath.node.async) asyncToGen(funcPath);

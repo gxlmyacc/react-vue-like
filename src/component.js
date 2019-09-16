@@ -449,13 +449,13 @@ class ReactVueLike extends React.Component {
     setTimeout(() => ticks.forEach(v => v()), 0);
   }
 
-  async _callListener(eventName, handlers, args) {
+  _callListener(eventName, handlers, args) {
     try {
       if (!handlers) return;
-      if (isFunction(handlers)) return await handlers.call(this, ...args);
+      if (isFunction(handlers)) return handlers.call(this, ...args);
       let ret;
       for (let handler of handlers) {
-        ret = await handler.call(this, ...args);
+        ret = handler.call(this, ...args);
       }
       return ret;
     } catch (e) {

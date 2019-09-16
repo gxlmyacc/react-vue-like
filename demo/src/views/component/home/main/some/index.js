@@ -6,6 +6,9 @@ class HomeMainSomeIndex extends ReactVueLike {
 
   static data() {
     return {
+      formData: {
+        text: '1111',
+      },
       text: 'text1'
     };
   }
@@ -53,7 +56,7 @@ class HomeMainSomeIndex extends ReactVueLike {
         <br />
         logined: { String(this.logined) }
         <br />
-        <input v-model={this.text} />
+        <input v-model={this.formData.text} />
         <button onClick={this.toggleLogin}>toggle login</button>
         <button onClick={this.testAsync}>test async</button>
         <button onClick={this.refresh}>refresh</button>
