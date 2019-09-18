@@ -9,8 +9,8 @@ const options = require('../options');
 
 module.exports = function ({ types: t, template }) {
   function wrapElementAttrs(path, element) {
-    if (this.cached.includes(element)) return;
-    this.cached.push(element);
+    // if (this.cached.includes(element)) return;
+    // this.cached.push(element);
     let attrs = [];
     // let hasSpread = false;
     element.openingElement.attributes.forEach(attr => {
@@ -136,7 +136,7 @@ module.exports = function ({ types: t, template }) {
     const ctx = {
       cached: [],
       classPath: path,
-      methodsPath: findClassStaticPath(path, 'methods')
+      methodsPath: findClassStaticPath(path, 'methods').methodsPath
     };
     path.traverse({
       ClassMethod(path) {

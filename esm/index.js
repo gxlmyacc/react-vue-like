@@ -1,13 +1,5 @@
 "use strict";
 
-require("core-js/modules/web.dom.iterable");
-
-require("core-js/modules/es6.array.iterator");
-
-require("core-js/modules/es6.object.to-string");
-
-require("core-js/modules/es6.object.keys");
-
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
@@ -58,10 +50,10 @@ _component.default.flow = _mobx.flow;
 _component.default.action = _mobx.action;
 
 function ReactHook() {
-  var _createElement = _react.default.createElement;
+  const _createElement = _react.default.createElement;
 
   _react.default.createElement = function createElement(Component, props) {
-    var $component = props && props.$component;
+    const $component = props && props.$component;
 
     if ($component) {
       Component = $component;
@@ -74,7 +66,7 @@ function ReactHook() {
 
     if (!Component) return _createElement.call.apply(_createElement, [this, Component, props].concat(children));
     Component = (0, _before.default)(Component, props);
-    var newComponent;
+    let newComponent;
 
     if (Component.beforeConstructor) {
       var _Component;

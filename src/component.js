@@ -464,9 +464,14 @@ class ReactVueLike extends React.Component {
     }
   }
 
-  static use(plugin, options = {}) {
-    if (!plugin.install) throw Error('ReactVueLike.use error: plugin need has \'install\' method!');
-    plugin.install(ReactVueLike, options);
+  static use(plugin, options = {}, ...args) {
+    let install = isFunction(plugin)
+      ? plugin
+      : plugin.install
+        ? plugin.install.bind(plugin)
+        : null;
+    if (!install) throw Error('ReactVueLike.use error: plugin need has \'install\' method!');
+    install(ReactVueLike, options, ...args);
   }
 
   static config(options = {}) {
@@ -600,6 +605,7 @@ class ReactVueLike extends React.Component {
   }
 
   $set(target, expr, value) {
+    if (isObject(expr)) return set(target, expr);
     let { obj, key } = parseExpr(target, expr);
     if (obj && key) set(obj, key, value);
   }

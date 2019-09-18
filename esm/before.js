@@ -20,9 +20,9 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function before(source, props, target) {
   if (!source || !source.prototype) return source;
   if (source.__ReactVueLikeHandled) return source;
-  var isReactVueLikeClass = source.prototype instanceof _component.default;
-  var isReactVueLikeClasses = isReactVueLikeClass || source.prototype instanceof _mixin.default;
-  var isReactVueLike = isReactVueLikeClasses || source === _directive.default;
+  const isReactVueLikeClass = source.prototype instanceof _component.default;
+  const isReactVueLikeClasses = isReactVueLikeClass || source.prototype instanceof _mixin.default;
+  const isReactVueLike = isReactVueLikeClasses || source === _directive.default;
   if (!isReactVueLike) return source;
 
   try {
@@ -45,7 +45,7 @@ function before(source, props, target) {
 
 
     if (source.props) target = (0, _beforeProps.default)(source, target);
-    (0, _beforeAction.default)(target);
+    (0, _beforeAction.default)(source);
     return target;
   } finally {
     Object.defineProperty(target, '__ReactVueLikeHandled', {

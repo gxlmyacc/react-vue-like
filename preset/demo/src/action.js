@@ -1,9 +1,5 @@
-/**
- * @file 修改密码-弹窗
- */
-
 import React from 'react';
-import ReactVueLike from 'react-vue-like';
+import ReactVueLike, { action } from 'react-vue-like';
 
 class UpdatePwdModal extends ReactVueLike {
 
@@ -31,6 +27,19 @@ class UpdatePwdModal extends ReactVueLike {
       });
     },
   }
+
+}
+
+const test1 = action(async function test1() {
+
+});
+
+const test2 = ReactVueLike.action(async function test1() {
+
+});
+
+@action
+async function test3() {
 
 }
 

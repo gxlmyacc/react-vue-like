@@ -1,33 +1,17 @@
 "use strict";
 
-require("core-js/modules/es7.object.get-own-property-descriptors");
-
-require("core-js/modules/web.dom.iterable");
-
-require("core-js/modules/es6.array.iterator");
-
-require("core-js/modules/es6.object.keys");
-
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = void 0;
 
-require("core-js/modules/es6.promise");
-
-require("core-js/modules/es6.object.to-string");
-
-require("regenerator-runtime/runtime");
-
-require("core-js/modules/es7.symbol.async-iterator");
-
-require("core-js/modules/es6.symbol");
-
-require("core-js/modules/es6.object.set-prototype-of");
-
 var _react = _interopRequireDefault(require("react"));
 
-var _reactVueLike = _interopRequireDefault(require("react-vue-like"));
+var _reactVueLike = _interopRequireWildcard(require("react-vue-like"));
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function _getRequireWildcardCache() { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; if (obj != null) { var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -39,93 +23,62 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
-function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
-
-function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-
-function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
-
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-var UpdatePwdModal =
-/*#__PURE__*/
-function (_ReactVueLike) {
-  _inherits(UpdatePwdModal, _ReactVueLike);
-
-  function UpdatePwdModal() {
-    _classCallCheck(this, UpdatePwdModal);
-
-    return _possibleConstructorReturn(this, _getPrototypeOf(UpdatePwdModal).apply(this, arguments));
+class UpdatePwdModal extends _reactVueLike.default {
+  static data() {
+    return {
+      formData: {
+        oldPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      }
+    };
   }
 
-  _createClass(UpdatePwdModal, null, [{
-    key: "data",
-    value: function data() {
-      return {
-        formData: {
-          oldPassword: '',
-          newPassword: '',
-          confirmPassword: ''
-        }
-      };
-    }
-  }]);
-
-  return UpdatePwdModal;
-}(_reactVueLike.default);
+}
 
 UpdatePwdModal.__file = "/preset/demo/src/action.js";
+UpdatePwdModal.__flows = ["doOk"];
 
 _defineProperty(UpdatePwdModal, "methods", {
-  doOk:
-  /*#__PURE__*/
-  regeneratorRuntime.mark(function doOk() {
+  doOk() {
     var _this = this;
 
-    return regeneratorRuntime.wrap(function doOk$(_context2) {
-      while (1) {
-        switch (_context2.prev = _context2.next) {
-          case 0:
-            _context2.next = 2;
-            return this.$api.account.updatePassword(this.formData);
+    return (
+      /*#__PURE__*/
+      regeneratorRuntime.mark(function _callee2() {
+        return regeneratorRuntime.wrap(function _callee2$(_context4) {
+          while (1) switch (_context4.prev = _context4.next) {
+            case 0:
+              _context4.next = 2;
+              return _this.$api.account.updatePassword(_this.formData);
 
-          case 2:
-            this.endModal(); // console.log('doOk');
+            case 2:
+              _this.endModal(); // console.log('doOk');
 
-            this.props.form.validateFields(
-            /*#__PURE__*/
-            function () {
-              var _ref = _asyncToGenerator(
+
+              _this.props.form.validateFields(
               /*#__PURE__*/
-              regeneratorRuntime.mark(function _callee(err, values) {
-                return regeneratorRuntime.wrap(function _callee$(_context) {
-                  while (1) {
-                    switch (_context.prev = _context.next) {
+              function () {
+                var _ref = _asyncToGenerator(
+                /*#__PURE__*/
+                regeneratorRuntime.mark(function _callee(err, values) {
+                  return regeneratorRuntime.wrap(function _callee$(_context3) {
+                    while (1) switch (_context3.prev = _context3.next) {
                       case 0:
                         console.log('doOk 1');
 
                         if (!err) {
-                          _context.next = 3;
+                          _context3.next = 3;
                           break;
                         }
 
-                        return _context.abrupt("return");
+                        return _context3.abrupt("return");
 
                       case 3:
                         console.log('doOk 2');
-                        _context.next = 6;
+                        _context3.next = 6;
                         return _this.$api.account.updatePassword(values);
 
                       case 6:
@@ -133,25 +86,50 @@ _defineProperty(UpdatePwdModal, "methods", {
 
                       case 7:
                       case "end":
-                        return _context.stop();
+                        return _context3.stop();
                     }
-                  }
-                }, _callee);
-              }));
+                  }, _callee);
+                }));
 
-              return function (_x, _x2) {
-                return _ref.apply(this, arguments);
-              };
-            }());
+                return function (_x, _x2) {
+                  return _ref.apply(this, arguments);
+                };
+              }());
 
-          case 4:
-          case "end":
-            return _context2.stop();
-        }
-      }
-    }, doOk, this);
-  })
+            case 4:
+            case "end":
+              return _context4.stop();
+          }
+        }, _callee2);
+      })()
+    );
+  }
+
 });
+
+const test1 = _reactVueLike.default.flow(
+/*#__PURE__*/
+regeneratorRuntime.mark(function test1() {
+  return regeneratorRuntime.wrap(function test1$(_context) {
+    while (1) switch (_context.prev = _context.next) {
+      case 0:
+      case "end":
+        return _context.stop();
+    }
+  }, test1);
+}));
+
+const test2 = _reactVueLike.default.flow(
+/*#__PURE__*/
+regeneratorRuntime.mark(function test1() {
+  return regeneratorRuntime.wrap(function test1$(_context2) {
+    while (1) switch (_context2.prev = _context2.next) {
+      case 0:
+      case "end":
+        return _context2.stop();
+    }
+  }, test1);
+}));
 
 var _default = _react.default.forwardRef(function (props, ref) {
   return _react.default.createElement(Form.create({})(UpdatePwdModal), _objectSpread({}, props, {

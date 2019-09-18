@@ -32,7 +32,7 @@ export default function before(source, props, target) {
     // eslint-disable-next-line
     if (source.props) target = beforeProps(source, target);
 
-    beforeAction(target);
+    beforeAction(source);
 
     return target;
   } finally {

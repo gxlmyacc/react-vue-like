@@ -608,6 +608,7 @@ function findClassStaticPath(classDeclarationPath, propertyName) {
   let bodyPath;
   let isArg1Ok;
   let scope;
+  let varName;
   // if (expr2var(classDeclarationPath.node.superClass) === 'ReactVueLike.Mixin') {
   //   classDeclarationPath.traverse({
   //     ClassMethod(path) {
@@ -625,19 +626,19 @@ function findClassStaticPath(classDeclarationPath, propertyName) {
   // } else {
   if (t.isClassExpression(classDeclarationPath) && classDeclarationPath.key === 'right') {
     let left = classDeclarationPath.parent.left;
-    let leftName = expr2var(left);
+    varName = expr2var(left);
     bodyPath = classDeclarationPath.findParent(path => t.isSequenceExpression(path));
     if (!bodyPath) return;
     scope = bodyPath.scope.block;
     isArg1Ok = function (arg) {
-      return arg.type === left.type && expr2var(arg) === leftName;
+      return arg.type === left.type && expr2var(arg) === varName;
     };
   } else {
-    const className = expr2var(classDeclarationPath.node.id);
+    varName = expr2var(classDeclarationPath.node.id);
     bodyPath = classDeclarationPath.parentPath;
     scope = bodyPath.scope.block;
     isArg1Ok = function (arg) {
-      return t.isIdentifier(arg) && expr2var(arg) === className;
+      return t.isIdentifier(arg) && expr2var(arg) === varName;
     };
   }
   // }
@@ -664,7 +665,7 @@ function findClassStaticPath(classDeclarationPath, propertyName) {
     }
   });
 
-  return methodsPath;
+  return { methodsPath, varName };
 }
 
 function isReactVueLike(classDeclarationPath) {

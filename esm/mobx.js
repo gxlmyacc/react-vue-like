@@ -172,19 +172,13 @@ Object.defineProperty(exports, "onBecomeUnobserved", {
   }
 });
 
-require("core-js/modules/es6.object.assign");
-
-require("core-js/modules/es6.regexp.to-string");
-
-require("core-js/modules/es6.object.to-string");
-
 var _mobx = require("mobx");
 
 var _config = _interopRequireDefault(require("./config"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var _toString = Object.prototype.toString;
+const _toString = Object.prototype.toString;
 
 function isGenerator(fn) {
   return fn && _toString.call(fn.prototype) === '[object Generator]';
@@ -195,7 +189,7 @@ function isAsync(fn) {
 }
 
 function newConfigure() {
-  var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  let options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
   _config.default.useAction = options.enforceActions !== undefined && options.enforceActions !== 'never';
   return (0, _mobx.configure)(Object.assign({
     isolateGlobalState: true
@@ -211,7 +205,7 @@ function newIsActon(fn) {
 }
 
 function newFlow(target, name, descriptor) {
-  var value;
+  let value;
 
   if (arguments.length === 1) {
     value = (0, _mobx.flow)(target);
@@ -227,10 +221,10 @@ function newFlow(target, name, descriptor) {
 }
 
 function newAction(target, name, descriptor) {
-  var value;
+  let value;
 
   if (!descriptor || !descriptor.value) {
-    var _fn = name || target;
+    let _fn = name || target;
 
     if (newIsActon(_fn)) value = _fn;else {
       value = isGenerator(_fn) ? (0, _mobx.flow)(_fn) : _mobx.action.apply(void 0, arguments);

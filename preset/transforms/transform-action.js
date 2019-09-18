@@ -7,7 +7,7 @@ const COMP_METHS = [
 ];
 
 module.exports = function ({ types: t, template }) {
-  // const flowExpr = template('ReactVueLike.flow')().expression;
+  const flowExpr = template('ReactVueLike.flow')().expression;
   // const actionExpr = template('ReactVueLike.action')().expression;
 
   function asyncToGen(asyncPath) {
@@ -41,7 +41,7 @@ module.exports = function ({ types: t, template }) {
 
     if (expression.async) {
       asyncToGen(exprPath);
-      exprPath.replaceWith(template('ReactVueLike.flow($1)')({ $1: expression }).expression);
+      exprPath.replaceWith(template('ReactVueLike.flow($1)')({ $1: exprPath.node }).expression);
       return;
     }
 
@@ -52,10 +52,13 @@ module.exports = function ({ types: t, template }) {
 
   function ClassVisitor(path) {
     if (!isReactVueLike(path)) return;
+    if (handled.includes(path.node)) return;
+    handled.push(path.node);
 
     let allMethods = [];
 
-    let staticMethodPath = findClassStaticPath(path, 'methods');
+    let flows = [];
+    let { methodsPath: staticMethodPath, varName } = findClassStaticPath(path, 'methods');
     if (staticMethodPath) {
       staticMethodPath.traverse({
         ObjectMethod(path) {
@@ -82,10 +85,17 @@ module.exports = function ({ types: t, template }) {
       // if (!path.node.decorators) path.node.decorators = [];
       if (path.node.async) {
         asyncToGen(path);
+        flows.push(t.stringLiteral(expr2var(path.node.key)));
         // path.node.decorators.push(t.decorator(flowExpr));
       }
       // else path.node.decorators.push(t.decorator(actionExpr));
     });
+    if (flows.length && varName) {
+      let parentPath = t.isProgram(path.parentPath.node) ? path : path.parentPath;
+      parentPath.insertAfter(template(`${varName}.__flows = $1;`)({
+        $1: t.arrayExpression(flows)
+      }));
+    }
   }
 
   return {
@@ -99,22 +109,28 @@ module.exports = function ({ types: t, template }) {
       ClassExpression: ClassVisitor,
       CallExpression(path) {
         const callee = path.node.callee;
+        let a;
         if (t.isIdentifier(callee) && callee.name === 'action') {
-          let a = path.scope.bindings.action;
+          a = path.scope.bindings.action;
           if (!a || !t.isImportDeclaration(a.path.parent)
             || a.path.parent.source.value !== 'react-vue-like') return;
         } else if (t.isMemberExpression(callee) && expr2var(callee) === 'ReactVueLike.action') {
           //
         } else return;
-        path.traverse({
-          ArrowFunctionExpression(funcPath) {
-            if (funcPath.parent !== path.node) return;
-            if (funcPath.node.async) asyncToGen(funcPath);
-          },
-          FunctionExpression(funcPath) {
-            if (funcPath.parent !== path.node) return;
-            if (funcPath.node.async) asyncToGen(funcPath);
+        const FunctionVisitor = function (funcPath) {
+          if (funcPath.parent !== path.node) return;
+          if (funcPath.node.async) {
+            asyncToGen(funcPath);
+            if (t.isMemberExpression(callee)) {
+              callee.property.name = 'flow';
+            } else if (a) {
+              path.get('callee').replaceWith(flowExpr);
+            }
           }
+        };
+        path.traverse({
+          ArrowFunctionExpression: FunctionVisitor,
+          FunctionExpression: FunctionVisitor,
         });
       }
     }

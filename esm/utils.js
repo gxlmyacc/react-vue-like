@@ -130,20 +130,6 @@ Object.defineProperty(exports, "Observer", {
 });
 exports.isProduction = void 0;
 
-require("core-js/modules/es7.symbol.async-iterator");
-
-require("core-js/modules/es6.symbol");
-
-require("core-js/modules/es6.regexp.to-string");
-
-require("core-js/modules/es6.object.to-string");
-
-require("core-js/modules/es6.number.constructor");
-
-require("core-js/modules/es6.regexp.replace");
-
-require("core-js/modules/es6.regexp.split");
-
 var _mobx = require("./mobx");
 
 var _config = _interopRequireDefault(require("./config"));
@@ -152,16 +138,14 @@ var _mobxReact = require("mobx-react");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
-
-var isProduction = process.env.NODE_ENV === 'production';
+const isProduction = process.env.NODE_ENV === 'production';
 exports.isProduction = isProduction;
 
 // isArray support ObservableArray
-var arrayType = _mobx.observable.array([11, 22]);
+const arrayType = _mobx.observable.array([11, 22]);
 
 if (!Array.isArray(arrayType)) {
-  var _isArray = Array.isArray;
+  const _isArray = Array.isArray;
 
   Array.isArray = function (v) {
     return _isArray(v) || v instanceof Array;
@@ -172,9 +156,9 @@ function defComputed(obj, key, get, set) {
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,
-    get: get,
+    get,
     set: set || function (v) {
-      throw new Error("computed props: ".concat(key, " is readonly!"));
+      throw new Error(`computed props: ${key} is readonly!`);
     }
   });
 }
@@ -185,10 +169,10 @@ function isFunction(fn) {
 
 function parseExpr(ctx, expr) {
   if (!expr) return {};
-  var exps = expr.split('.');
-  var parent = ctx;
-  var obj;
-  var key;
+  const exps = expr.split('.');
+  let parent = ctx;
+  let obj;
+  let key;
   exps.some(function (exp, i) {
     if (i === exps.length - 1) {
       obj = parent;
@@ -196,18 +180,18 @@ function parseExpr(ctx, expr) {
       return true;
     }
 
-    var v = parent[exp];
+    let v = parent[exp];
     if (v === undefined) return true;
     parent = v;
   });
   return {
-    obj: obj,
-    key: key
+    obj,
+    key
   };
 }
 
 function camelize(str) {
-  var ret = str.replace(/-(\w)/g, function (_, c) {
+  let ret = str.replace(/-(\w)/g, function (_, c) {
     return c ? c.toUpperCase() : '';
   });
   if (/^[A-Z]/.test(ret)) ret = ret.charAt(0).toLowerCase() + ret.substr(1);
@@ -216,10 +200,10 @@ function camelize(str) {
 
 function iterativeParent(ctx, callback, componentClass) {
   if (ctx._isVueLikeRoot) return;
-  var parentNode = ctx._reactInternalFiber ? ctx._reactInternalFiber.return : ctx.stateNode ? ctx : null;
+  let parentNode = ctx._reactInternalFiber ? ctx._reactInternalFiber.return : ctx.stateNode ? ctx : null;
 
   while (parentNode) {
-    var vm = parentNode.nodeType === undefined && parentNode.stateNode;
+    const vm = parentNode.nodeType === undefined && parentNode.stateNode;
 
     if (vm && !vm._isVueLikeAbstract && (!componentClass || vm instanceof componentClass)) {
       if (callback(vm)) break;
@@ -232,12 +216,12 @@ function iterativeParent(ctx, callback, componentClass) {
 
 function findComponentEl(vm) {
   if (!vm) return null;
-  var node = vm._owner || vm._reactInternalFiber;
+  let node = vm._owner || vm._reactInternalFiber;
 
   while (node) {
-    var el = node.stateNode;
+    let el = node.stateNode;
     if (el instanceof Element) return el;
-    var child = node.child;
+    let child = node.child;
     if (!child) break;
     node = child.stateNode ? child : child._reactInternalFiber;
   }
@@ -246,11 +230,11 @@ function findComponentEl(vm) {
 }
 
 function isPrimitive(value) {
-  return typeof value === 'string' || typeof value === 'number' || _typeof(value) === 'symbol' || typeof value === 'boolean';
+  return typeof value === 'string' || typeof value === 'number' || typeof value === 'symbol' || typeof value === 'boolean';
 }
 
 function isObject(obj) {
-  return obj !== null && _typeof(obj) === 'object';
+  return obj !== null && typeof obj === 'object';
 }
 
 function isFalsy(value) {
@@ -258,7 +242,7 @@ function isFalsy(value) {
 }
 
 function warn(msg, vm) {
-  var trace = vm ? generateComponentTrace(vm) : '';
+  let trace = vm ? generateComponentTrace(vm) : '';
 
   if (_config.default.warnHandler) {
     _config.default.warnHandler.call(null, msg, vm, trace);
@@ -296,15 +280,15 @@ function globalHandleError(err, vm, info) {
 
 function handleError(err, vm, info) {
   if (vm) {
-    var cur = vm;
+    let cur = vm;
 
     do {
-      var hooks = cur.$listeners['hook:errorCaptured'];
+      let hooks = cur.$listeners['hook:errorCaptured'];
 
       if (hooks) {
-        for (var i = 0; i < hooks.length; i++) {
+        for (let i = 0; i < hooks.length; i++) {
           try {
-            var capture = hooks[i].call(cur, err, vm, info) === false;
+            let capture = hooks[i].call(cur, err, vm, info) === false;
 
             if (capture) {
               return;
@@ -320,7 +304,7 @@ function handleError(err, vm, info) {
   globalHandleError(err, vm, info);
 }
 
-var classifyRE = /(?:^|[-_])(\w)/g;
+let classifyRE = /(?:^|[-_])(\w)/g;
 
 function classify(str) {
   return str.replace(classifyRE, function (c) {
@@ -330,12 +314,12 @@ function classify(str) {
 
 function formatComponentName(vm, includeFile) {
   if (vm.$root === vm) return '<Root>';
-  var name = getComponentName(vm);
+  let name = getComponentName(vm);
   return name ? '<' + classify(name) + '>' : '<Anonymous>';
 }
 
 function repeat(str, n) {
-  var res = '';
+  let res = '';
 
   while (n) {
     if (n % 2 === 1) {
@@ -354,12 +338,12 @@ function repeat(str, n) {
 
 function generateComponentTrace(vm) {
   if (vm._isVue && vm.$parent) {
-    var tree = [];
-    var currentRecursiveSequence = 0;
+    let tree = [];
+    let currentRecursiveSequence = 0;
 
     while (vm) {
       if (tree.length > 0) {
-        var last = tree[tree.length - 1];
+        let last = tree[tree.length - 1];
 
         if (last.constructor === vm.constructor) {
           currentRecursiveSequence++;
@@ -384,6 +368,6 @@ function generateComponentTrace(vm) {
 }
 
 function getComponentName(vm) {
-  var type = vm && vm._type;
+  const type = vm && vm._type;
   return type ? type.displayName || type.name : '<Anonymous>';
 }

@@ -5,24 +5,6 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
-require("core-js/modules/es7.object.get-own-property-descriptors");
-
-require("core-js/modules/es6.symbol");
-
-require("core-js/modules/es7.array.includes");
-
-require("core-js/modules/es6.string.includes");
-
-require("core-js/modules/es6.object.assign");
-
-require("core-js/modules/web.dom.iterable");
-
-require("core-js/modules/es6.array.iterator");
-
-require("core-js/modules/es6.object.to-string");
-
-require("core-js/modules/es6.object.keys");
-
 var _mobx = require("./mobx");
 
 var _utils = require("./utils");
@@ -37,19 +19,13 @@ function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { va
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
 function wrapModuleState(module) {
-  var ret = {};
+  let ret = {};
   if (!module._state) return ret;
   Object.keys(module._state).forEach(function (key) {
-    var set = function set(v) {
+    let set = function set(v) {
       if (module.strict && !module._commiting) {
-        throw new Error("ReactVueLike.Store error: ''".concat(key, "' state can only be modified in mutation!"));
+        throw new Error(`ReactVueLike.Store error: ''${key}' state can only be modified in mutation!`);
       }
 
       module._state[key] = v;
@@ -63,19 +39,14 @@ function wrapModuleState(module) {
   return ret;
 }
 
-var Store =
-/*#__PURE__*/
-function () {
-  function Store() {
+class Store {
+  constructor() {
     var _this = this;
 
-    var module = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    var parent = arguments.length > 1 ? arguments[1] : undefined;
-    var root = arguments.length > 2 ? arguments[2] : undefined;
-    var moduleName = arguments.length > 3 ? arguments[3] : undefined;
-
-    _classCallCheck(this, Store);
-
+    let module = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    let parent = arguments.length > 1 ? arguments[1] : undefined;
+    let root = arguments.length > 2 ? arguments[2] : undefined;
+    let moduleName = arguments.length > 3 ? arguments[3] : undefined;
     this.root = root || this;
     this.parent = parent;
     this.mutationListeners = [];
@@ -91,12 +62,12 @@ function () {
     this.actions = {};
     this.modules = {};
     this.plugins = module.plugins || [];
-    var _getters = {};
+    const _getters = {};
 
     if (module.getters) {
       Object.keys(module.getters).forEach(function (key) {
         return (0, _utils.defComputed)(_getters, key, function () {
-          var get = module.getters[key];
+          let get = module.getters[key];
           return get(_this.state, _this.getters, _this.root.state, _this.root.getters);
         });
       });
@@ -105,7 +76,7 @@ function () {
     this.state = _mobx.observable.object(wrapModuleState(this));
     this.getters = _mobx.observable.object(_getters);
 
-    var _mutations = module.mutations || {};
+    let _mutations = module.mutations || {};
 
     this.mutations = {};
     Object.keys(_mutations).forEach(function (key) {
@@ -135,248 +106,228 @@ function () {
     });
   }
 
-  _createClass(Store, [{
-    key: "_getModuleKey",
-    value: function _getModuleKey(moduleName, key) {
-      return this.namespaced ? "".concat(moduleName, "/").concat(key) : key;
-    }
-  }, {
-    key: "_mergeState",
-    value: function _mergeState(moduleName, state) {
-      (0, _mobx.set)(this.state, moduleName, state);
-    }
-  }, {
-    key: "_mergeGetters",
-    value: function _mergeGetters(moduleName, getters) {
-      var _this2 = this;
+  _getModuleKey(moduleName, key) {
+    return this.namespaced ? `${moduleName}/${key}` : key;
+  }
 
-      var newGetters = {};
-      var keys = Object.keys(getters);
-      if (!keys.length) return;
-      keys.forEach(function (key) {
-        var d = Object.getOwnPropertyDescriptor(getters, key);
-        if (!d) return;
-        (0, _utils.defComputed)(newGetters, _this2._getModuleKey(moduleName, key), d.get, d.set);
-      });
-      (0, _mobx.extendObservable)(this.getters, newGetters);
-      if (this.parent) this.parent._mergeGetters(this.moduleName, getters);
-    }
-  }, {
-    key: "_mergeMutations",
-    value: function _mergeMutations(moduleName, mutations) {
-      var _this3 = this;
+  _mergeState(moduleName, state) {
+    (0, _mobx.set)(this.state, moduleName, state);
+  }
 
-      var newMutations = {};
-      var keys = Object.keys(newMutations);
-      if (!keys.length) return;
-      keys.forEach(function (key) {
-        return newMutations[_this3._getModuleKey(moduleName, key)] = mutations[key];
-      });
-      Object.assign(this.mutations, newMutations);
-      if (this.parent) this.parent._mergeMutations(this.moduleName, mutations);
-    }
-  }, {
-    key: "_mergeActions",
-    value: function _mergeActions(moduleName, actions) {
-      var _this4 = this;
+  _mergeGetters(moduleName, getters) {
+    var _this2 = this;
 
-      var newAtions = {};
-      var keys = Object.keys(newAtions);
-      if (!keys.length) return;
-      keys.forEach(function (key) {
-        return newAtions[_this4._getModuleKey(moduleName, key)] = actions[key];
-      });
-      Object.assign(this.actions, newAtions);
-      if (this.parent) this.parent._mergeActions(this.moduleName, actions);
-    }
-  }, {
-    key: "_removeState",
-    value: function _removeState(key) {
-      (0, _mobx.remove)(this.state, key);
-    }
-  }, {
-    key: "_removeGetter",
-    value: function _removeGetter(key) {
-      (0, _mobx.remove)(this.getters, key);
-      if (this.parent) this.parent._removeGetter(this.parent._getModuleKey(this.moduleName, key));
-    }
-  }, {
-    key: "_removeMutation",
-    value: function _removeMutation(key) {
-      delete this.mutations[key];
-      if (this.parent) this.parent._removeMutation(this.parent._getModuleKey(this.moduleName, key));
-    }
-  }, {
-    key: "_removeAction",
-    value: function _removeAction(key) {
-      delete this.actions[key];
-      if (this.parent) this.parent._removeAction(this.parent._getModuleKey(this.moduleName, key));
-    }
-  }, {
-    key: "replaceState",
-    value: function replaceState() {
-      var _this5 = this;
+    const newGetters = {};
+    const keys = Object.keys(getters);
+    if (!keys.length) return;
+    keys.forEach(function (key) {
+      const d = Object.getOwnPropertyDescriptor(getters, key);
+      if (!d) return;
+      (0, _utils.defComputed)(newGetters, _this2._getModuleKey(moduleName, key), d.get, d.set);
+    });
+    (0, _mobx.extendObservable)(this.getters, newGetters);
+    if (this.parent) this.parent._mergeGetters(this.moduleName, getters);
+  }
 
-      var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  _mergeMutations(moduleName, mutations) {
+    var _this3 = this;
 
-      var _state = _objectSpread({}, state);
+    const newMutations = {};
+    const keys = Object.keys(newMutations);
+    if (!keys.length) return;
+    keys.forEach(function (key) {
+      return newMutations[_this3._getModuleKey(moduleName, key)] = mutations[key];
+    });
+    Object.assign(this.mutations, newMutations);
+    if (this.parent) this.parent._mergeMutations(this.moduleName, mutations);
+  }
 
-      Object.keys(this.modules).forEach(function (moduleName) {
-        return _state[moduleName] = _this5.modules[moduleName].state || {};
-      });
-      this._state = _mobx.observable.object(_state);
-      this.state = _mobx.observable.object(wrapModuleState(this));
+  _mergeActions(moduleName, actions) {
+    var _this4 = this;
+
+    const newAtions = {};
+    const keys = Object.keys(newAtions);
+    if (!keys.length) return;
+    keys.forEach(function (key) {
+      return newAtions[_this4._getModuleKey(moduleName, key)] = actions[key];
+    });
+    Object.assign(this.actions, newAtions);
+    if (this.parent) this.parent._mergeActions(this.moduleName, actions);
+  }
+
+  _removeState(key) {
+    (0, _mobx.remove)(this.state, key);
+  }
+
+  _removeGetter(key) {
+    (0, _mobx.remove)(this.getters, key);
+    if (this.parent) this.parent._removeGetter(this.parent._getModuleKey(this.moduleName, key));
+  }
+
+  _removeMutation(key) {
+    delete this.mutations[key];
+    if (this.parent) this.parent._removeMutation(this.parent._getModuleKey(this.moduleName, key));
+  }
+
+  _removeAction(key) {
+    delete this.actions[key];
+    if (this.parent) this.parent._removeAction(this.parent._getModuleKey(this.moduleName, key));
+  }
+
+  replaceState() {
+    var _this5 = this;
+
+    let state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+    const _state = _objectSpread({}, state);
+
+    Object.keys(this.modules).forEach(function (moduleName) {
+      return _state[moduleName] = _this5.modules[moduleName].state || {};
+    });
+    this._state = _mobx.observable.object(_state);
+    this.state = _mobx.observable.object(wrapModuleState(this));
+  }
+
+  registerModule(moduleName, module) {
+    if (!moduleName) return;
+    if (this.modules[moduleName]) this.unregisterModule(moduleName);
+    if (!module) return;
+    this.modules[moduleName] = new Store(module, this, this.root, moduleName);
+  }
+
+  unregisterModule(moduleName) {
+    var _this6 = this;
+
+    const module = this.modules[moduleName];
+    if (!module) return;
+
+    this._removeState(moduleName);
+
+    Object.keys(this.getters).forEach(function (key) {
+      if (key === _this6._getModuleKey(moduleName, key)) _this6._removeGetter(key);
+    });
+    Object.keys(this.mutations).forEach(function (key) {
+      if (key === _this6._getModuleKey(moduleName, key)) _this6._removeMutation(key);
+    });
+    Object.keys(this.actions).forEach(function (key) {
+      if (key === _this6._getModuleKey(moduleName, key)) _this6._removeAction(key);
+    });
+    this.modules[moduleName] = null;
+  }
+
+  watch(fn, callback) {
+    let oldValue;
+    return (0, _mobx.when)(function () {
+      return oldValue !== fn();
+    }, callback);
+  }
+
+  commit(event, payload) {
+    var _this7 = this;
+
+    if (!event) return;
+    const splitIdx = event.indexOf('/');
+    let moduleName = '';
+    let eventName = '';
+
+    if (~splitIdx) {
+      moduleName = event.substr(0, splitIdx);
+      eventName = event.substr(splitIdx + 1, event.length);
     }
-  }, {
-    key: "registerModule",
-    value: function registerModule(moduleName, module) {
-      if (!moduleName) return;
-      if (this.modules[moduleName]) this.unregisterModule(moduleName);
-      if (!module) return;
-      this.modules[moduleName] = new Store(module, this, this.root, moduleName);
-    }
-  }, {
-    key: "unregisterModule",
-    value: function unregisterModule(moduleName) {
-      var _this6 = this;
 
-      var module = this.modules[moduleName];
-      if (!module) return;
+    let ret;
 
-      this._removeState(moduleName);
+    if (eventName) {
+      const module = this.modules[moduleName];
+      if (!module) throw new Error(`commit error: module '${moduleName}' not be found!`);
+      ret = module.commit(eventName, payload);
+    } else {
+      const mutation = this.mutations[event];
+      if (!mutation) throw new Error(`commit error: event '${event}' not be found!`);
+      this._commiting = true;
 
-      Object.keys(this.getters).forEach(function (key) {
-        if (key === _this6._getModuleKey(moduleName, key)) _this6._removeGetter(key);
-      });
-      Object.keys(this.mutations).forEach(function (key) {
-        if (key === _this6._getModuleKey(moduleName, key)) _this6._removeMutation(key);
-      });
-      Object.keys(this.actions).forEach(function (key) {
-        if (key === _this6._getModuleKey(moduleName, key)) _this6._removeAction(key);
-      });
-      this.modules[moduleName] = null;
-    }
-  }, {
-    key: "watch",
-    value: function watch(fn, callback) {
-      var oldValue;
-      return (0, _mobx.when)(function () {
-        return oldValue !== fn();
-      }, callback);
-    }
-  }, {
-    key: "commit",
-    value: function commit(event, payload) {
-      var _this7 = this;
-
-      if (!event) return;
-      var splitIdx = event.indexOf('/');
-      var moduleName = '';
-      var eventName = '';
-
-      if (~splitIdx) {
-        moduleName = event.substr(0, splitIdx);
-        eventName = event.substr(splitIdx + 1, event.length);
+      try {
+        ret = mutation.call(this, this.state, payload, this.parent, this.root);
+      } finally {
+        this._commiting = false;
       }
-
-      var ret;
-
-      if (eventName) {
-        var module = this.modules[moduleName];
-        if (!module) throw new Error("commit error: module '".concat(moduleName, "' not be found!"));
-        ret = module.commit(eventName, payload);
-      } else {
-        var mutation = this.mutations[event];
-        if (!mutation) throw new Error("commit error: event '".concat(event, "' not be found!"));
-        this._commiting = true;
-
-        try {
-          ret = mutation.call(this, this.state, payload, this.parent, this.root);
-        } finally {
-          this._commiting = false;
-        }
-      }
-
-      this.mutationListeners.forEach(function (v) {
-        return v({
-          type: 'UPDATE_DATA',
-          payload: payload
-        }, _this7.state);
-      });
-      return ret;
     }
-  }, {
-    key: "dispatch",
-    value: function dispatch(event, payload) {
-      var _this8 = this;
 
-      if (!event) return;
-      var splitIdx = event.indexOf('/');
-      var moduleName = '';
-      var eventName = '';
+    this.mutationListeners.forEach(function (v) {
+      return v({
+        type: 'UPDATE_DATA',
+        payload
+      }, _this7.state);
+    });
+    return ret;
+  }
 
-      if (~splitIdx) {
-        moduleName = event.substr(0, splitIdx);
-        eventName = event.substr(splitIdx + 1, event.length);
-      }
+  dispatch(event, payload) {
+    var _this8 = this;
 
-      var ret;
+    if (!event) return;
+    const splitIdx = event.indexOf('/');
+    let moduleName = '';
+    let eventName = '';
 
-      if (eventName) {
-        var module = this.modules[moduleName];
-        if (!module) throw new Error("commit error: module '".concat(moduleName, "' not be found!"));
-        ret = module.dispatch(eventName, payload);
-      } else {
-        var _action = this.actions[event];
-        if (!_action) throw new Error("commit error: event '".concat(event, "' not be found!"));
-        var state = this.state,
+    if (~splitIdx) {
+      moduleName = event.substr(0, splitIdx);
+      eventName = event.substr(splitIdx + 1, event.length);
+    }
+
+    let ret;
+
+    if (eventName) {
+      const module = this.modules[moduleName];
+      if (!module) throw new Error(`commit error: module '${moduleName}' not be found!`);
+      ret = module.dispatch(eventName, payload);
+    } else {
+      const action = this.actions[event];
+      if (!action) throw new Error(`commit error: event '${event}' not be found!`);
+      const state = this.state,
             getters = this.getters,
             commit = this.commit;
-        ret = _action.call(this, {
-          state: state,
-          getters: getters,
-          commit: commit
-        });
-      }
-
-      this.actionListeners.forEach(function (v) {
-        return v({
-          type: 'UPDATE_DATA',
-          payload: payload
-        }, _this8.state);
+      ret = action.call(this, {
+        state,
+        getters,
+        commit
       });
-      return ret;
     }
-  }, {
-    key: "subscribe",
-    value: function subscribe(handler) {
-      var _this9 = this;
 
-      if (!handler || this.mutationListeners.includes(handler)) return;
-      this.mutationListeners.push(handler);
-      return function () {
-        var idx = _this9.mutationListeners.indexOf(handler);
+    this.actionListeners.forEach(function (v) {
+      return v({
+        type: 'UPDATE_DATA',
+        payload
+      }, _this8.state);
+    });
+    return ret;
+  }
 
-        if (~idx) _this9.mutationListeners.splice(idx, 1);
-      };
-    }
-  }, {
-    key: "subscribeAction",
-    value: function subscribeAction(handler) {
-      var _this10 = this;
+  subscribe(handler) {
+    var _this9 = this;
 
-      if (!handler || this.actionListeners.includes(handler)) return;
-      this.actionListeners.push(handler);
-      return function () {
-        var idx = _this10.actionListeners.indexOf(handler);
+    if (!handler || this.mutationListeners.includes(handler)) return;
+    this.mutationListeners.push(handler);
+    return function () {
+      const idx = _this9.mutationListeners.indexOf(handler);
 
-        if (~idx) _this10.actionListeners.splice(idx, 1);
-      };
-    }
-  }]);
+      if (~idx) _this9.mutationListeners.splice(idx, 1);
+    };
+  }
 
-  return Store;
-}();
+  subscribeAction(handler) {
+    var _this10 = this;
+
+    if (!handler || this.actionListeners.includes(handler)) return;
+    this.actionListeners.push(handler);
+    return function () {
+      const idx = _this10.actionListeners.indexOf(handler);
+
+      if (~idx) _this10.actionListeners.splice(idx, 1);
+    };
+  }
+
+}
 
 var _default = Store;
 exports.default = _default;

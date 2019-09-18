@@ -5,24 +5,6 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = beforeProps;
 
-require("core-js/modules/es6.object.assign");
-
-require("core-js/modules/es6.array.find");
-
-require("core-js/modules/es7.symbol.async-iterator");
-
-require("core-js/modules/es6.symbol");
-
-require("core-js/modules/es6.number.constructor");
-
-require("core-js/modules/web.dom.iterable");
-
-require("core-js/modules/es6.array.iterator");
-
-require("core-js/modules/es6.object.to-string");
-
-require("core-js/modules/es6.object.keys");
-
 var _react = _interopRequireDefault(require("react"));
 
 var _propTypes2 = _interopRequireDefault(require("prop-types"));
@@ -30,14 +12,14 @@ var _propTypes2 = _interopRequireDefault(require("prop-types"));
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function generateProps(aPropTypes, aProps) {
-  var ret = {
+  const ret = {
     propTypes: {},
     defaultProps: {}
   };
   if (!aPropTypes) return ret;
 
   if (Array.isArray(aPropTypes)) {
-    var _propTypes = {};
+    const _propTypes = {};
     aPropTypes.forEach(function (key) {
       return _propTypes[key] = {
         type: null
@@ -47,11 +29,11 @@ function generateProps(aPropTypes, aProps) {
   }
 
   Object.keys(aPropTypes).forEach(function (key) {
-    var propType = aPropTypes[key];
+    let propType = aPropTypes[key];
     if (propType.default !== undefined) ret.defaultProps[key] = propType.default;
 
     function getPropType(propType) {
-      var typeMaps = [{
+      const typeMaps = [{
         type: String,
         value: _propTypes2.default.string
       }, {
@@ -81,8 +63,8 @@ function generateProps(aPropTypes, aProps) {
       }];
 
       function _getPropType(type, required) {
-        var ret = _propTypes2.default.any;
-        var v = typeMaps.find(function (v) {
+        let ret = _propTypes2.default.any;
+        let v = typeMaps.find(function (v) {
           return v.type === type;
         });
         if (v) ret = v.value;else if (v instanceof type) _propTypes2.default.instanceOf(type);
@@ -91,14 +73,14 @@ function generateProps(aPropTypes, aProps) {
       }
 
       if (Object.isFunction(propType)) return _getPropType(propType);
-      var type = propType.type,
-          required = propType.required,
-          validator = propType.validator;
-      var retType;
+      const type = propType.type,
+            required = propType.required,
+            validator = propType.validator;
+      let retType;
 
       if (validator) {
         return function (props, propName, componentName) {
-          if (!validator(props[propName])) return new Error("Invalid prop '".concat(propName, "' supplied to '").concat(componentName, "'. Validation failed."));
+          if (!validator(props[propName])) return new Error(`Invalid prop '${propName}' supplied to '${componentName}'. Validation failed.`);
         };
       }
 
@@ -117,12 +99,12 @@ function generateProps(aPropTypes, aProps) {
 
 function beforeProps(source, target) {
   if (!target) target = source;
-  var props = source.props;
+  const props = source.props;
   if (!props) return source; // eslint-disable-next-line
 
-  var _generateProps = generateProps(props || {}),
-      propTypes = _generateProps.propTypes,
-      defaultProps = _generateProps.defaultProps;
+  const _generateProps = generateProps(props || {}),
+        propTypes = _generateProps.propTypes,
+        defaultProps = _generateProps.defaultProps;
 
   if (defaultProps) {
     if (!target.defaultProps) target.defaultProps = {};
