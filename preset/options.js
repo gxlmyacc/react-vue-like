@@ -1,5 +1,6 @@
 module.exports = {
   prefix: 'v-',
+  compRegx: /^([A-Z])|([a-z][a-z0-9]+-[a-z0-9]+)/,
   attrName: {
     for: 'for',
     show: 'show',
@@ -17,6 +18,9 @@ module.exports = {
   },
   transform: {
     class: false,
+    require: {
+      img: 'src'
+    },
     component: true,
     action: true,
     filter: true,

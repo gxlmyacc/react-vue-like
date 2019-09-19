@@ -2,7 +2,7 @@
 const { objValueStr2AST, memberExpr2Str, appendAttrEvent } = require('../utils');
 const options = require('../options');
 
-module.exports = function ({ types: t }) {
+module.exports = function ({ types: t, template }) {
   let attrName = new RegExp(`^${options.attrName.model}(\\.\\w+)*$`);
 
   return {
@@ -23,13 +23,9 @@ module.exports = function ({ types: t }) {
               appendAttrEvent(path, 'onChange', t.arrowFunctionExpression(
                 [t.identifier('e')],
                 t.blockStatement([
-                  t.expressionStatement(
-                    t.assignmentExpression(
-                      '=',
-                      objValueStr2AST(value, t),
-                      objValueStr2AST('e.target.value', t)
-                    )
-                  )
+                  template('$1 = e && e.target ? e.target.value : e')({
+                    $1: objValueStr2AST(value, t)
+                  })
                 ])
               ));
             }

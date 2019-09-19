@@ -16,7 +16,7 @@ const config = {
 
   useAction: true,
 
-  inheritAttrs: ['className', 'style'],
+  inheritAttrs: ['className', 'style', 'id', 'disabled'],
 
   inheritMergeStrategies: {
 

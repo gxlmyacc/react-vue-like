@@ -237,6 +237,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
     })();
     this._optionMergeStrategies = Object.assign({}, _config.default.optionMergeStrategies, this._type.optionMergeStrategies);
     this.$emit('hook:beforeCreate', _props);
+    if (_props.el instanceof Element) this.$mount(_props.el);
   }
 
   _resolvePropRef() {
@@ -448,12 +449,11 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
   _resolveParent() {
     var _this8 = this;
 
-    if (!this._isVueLikeRoot) {
-      (0, _utils.iterativeParent)(this, function (parent) {
-        return _this8.$parent = parent;
-      }, ReactVueLike);
-      if (this.$parent) this.$parent.$children.push(this);
-    }
+    if (this._isVueLikeRoot) return;
+    (0, _utils.iterativeParent)(this, function (parent) {
+      return _this8.$parent = parent;
+    }, ReactVueLike);
+    if (this.$parent) this.$parent.$children.push(this);else if (this.props.$parent) this.$parent = this.props.$parent;
   }
 
   _resolveInject() {
@@ -633,15 +633,38 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
 
   beforeDestory() {}
 
-  errorCaptured(err, vm, info) {} // $mount(elementOrSelector) {
-  //   if (!elementOrSelector) throw new Error('$mount error: elementOrSelector can not be null!');
-  //   let el;
-  //   if (typeof elementOrSelector === 'string') el = document.getElementById(elementOrSelector);
-  //   else if (elementOrSelector instanceof Element) el = elementOrSelector;
-  //   else throw new Error(`$mount error: elementOrSelector ${elementOrSelector} is not support type!`);
-  //   ReactDOM.render(<App />, el);
-  // }
+  errorCaptured(err, vm, info) {}
 
+  $mount(elementOrSelector) {
+    if (!elementOrSelector) throw new Error('$mount error: elementOrSelector can not be null!');
+    let el;
+    let sc = false;
+    if (typeof elementOrSelector === 'string') el = document.getElementById(elementOrSelector);else if (elementOrSelector instanceof Element) el = elementOrSelector;else {
+      el = document.createElement('div');
+      sc = true;
+    } // throw new Error(`$mount error: elementOrSelector ${elementOrSelector} is not support type!`);
+
+    let instance = this;
+
+    const ReactVueLikeProxy = function ReactVueLikeProxy(props) {
+      return instance;
+    };
+
+    ReactVueLikeProxy.prototype = _react.default.Component.prototype;
+    ReactVueLikeProxy.dispalyName = this._type.dispalyName || this._type.name;
+
+    _reactDom.default.render(_react.default.createElement(ReactVueLikeProxy, this.props), el);
+
+    return sc ? el : instance;
+  }
+
+  $destroy() {
+    _reactDom.default.unmountComponentAtNode(this.$el);
+  }
+
+  $forceUpdate() {
+    return this.forceUpdate();
+  }
 
   $runAction() {
     return _mobx2.runInAction.apply(void 0, arguments);

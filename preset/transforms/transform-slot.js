@@ -4,6 +4,7 @@ const {
   childrenToArrayExpr,
   isReactVueLike
 } = require('../utils');
+const { compRegx } = require('../options');
 
 module.exports = function ({ types: t, template }) {
   function ClassVisitor(path) {
@@ -53,7 +54,7 @@ module.exports = function ({ types: t, template }) {
       ClassExpression: ClassVisitor,
       JSXElement(path) {
         const tagName = path.node.openingElement.name.name;
-        if (!/^[A-Z]/.test(tagName) || tagName === DirectiveName) return;
+        if (!compRegx.test(tagName) || tagName === DirectiveName) return;
         if (path.node.openingElement.attributes.find(attr => attr.name && attr.name.name === '$slots')) return;
         let slots = [];
         path.traverse({

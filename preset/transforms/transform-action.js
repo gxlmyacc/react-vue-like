@@ -11,8 +11,9 @@ module.exports = function ({ types: t, template }) {
   // const actionExpr = template('ReactVueLike.action')().expression;
 
   function asyncToGen(asyncPath) {
-    asyncPath.node.async = false;
-    asyncPath.node.generator = true;
+    let node = asyncPath.node;
+    node.async = false;
+    node.generator = true;
     asyncPath.traverse({
       AwaitExpression(awaitPath) {
         let parent = awaitPath.getFunctionParent();
@@ -20,6 +21,16 @@ module.exports = function ({ types: t, template }) {
         awaitPath.replaceWith(t.yieldExpression(awaitPath.node.argument));
       }
     });
+    if (t.isArrowFunctionExpression(node)) {
+      node = t.functionExpression(
+        null,
+        asyncPath.node.params,
+        asyncPath.node.body,
+        asyncPath.node.generator,
+        asyncPath.node.async,
+      );
+      asyncPath.replaceWith(template('$1.bind(this)')({ $1: node }).expression);
+    }
   }
 
   let handled = [];

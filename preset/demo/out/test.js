@@ -1,210 +1,181 @@
 "use strict";
 
-require("core-js/modules/web.dom.iterable");
-
-require("core-js/modules/es6.array.iterator");
-
-require("core-js/modules/es6.string.iterator");
-
-require("core-js/modules/es6.weak-map");
-
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = void 0;
 
-require("core-js/modules/es7.symbol.async-iterator");
-
-require("core-js/modules/es6.symbol");
-
-require("core-js/modules/es6.promise");
-
-require("core-js/modules/es6.object.to-string");
-
-require("core-js/modules/es6.object.set-prototype-of");
-
-require("regenerator-runtime/runtime");
-
 var _react = _interopRequireDefault(require("react"));
 
-var _reactVueLike = _interopRequireWildcard(require("react-vue-like"));
+var _reactVueLike = _interopRequireDefault(require("react-vue-like"));
 
-var _router = _interopRequireDefault(require("router"));
+var _dpl = require("dpl");
 
-function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function _getRequireWildcardCache() { return cache; }; return cache; }
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; if (obj != null) { var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+require("./main-sider.scss?react-vue-like&scoped=true&id=v-555c74e4");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
-
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
-
-function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
-
-function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-
-function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
-
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-var HomeMainSomeIndex =
-/*#__PURE__*/
-function (_ReactVueLike) {
-  _inherits(HomeMainSomeIndex, _ReactVueLike);
+const Sider = _dpl.Layout.Sider;
 
-  function HomeMainSomeIndex() {
-    _classCallCheck(this, HomeMainSomeIndex);
-
-    return _possibleConstructorReturn(this, _getPrototypeOf(HomeMainSomeIndex).apply(this, arguments));
+class MainSider extends _reactVueLike.default {
+  static data() {
+    return {
+      loaded: false,
+      hideMenu: false,
+      currentMenu: {},
+      lastPath: '',
+      list: []
+    };
   }
 
-  _createClass(HomeMainSomeIndex, [{
-    key: "render",
-    value: function render() {
-      var _this = this;
-
-      return _react.default.createElement("div", null, _react.default.createElement("h1", null, "HomeMainSomeIndex"), this.text, _react.default.createElement("br", null), "logined: ", String(this.logined), _react.default.createElement("br", null), _react.default.createElement("input", {
-        value: this.text,
-        onChange: function onChange(e) {
-          _this.text = e.target.value;
-        }
-      }), _react.default.createElement("button", {
-        onClick: this.toggleLogin
-      }, "toggle login"), _react.default.createElement("button", {
-        onClick: this.testAsync
-      }, "test async"), _react.default.createElement("button", {
-        onClick: this.refresh
-      }, "refresh"), _react.default.createElement("button", {
-        onClick:
-        /*#__PURE__*/
-        _asyncToGenerator(
-        /*#__PURE__*/
-        regeneratorRuntime.mark(function _callee() {
-          return regeneratorRuntime.wrap(function _callee$(_context) {
-            while (1) {
-              switch (_context.prev = _context.next) {
-                case 0:
-                  return _context.abrupt("return", _router.default.push('other'));
-
-                case 1:
-                case "end":
-                  return _context.stop();
-              }
-            }
-          }, _callee);
-        }))
-      }, "to other"));
-    }
-  }], [{
-    key: "data",
-    value: function data() {
-      return {
-        text: 'text1'
-      };
-    }
-  }]);
-
-  return HomeMainSomeIndex;
-}(_reactVueLike.default);
-
-HomeMainSomeIndex.__file = "/preset/demo/src/test.js";
-
-_defineProperty(HomeMainSomeIndex, "computed", {
-  logined: function logined() {
-    return this.$store.state.logined;
+  mounted() {
+    this.init();
   }
+
+  render() {
+    var _this = this;
+
+    if (!this.loaded) return null;
+    const currentMenu = this.currentMenu; // console.log('currentMenu', currentMenu);
+
+    console.log('this.hideMenu`', this.hideMenu, this.list.length, Boolean(!this.hideMenu && this.list.length));
+    return _react.default.createElement(Sider, this._resolveSpreadAttrs("Sider", {
+      className: "v-555c74e4 main-sider",
+      width: 'max-content'
+    }), _react.default.createElement(_dpl.LeftMenu, {
+      data: this.list,
+      openKeys: currentMenu && currentMenu.parentKey ? [currentMenu.parentKey] : null,
+      selectedKeys: currentMenu ? [currentMenu.key] : null,
+      beforeSelect: this.goMenu,
+      onSelect: function onSelect(path, menu) {
+        return menu.stubborn && _this.goMenu(path, menu, function () {});
+      },
+      height: '100%',
+      defaultLock: true,
+      className: "v-555c74e4",
+      style: {
+        display: !this.hideMenu && this.list.length ? null : "none"
+      }
+    }));
+  }
+
+}
+
+MainSider.__file = "/preset/demo/src/test.js";
+
+_defineProperty(MainSider, "watch", {
+  '$route'(newVal, oldVal) {
+    if (!newVal || !oldVal) return;
+    if (newVal.path !== oldVal.path) this.updateList(newVal);
+  }
+
 });
 
-_defineProperty(HomeMainSomeIndex, "methods", {
-  refresh: function refresh() {
-    this.text = 'text1 refreshed';
+_defineProperty(MainSider, "methods", {
+  init() {
+    this.updateList(this.$route);
+    this.loaded = true;
   },
-  toggleLogin: function toggleLogin() {
-    this.$store.commit('update-logined', !this.logined);
-  },
-  delay: function delay() {
-    var timeout = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-    return new Promise(function (resolve, reject) {
-      setTimeout(function () {
-        return resolve(timeout);
-      }, timeout);
+
+  updateList(route) {
+    var _this2 = this;
+
+    let list = [];
+    let isMainCommon = route.matched.some(function (r) {
+      return r.meta.mainCommon;
     });
-  },
-  testAsync:
-  /*#__PURE__*/
-  regeneratorRuntime.mark(function testAsync() {
-    var i, timeout;
-    return regeneratorRuntime.wrap(function testAsync$(_context3) {
-      while (1) {
-        switch (_context3.prev = _context3.next) {
-          case 0:
-            i = 0;
-            console.log('testAsync', i);
 
-          case 2:
-            if (!(i <= 5)) {
-              _context3.next = 11;
-              break;
-            }
+    if (isMainCommon && !route.query.redirect) {
+      this.hideMenu = true;
+      return;
+    }
 
-            console.log('testAsync while', i);
-            this.text = i++;
-            _context3.next = 7;
-            return this.delay(1000 + i);
+    let matched = isMainCommon ? this.$router.getMatched(route.query.redirect) : route.matched;
+    let currentRoute = matched[1] && matched[1].config;
 
-          case 7:
-            timeout = _context3.sent;
-            console.log('timeout', timeout);
-            _context3.next = 2;
-            break;
+    let findMenuList = function findMenuList(routes, parent) {
+      let ret = [];
 
-          case 11:
-            if (i > 4) {
-              this.test = 'i > 4';
-            }
+      let findMenu = _this2._resolveEvent(function (r, parent) {
+        if (!r.meta.title) return;
+        let menu = {
+          parentKey: parent ? parent.key : undefined,
+          key: r.path,
+          text: r.meta.title,
+          icon: r.meta.icon ? _react.default.createElement("i", {
+            className: "v-555c74e4" + ' ' + `iconfont ${r.meta.icon}`
+          }) : null
+        };
+        menu.children = findMenuList(r.children, menu);
+        return menu;
+      });
 
-            console.log('testAsync end', i);
-            this.text = '完成';
+      if (!routes || !routes.length) return ret;
+      routes.forEach(function (r) {
+        let menu = findMenu(r, parent);
+        if (menu) ret.push(menu);
+      });
+      return ret;
+    };
 
-          case 14:
-          case "end":
-            return _context3.stop();
-        }
-      }
-    }, testAsync, this);
-  })
-});
+    if (currentRoute) {
+      list = findMenuList(currentRoute.children);
 
-var test1 = (0, _reactVueLike.action)(function test1() {});
-var test2 = (0, _reactVueLike.action)(
-/*#__PURE__*/
-regeneratorRuntime.mark(function test2() {
-  return regeneratorRuntime.wrap(function test2$(_context2) {
-    while (1) {
-      switch (_context2.prev = _context2.next) {
-        case 0:
-        case "end":
-          return _context2.stop();
+      if (currentRoute.meta.hasBack) {
+        list.unshift({
+          key: 'back',
+          text: '返回'
+        });
       }
     }
-  }, test2);
-})); // function WrapComponent(Comp) {
-//   return React.forwardRef((props, ref) => (<Comp {...props} ref={ref} />));
-// }
 
-var _default = HomeMainSomeIndex;
+    this.list = list;
+    this.updateMenu(route, isMainCommon);
+  },
+
+  updateMenu(route, isMainCommon) {
+    let currentPath = isMainCommon ? route.query.redirect : route.path;
+    let currentMenu;
+
+    let findMenuList = function findMenuList(menuList, parent) {
+      let findMenu = function findMenu(menu) {
+        if (!currentPath.startsWith(menu.key)) return;
+
+        if (!currentMenu || currentMenu.key.length < menu.key.length) {
+          currentMenu = menu;
+        }
+
+        if (menu.children) findMenuList(menu.children, menu);
+      };
+
+      menuList.forEach(function (m) {
+        return findMenu(m, parent);
+      });
+    };
+
+    findMenuList(this.list);
+    this.currentMenu = currentMenu;
+  },
+
+  goMenu(path, menu, callback) {
+    if (path === 'back') {
+      this.$router.replace(this.$config.mainPage, function () {
+        return callback(true);
+      }, function () {
+        return callback(false);
+      });
+    } else {
+      this.$router.push(path, function () {
+        return callback(true);
+      }, function () {
+        return callback(false);
+      });
+    }
+  }
+
+});
+
+var _default = MainSider;
 exports.default = _default;

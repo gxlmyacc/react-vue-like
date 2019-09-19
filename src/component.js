@@ -190,6 +190,8 @@ class ReactVueLike extends React.Component {
     this._optionMergeStrategies = Object.assign({}, config.optionMergeStrategies, this._type.optionMergeStrategies);
 
     this.$emit('hook:beforeCreate', _props);
+
+    // if (_props.el instanceof Element) this.$mount(_props.el);
   }
 
   _resolvePropRef() {
@@ -373,10 +375,10 @@ class ReactVueLike extends React.Component {
   }
 
   _resolveParent() {
-    if (!this._isVueLikeRoot) {
-      iterativeParent(this, parent => this.$parent = parent, ReactVueLike);
-      if (this.$parent) this.$parent.$children.push(this);
-    }
+    if (this._isVueLikeRoot) return;
+    iterativeParent(this, parent => this.$parent = parent, ReactVueLike);
+    if (this.$parent) this.$parent.$children.push(this);
+    else if (this.props.$parent) this.$parent = this.props.$parent;
   }
 
   _resolveInject() {
@@ -551,15 +553,34 @@ class ReactVueLike extends React.Component {
 
   }
 
-  // $mount(elementOrSelector) {
-  //   if (!elementOrSelector) throw new Error('$mount error: elementOrSelector can not be null!');
-  //   let el;
-  //   if (typeof elementOrSelector === 'string') el = document.getElementById(elementOrSelector);
-  //   else if (elementOrSelector instanceof Element) el = elementOrSelector;
-  //   else throw new Error(`$mount error: elementOrSelector ${elementOrSelector} is not support type!`);
+  $mount(elementOrSelector) {
+    if (!elementOrSelector) throw new Error('$mount error: elementOrSelector can not be null!');
+    let el;
+    let sc = false;
+    if (typeof elementOrSelector === 'string') el = document.getElementById(elementOrSelector);
+    else if (elementOrSelector instanceof Element) el = elementOrSelector;
+    else {
+      el = document.createElement('div');
+      sc  = true;
+    }
+    // throw new Error(`$mount error: elementOrSelector ${elementOrSelector} is not support type!`);
+    let instance = this;
+    const ReactVueLikeProxy = function ReactVueLikeProxy(props) {
+      return instance;
+    };
+    ReactVueLikeProxy.prototype = React.Component.prototype;
+    ReactVueLikeProxy.dispalyName = this._type.dispalyName || this._type.name;
+    ReactDOM.render(React.createElement(ReactVueLikeProxy, this.props), el);
+    return sc ? el : instance;
+  }
 
-  //   ReactDOM.render(<App />, el);
-  // }
+  $destroy() {
+    ReactDOM.unmountComponentAtNode(this.$el);
+  }
+
+  $forceUpdate() {
+    return this.forceUpdate();
+  }
 
   $runAction(...args) {
     return runInAction(...args);
@@ -706,6 +727,7 @@ class ReactVueLike extends React.Component {
   }
 
 }
+
 
 ReactVueLike.config.optionMergeStrategies = config.optionMergeStrategies;
 ReactVueLike.config.inheritMergeStrategies = config.inheritMergeStrategies;

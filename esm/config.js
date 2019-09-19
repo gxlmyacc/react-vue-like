@@ -22,7 +22,7 @@ const config = {
   errorHandler: null,
   warnHandler: null,
   useAction: true,
-  inheritAttrs: ['className', 'style'],
+  inheritAttrs: ['className', 'style', 'id', 'disabled'],
   inheritMergeStrategies: {},
   optionMergeStrategies: {
     $directives: directivesMergeStrategies,
