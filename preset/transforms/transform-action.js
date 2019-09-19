@@ -46,6 +46,13 @@ module.exports = function ({ types: t, template }) {
         if (!t.isMemberExpression(path.node.left)) return;
         hasAssgin = true;
         path.stop();
+      },
+      CallExpression(path) {
+        if (!t.isMemberExpression(path.node.callee)
+          || expr2var(path.node.callee) !== 'Object.assign'
+          || !t.isMemberExpression(path.node.arguments[0])) return;
+        hasAssgin = true;
+        path.stop();
       }
     });
     if (!hasAssgin) return;

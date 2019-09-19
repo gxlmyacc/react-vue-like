@@ -18,6 +18,7 @@ class UpdatePwdModal extends ReactVueLike {
       this.props.form.validateFields(async (err, values) => {
         if (err) return;
 
+        Object.assign(this.data, { dd });
         if (this.mode === 'apply') {
           await this.$api.privilege.applyPrivilege({
             position: this.formData.position,
