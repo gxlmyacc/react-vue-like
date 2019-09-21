@@ -380,6 +380,55 @@ class Test extends ReactVueLike {
 }
 ```
 
+### `event mechanism`
+you can use `$emit` to send event message to `bind Event` that bing by `$on` or `onXXXX` event:
+
+```js
+import React from 'react';
+import ReactVueLike from 'react-vue-like';
+import ChildComponent from './ChildComponent';
+
+class ParentComponent extends ReactVueLike {
+
+  mounted() {
+    this.$on('change-user', (user) => {
+      console.log('user changed', user);
+    })
+  }
+
+  handleClick() {
+    console.log('you click');
+  }
+
+  handleCusomEvent(message) {
+    console.log('handing custom event...', message);
+  }
+
+  render() {
+    return (<ChildComponent onClick={this.handleClick} onCustomEvent={this.handleCusomEvent}>
+    </ChildComponent>);
+  }
+
+}
+```
+
+```js
+import React from 'react';
+import ReactVueLike from 'react-vue-like';
+
+class ChildComponent extends ReactVueLike {
+
+  render() {
+    return (<div>
+      <button onClick={this.$emit('click')}>click</button>
+      <button onClick={this.$emit('change-user', { name: 'james' })}>change user</button>
+      <button onClick={this.$emit('custom-event', 'something')}>cusom event</button>
+    </div>);
+  }
+
+}
+```
+
 ### `attribute transform` 
   img src attribute string value transform to `require` expression
  example:
