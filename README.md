@@ -22,6 +22,8 @@ write react component like vue, implementation based on mbox@4.
 - `v-if/v-else-if/v-else`,`v-show`,`v-model`, `v-html`
 - `attribute transform` img src attribute string value transform to require expression
 - `ref` string ref transform `ref function` that set `ref` to `$refs`
+- `Vue like props` like `$el`,`$options`,`$parent`,`$root`,`$refs`,`$slots`,`$attrs`
+- `Vue like methods` like `$nextTick`,`$set`,`$delete`,`$forceUpdate`,`$watch`,`$emit`,`$on`,`$off`,`$once`,`renderError`, `ReactVueLike.use`, `ReactVueLike.config`
 - `Vuex.Store` see `ReactVueLike.Store`
 
 ## Other feature
