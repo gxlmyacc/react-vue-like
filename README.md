@@ -159,7 +159,6 @@ function normalizeComps(comps, parentKey = '') {
 // components.js
 export default function install(ReactVueLike, { App }) {
   if (!App.components) App.components = {};
-  const components = {};
   Object.assign(App.components, normalizeComps(antd));
 }
 ```
@@ -398,8 +397,8 @@ class SomeComponent extends ReactVueLike {
   }
 
   static methods = {
-    test() {
-      this.$refs.some.doSomething();
+    doSomething() {
+      console.log('doSomething');
     }
   }
 
