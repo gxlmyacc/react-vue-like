@@ -109,6 +109,61 @@ const router = new ReactViewRouter({ routes });
 export default router;
 ```
 
+global filters:
+```js
+// filters.js
+export default {
+  myFilter(value) {
+    return `myFilter:${value}`;
+  }
+
+  install(ReactVueLike, { App }) {
+    App.filters = this;
+  }
+}
+```
+
+global directives:
+```js
+// directives.js
+export default {
+  test: {
+    bind(el, binding, vnode) {
+
+    }
+  }
+
+  install(ReactVueLike, { App }) {
+    App.directives = this;
+  }
+}
+```
+
+global components:
+```js
+import * as antd from 'antd';
+
+const PREFIX = 'Ad';
+function normalizeComps(comps, parentKey = '') {
+  const COMP_REGX = /^[A-Z][A-Za-z]+/;
+  let ret = {};
+  Object.keys(comps).forEach(key => {
+    if (!COMP_REGX.test(key)) return;
+    const comp = comps[key];
+    ret[`${PREFIX}${parentKey}${key}`] = comp;
+    if (!parentKey) Object.assign(ret, normalizeComps(comp, key));
+  });
+  return ret;
+}
+
+// components.js
+export default function install(ReactVueLike, { App }) {
+  if (!App.components) App.components = {};
+  const components = {};
+  Object.assign(App.components, normalizeComps(antd));
+}
+```
+
 entry file:
 
 ```js
@@ -119,11 +174,16 @@ import ReactVueLike from 'react-vue-like';
 import ReactViewRouter from 'react-view-router';
 import store from './store';
 import router from './router';
+import filters from './filters';
+import directives from './directives';
+import components from './components';
 import App from 'react-vue-like';
-
 
 ReactVueLike.use(store, { App });
 ReactVueLike.use(router, { App });
+ReactVueLike.use(filters, { App });
+ReactVueLike.use(directives, { App });
+ReactVueLike.use(components, { App });
 
 ReactDOM.render(<App />, document.getElementById('#root'));
 ```
@@ -430,11 +490,6 @@ const store = new ReactVueLike.Store({
       commit('update-user', v);
     }
   },
-
-  install(ReactVueLike, { App }) {
-    if (!App.inherits) App.inherits = {};
-    App.inherits.$store = this;
-  }
 });
 
 export default store;

@@ -252,6 +252,11 @@ class Store {
     };
   }
 
+  install(ReactVueLike, { App }) {
+    if (!App.inherits) App.inherits = {};
+    App.inherits.$store = this;
+  }
+
 }
 
 export default Store;
