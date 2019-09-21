@@ -12,7 +12,7 @@ module.exports = function ({ types: t, template }) {
         if (!attrName) return;
         const srcAttr = openingElement.attributes.find(attr => attr.name && attr.name.name === attrName);
         if (!srcAttr || !t.isStringLiteral(srcAttr.value) || /^data:/.test(srcAttr.value.value)) return;
-        srcAttr.value = t.jsxExpressionContainer(temp({ $1: srcAttr.value.value }).expression);
+        srcAttr.value = t.jsxExpressionContainer(temp({ $1: srcAttr.value }).expression);
       }
     }
   };

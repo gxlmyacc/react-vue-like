@@ -236,8 +236,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
       });
     })();
     this._optionMergeStrategies = Object.assign({}, _config.default.optionMergeStrategies, this._type.optionMergeStrategies);
-    this.$emit('hook:beforeCreate', _props);
-    if (_props.el instanceof Element) this.$mount(_props.el);
+    this.$emit('hook:beforeCreate', _props); // if (_props.el instanceof Element) this.$mount(_props.el);
   }
 
   _resolvePropRef() {
@@ -593,7 +592,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
       args[_key - 2] = arguments[_key];
     }
 
-    install.apply(void 0, [ReactVueLike, options].concat(args));
+    return install.apply(void 0, [ReactVueLike, options].concat(args));
   }
 
   static config() {

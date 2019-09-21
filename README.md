@@ -7,8 +7,8 @@ write react component like vue, implementation based on mbox@4.
 
 ## Support Vue feature
 
-- `props`
-- `components`
+- `props` will transfrom react's `propTypes` and `defaultProps`
+- `components` if tag name has `-` char will be treat as a component that find from self's `components` section or root's `components` section
 - `filter`
 - `directive`
 - `mixin`
@@ -17,10 +17,16 @@ write react component like vue, implementation based on mbox@4.
 - `computed`
 - `watch`
 - `lifecycle`
-- `scoped style`
+- `scoped style` if import's style file name has `?scoped`, then it will treat as `scoped style`
 - `slot`
-- `v-if`,`v-show`,`v-model`
+- `v-if/v-else-if/v-else`,`v-show`,`v-model`, `v-html`
+- `attribute transform` img src attribute string value transform to require expression
+- `ref` string ref transform `ref function` that set `ref` to `$refs`
 - `Vuex.Store` see `ReactVueLike.Store`
+
+## Other feature
+
+- `const var` support `__filename`, `__dirname`, `__packagename`, `__packageversion`, `__now`
 
 ## Installation
 
@@ -77,15 +83,65 @@ module.exports = {
 }
 ```
 
-a ReactVueLike component:
+routes file:
+```js
+// routes.js
+import Test from './test';
+
+const routes = [
+  {
+    path: '/',
+    component: Test
+  }
+]
+
+export default routes;
+```
+
+router file: 
+```js
+// router.js
+import ReactViewRouter from 'react-view-router';
+import routes from './routes';
+
+const router = new ReactViewRouter({ routes });
+
+export default router;
+```
+
+entry file:
+
+```js
+// index.js
+import React from 'react';
+import ReactDOM from 'react-dom';
+import ReactVueLike from 'react-vue-like';
+import ReactViewRouter from 'react-view-router';
+import store from './store';
+import router from './router';
+import App from 'react-vue-like';
+
+
+ReactVueLike.use(store, { App });
+ReactVueLike.use(router, { App });
+
+ReactDOM.render(<App />, document.getElementById('#root'));
+```
+
+root ReactVueLike component:
 ```js
   // app.jsx
 import React from 'react';
 import ReactVueLike from 'react-vue-like';
+import { RouterView } from 'react-view-router';
+import router from './router';
+import SomeComponent from './SomeComponent';
 // scoped css
-import 'some.scss?scoped';
+import './app.scss?scoped';
 
 class App extends ReactVueLike {
+
+  static isRoot = true
 
   static props = {
     aa: {
@@ -93,6 +149,10 @@ class App extends ReactVueLike {
       required: true,
       default: 'a'
     }
+  }
+
+  static components = {
+    SomeComponent
   }
 
   static mixins = [
@@ -237,12 +297,97 @@ class App extends ReactVueLike {
         dd { 33 | bb(bb) } 
         ee { 44 | dd }
       </span>
+
+      {/* will find from components section */}
+      <some-component>
+        {/* if some-component is `ReactVueLike Component` then it will has `$slots: { header, default, footer }` */}
+        {/* if some-component is `React Component` then it will has `header, footer` attributes, default slot will be it's 'children'  */}
+        <span slot="header">this is header</span>
+
+        {/* scope slot */}
+        <template>
+          ({ value, user }) => <span>this is body: {user.name}: {value}</span>
+        </template>
+
+        <span slot="footer">this is footer</span>
+      </some-component>
+
+      {/* root RouterView need `router` prop */}
+      <RouterView router={router} />
     </div>);
   }
 
 }
 
 export default App;
+```
+
+```js
+  // some-component.jsx
+import React from 'react';
+import ReactVueLike from 'react-vue-like';
+// scoped css
+import './some-component.scss?scoped';
+
+class Test extends ReactVueLike {
+
+  static computed = {
+    user() {
+      return this.$store.state.user;
+    }
+  }
+
+  static methods = {
+    test() {
+      this.$refs.some.doSomething();
+    }
+  }
+
+  render() {
+    return (<div>
+      <slot name="header">
+      haha1
+      {
+        [1, 2, 3].map(v => <slot value={v} user={user} />)
+      }
+      haha2
+      <slot name="footer">
+
+      {/* src will be transformed: require('./images/pic1.png') */}
+      <img src="./images/pic1.png" />
+    </div>);
+  }
+}
+```
+
+```js
+  // test.jsx
+import React from 'react';
+import ReactVueLike from 'react-vue-like';
+// scoped css
+import './test.scss?scoped';
+
+class Test extends ReactVueLike {
+
+  static computed = {
+    user() {
+      return this.$store.state.user;
+    }
+  }
+
+  static methods = {
+    test() {
+      this.$refs.some.doSomething();
+    }
+  }
+
+  render() {
+    return (<div>
+      {/* donot need import,  it will find from it's root component's components section */}
+      <some-component ref="some" onClick={this.test} />
+    </div>);
+  }
+}
 ```
 
 store like Vuex.Store:
@@ -263,7 +408,9 @@ const store = new ReactVueLike.Store({
     }
   },
   state: {
-    globalLoading: false,
+    user: {
+      name: 'name1'
+    },
   },
   getters: {
     aa(state) {
@@ -271,15 +418,20 @@ const store = new ReactVueLike.Store({
     }
   }
   mutations: {
-    'update-global-loading'(state, v) {
-      state.globalLoading = v;
+    'update-user'(state, v) {
+      state.user = v;
+    },
+    'update-user-info'(state, v) {
+      Object.keys(v).forEach(key => state.user[key] = v[key]);
+      ;
     }
   },
   actions: {
-    'update-global-loading'({ commit }, v) {
-      commit('update-global-loading', true);
+    'update-user-info'({ commit }, v) {
+      commit('update-user', v);
     }
-  }
+  },
+
   install(ReactVueLike, { App }) {
     if (!App.inherits) App.inherits = {};
     App.inherits.$store = this;

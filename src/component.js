@@ -118,7 +118,6 @@ class ReactVueLike extends React.Component {
     const { propData, attrs } = parseProps(target, _props, propTypes);
 
     this._isVueLike = true;
-    this._type = target;
     this._ticks = [];
     this._inherits = inherits ? { ...inherits } : null;
     this._el = null;
@@ -129,6 +128,7 @@ class ReactVueLike extends React.Component {
     this.$children = [];
     this.$attrs = attrs;
     this.$slots = _props.$slots || {};
+    this.$options = target;
 
     if (this.$slots.default === undefined) this.$slots.default = _props.children;
 
@@ -174,7 +174,7 @@ class ReactVueLike extends React.Component {
     this._provides = _provides;
     this._injects = _injects;
 
-    this._inheritMergeStrategies = Object.assign({}, config.inheritMergeStrategies, this._type.inheritMergeStrategies);
+    this._inheritMergeStrategies = Object.assign({}, config.inheritMergeStrategies, this.$options.inheritMergeStrategies);
     action(() => {
       Object.keys(this._inheritMergeStrategies).forEach(key => {
         let merge = this._inheritMergeStrategies[key];
@@ -187,7 +187,7 @@ class ReactVueLike extends React.Component {
         } else this._inherits[key] = parent;
       });
     })();
-    this._optionMergeStrategies = Object.assign({}, config.optionMergeStrategies, this._type.optionMergeStrategies);
+    this._optionMergeStrategies = Object.assign({}, config.optionMergeStrategies, this.$options.optionMergeStrategies);
 
     this.$emit('hook:beforeCreate', _props);
 
@@ -228,10 +228,10 @@ class ReactVueLike extends React.Component {
   }
 
   _resolveSpreadAttrs(tagName, props) {
-    if (this._type.inheritAttrs === false) return props;
+    if (this.$options.inheritAttrs === false) return props;
 
-    let inheritAttrs = Array.isArray(this._type.inheritAttrs)
-      ? this._type.inheritAttrs
+    let inheritAttrs = Array.isArray(this.$options.inheritAttrs)
+      ? this.$options.inheritAttrs
       : config.inheritAttrs;
 
     const RETX_DOM = /^[a-z]/;
@@ -346,7 +346,7 @@ class ReactVueLike extends React.Component {
     Object.keys(_data).forEach(key => {
       if (key in this._propData) {
         let e = new Error(`key '${key}' in data() cannot be duplicated with props`);
-        handleError(e, this, `constructor:${this._type.name}`);
+        handleError(e, this, `constructor:${this.$options.name}`);
         throw e;
       }
       if (key.startsWith('_')) shadows[key] = _data[key];
@@ -357,7 +357,7 @@ class ReactVueLike extends React.Component {
   }
 
   _resolveComputed() {
-    let _computed = generateComputed(this._computed, this._propData, this.$data, this._type);
+    let _computed = generateComputed(this._computed, this._propData, this.$data, this.$options);
     extendObservable(this, _computed);
   }
 
@@ -368,7 +368,7 @@ class ReactVueLike extends React.Component {
   _resolveMethods() {
     bindMethods(this, this._methods);
     const pMethods = {};
-    Object.getOwnPropertyNames(this._type.prototype)
+    Object.getOwnPropertyNames(this.$options.prototype)
       .filter(key => !ReactVueLike.prototype[key])
       .map(key => isFunction(this[key]) && (pMethods[key] = this[key]));
     bindMethods(this, pMethods);
@@ -416,9 +416,9 @@ class ReactVueLike extends React.Component {
 
   _resolveComp(compName) {
     let comp;
-    if (this._type.components) comp = this._type.components[compName];
-    if (!this._isVueLikeRoot && !comp && this.$root._type.components) {
-      comp = this.$root._type.components[compName];
+    if (this.$options.components) comp = this.$options.components[compName];
+    if (!this._isVueLikeRoot && !comp && this.$root.$options.components) {
+      comp = this.$root.$options.components[compName];
     }
 
     if (!isProduction && !comp) warn(`can not resolve component '${compName}'!`, this);
@@ -473,7 +473,7 @@ class ReactVueLike extends React.Component {
         ? plugin.install.bind(plugin)
         : null;
     if (!install) throw Error('ReactVueLike.use error: plugin need has \'install\' method!');
-    install(ReactVueLike, options, ...args);
+    return install(ReactVueLike, options, ...args);
   }
 
   static config(options = {}) {
@@ -569,7 +569,7 @@ class ReactVueLike extends React.Component {
       return instance;
     };
     ReactVueLikeProxy.prototype = React.Component.prototype;
-    ReactVueLikeProxy.dispalyName = this._type.dispalyName || this._type.name;
+    ReactVueLikeProxy.dispalyName = this.$options.dispalyName || this.$options.name;
     ReactDOM.render(React.createElement(ReactVueLikeProxy, this.props), el);
     return sc ? el : instance;
   }
@@ -632,6 +632,9 @@ class ReactVueLike extends React.Component {
   }
 
   $delete(target, expr) {
+    if (isObject(expr)) {
+      return Object.keys(expr).forEach(key => this.$delete(target, expr[key]));
+    }
     let { obj, key } = parseExpr(target, expr);
     if (obj && key) remove(obj, key);
   }
@@ -670,11 +673,18 @@ class ReactVueLike extends React.Component {
 
   render(...args) {
     if (!this._isMounted) return null;
-    let node = this._renderFn && this._renderFn(...args);
+    let node;
+    try {
+      node = this._renderFn && this._renderFn(...args);
+    } catch (ex) {
+      handleError(ex, this, 'render');
+      node = this.renderError();
+    }
+
     // let el = this.$el;
     // if (el) {
-    //   let inheritAttrs = Array.isArray(this._type.inheritAttrs)
-    //     ? this._type.inheritAttrs
+    //   let inheritAttrs = Array.isArray(this.$options.inheritAttrs)
+    //     ? this.$options.inheritAttrs
     //     : config.inheritAttrs;
     //   inheritAttrs.forEach(key => {
     //     let v = this.props[key];
@@ -690,8 +700,12 @@ class ReactVueLike extends React.Component {
     //     }
     //   });
     // }
-    // console.log('ReactVueLike.render', this._type.name, node);
+    // console.log('ReactVueLike.render', this.$options.name, node);
     return node;
+  }
+
+  renderError() {
+    return null;
   }
 
   getSnapshotBeforeUpdate(prevProps, prevState) {

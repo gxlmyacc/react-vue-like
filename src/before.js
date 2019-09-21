@@ -4,13 +4,28 @@ import Mixin from './mixin';
 import beforeProps from './before-props';
 import beforeAction from './before-action';
 
-export default function before(source, props, target) {
+function isReactComponent(source) {
+  if (typeof source !== 'string') return true;
+  if (source.includes('.')) return true;
+  return false;
+}
+
+export default function before(source, props, target, isMixin) {
   if (!source || !source.prototype) return source;
   if (source.__ReactVueLikeHandled) return source;
 
   const isReactVueLikeClass = source.prototype instanceof ReactVueLike;
-  const isReactVueLikeClasses = isReactVueLikeClass || source.prototype instanceof Mixin;
-  const isReactVueLike = isReactVueLikeClasses || source === Directive;
+  const isReactVueLikeMixin = isMixin || source.prototype instanceof Mixin;
+  const isDirective = source === Directive;
+  const isReactVueLikeClasses = isReactVueLikeClass || isReactVueLikeMixin;
+  const isReactVueLike = isReactVueLikeClasses || isDirective;
+
+  if (!isReactVueLike || (isDirective && isReactComponent(props._source))) {
+    if (props && props.$slots) {
+      Object.assign(props, props.$slots);
+      delete props.$slots;
+    }
+  }
 
   if (!isReactVueLike) return source;
   try {
@@ -26,7 +41,7 @@ export default function before(source, props, target) {
     if (!isReactVueLikeClasses) return target;
 
     if (isReactVueLikeClass && target.mixins) {
-      target.mixins.forEach((m, i) => before(m, props, target));
+      target.mixins.forEach((m, i) => before(m, props, target, true));
     }
 
     // eslint-disable-next-line

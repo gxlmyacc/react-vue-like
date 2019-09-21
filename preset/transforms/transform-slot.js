@@ -2,7 +2,8 @@
 const {
   DirectiveName,
   childrenToArrayExpr,
-  isReactVueLike
+  isReactVueLike,
+  expr2var
 } = require('../utils');
 const { compRegx } = require('../options');
 
@@ -53,27 +54,35 @@ module.exports = function ({ types: t, template }) {
       ClassDeclaration: ClassVisitor,
       ClassExpression: ClassVisitor,
       JSXElement(path) {
-        const tagName = path.node.openingElement.name.name;
-        if (!compRegx.test(tagName) || tagName === DirectiveName) return;
-        if (path.node.openingElement.attributes.find(attr => attr.name && attr.name.name === '$slots')) return;
+        const openingElement = path.node.openingElement;
+        let tagName = openingElement.name.name;
+        if (tagName === DirectiveName) {
+          tagName = expr2var(openingElement.attributes.find(attr => attr.name && attr.name.name === '_source'));
+        }
+        if (!compRegx.test(tagName)) return;
+        if (openingElement.attributes.find(attr => attr.name && attr.name.name === '$slots')) return;
         let slots = [];
-        path.traverse({
-          JSXElement(slotPath) {
-            let slotAttrIndex = slotPath.node.openingElement.attributes.findIndex(a => a.name && a.name.name === 'slot');
-            if (!~slotAttrIndex) return slotPath.skip();
-            let slotAttr = slotPath.node.openingElement.attributes[slotAttrIndex];
-            let slotAttrName = slotAttr.value.value;
-            let slotNode = slotPath.node;
-            if (slotNode.openingElement.name.name === 'template') {
-              slotNode = childrenToArrayExpr(slotNode.children, true);
-            }
-            slots.push(t.objectProperty(t.identifier(slotAttrName), slotNode));
-            slotPath.node.openingElement.attributes.splice(slotAttrIndex, 1);
-            if (slotAttrName !== 'default') slotPath.remove();
+        for (let slotIndex = path.node.children.length - 1; slotIndex > -1; slotIndex--) {
+          let slotNode = path.node.children[slotIndex];
+          if (!t.isJSXElement(slotNode)) continue;
+          let openingElement = slotNode.openingElement;
+          let slotAttrIndex = openingElement.attributes.findIndex(a => a.name && a.name.name === 'slot');
+          let slotAttr; let slotAttrName;
+          if (~slotAttrIndex) {
+            slotAttr = openingElement.attributes[slotAttrIndex];
+            slotAttrName = slotAttr.value.value;
           }
-        });
+          if (openingElement.name.name === 'template') {
+            path.node.children[slotIndex] = slotNode = childrenToArrayExpr(slotNode.children, true);
+          }
+          if (~slotAttrIndex) {
+            slots.push(t.objectProperty(t.identifier(slotAttrName), slotNode));
+            openingElement.attributes.splice(slotAttrIndex, 1);
+            if (slotAttrName !== 'default') path.node.children.splice(slotIndex, 1);
+          }
+        }
         if (slots.length) {
-          path.node.openingElement.attributes.push(t.JSXAttribute(
+          openingElement.attributes.push(t.JSXAttribute(
             t.jSXIdentifier('$slots'),
             t.JSXExpressionContainer(t.objectExpression(slots))
           ));

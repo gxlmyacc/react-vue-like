@@ -17,12 +17,28 @@ var _beforeAction = _interopRequireDefault(require("./before-action"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function before(source, props, target) {
+function isReactComponent(source) {
+  if (typeof source !== 'string') return true;
+  if (source.includes('.')) return true;
+  return false;
+}
+
+function before(source, props, target, isMixin) {
   if (!source || !source.prototype) return source;
   if (source.__ReactVueLikeHandled) return source;
   const isReactVueLikeClass = source.prototype instanceof _component.default;
-  const isReactVueLikeClasses = isReactVueLikeClass || source.prototype instanceof _mixin.default;
-  const isReactVueLike = isReactVueLikeClasses || source === _directive.default;
+  const isReactVueLikeMixin = isMixin || source.prototype instanceof _mixin.default;
+  const isDirective = source === _directive.default;
+  const isReactVueLikeClasses = isReactVueLikeClass || isReactVueLikeMixin;
+  const isReactVueLike = isReactVueLikeClasses || isDirective;
+
+  if (!isReactVueLike || isDirective && isReactComponent(props._source)) {
+    if (props && props.$slots) {
+      Object.assign(props, props.$slots);
+      delete props.$slots;
+    }
+  }
+
   if (!isReactVueLike) return source;
 
   try {
@@ -39,7 +55,7 @@ function before(source, props, target) {
 
     if (isReactVueLikeClass && target.mixins) {
       target.mixins.forEach(function (m, i) {
-        return before(m, props, target);
+        return before(m, props, target, true);
       });
     } // eslint-disable-next-line
 

@@ -20,7 +20,9 @@ class Directive extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = { isMounted: false };
+    this.state = {
+      isMounted: false,
+    };
   }
 
   componentDidMount() {
@@ -73,7 +75,7 @@ class Directive extends React.Component {
     if (!this.state.isMounted) return null;
     // eslint-disable-next-line
     const { _source, _bindings, children, ...props } = this.props;
-    return React.createElement(_source, Object.assign(props, { ref: this.$ref }), children);
+    if (typeof _source === 'string') return React.createElement(_source, Object.assign(props, { ref: this.$ref }), children);
   }
 
 }

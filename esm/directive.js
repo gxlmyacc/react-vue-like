@@ -118,7 +118,7 @@ class Directive extends _react.default.Component {
           children = _this$props.children,
           props = _objectWithoutProperties(_this$props, ["_source", "_bindings", "children"]);
 
-    return _react.default.createElement(_source, Object.assign(props, {
+    if (typeof _source === 'string') return _react.default.createElement(_source, Object.assign(props, {
       ref: this.$ref
     }), children);
   }

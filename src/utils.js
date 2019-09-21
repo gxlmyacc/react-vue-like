@@ -217,6 +217,6 @@ function generateComponentTrace(vm) {
 }
 
 function getComponentName(vm) {
-  const type = vm && vm._type;
+  const type = vm && vm.$options;
   return type ? (type.displayName || type.name) : '<Anonymous>';
 }

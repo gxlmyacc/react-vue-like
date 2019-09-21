@@ -2,10 +2,10 @@ const postcss = require('postcss');
 const selectorParser = require('postcss-selector-parser');
 
 module.exports = postcss.plugin('react-vue-like-add-id', function (opts) {
-  // opts = opts || {
-  //   scoped: true,
-  //   id: 'v-123dse43'
-  // };
+  opts = opts || {
+    scoped: true,
+    id: 'v-123dse43'
+  };
   opts = opts || {};
   return function (root) {
     if (!opts.scoped || !opts.id) return;
@@ -48,7 +48,7 @@ module.exports = postcss.plugin('react-vue-like-add-id', function (opts) {
             lastNode = node;
           }
         });
-      }).processSync(node.selector);
+      }).processSync(node.selector.replace('> > >', '>>>'));
     });
   };
 });
