@@ -426,7 +426,8 @@ class Test extends ReactVueLike {
  
   render() {
     return (<div>
-      <div aa$sync={this.aa}></div> */}
+      {/* equals <div aa={this.aa} onUpdateAa={v=>this.aa=v}></div> */}
+      <div aa$sync={this.aa}></div>
       <div onClick$stop={this.test}></div>
       <div onClick$prevent={this.test}></div>
       <div onClick$capture={this.test}></div>
