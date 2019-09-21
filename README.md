@@ -329,7 +329,7 @@ import ReactVueLike from 'react-vue-like';
 // scoped css
 import './some-component.scss?scoped';
 
-class Test extends ReactVueLike {
+class SomeComponent extends ReactVueLike {
 
   static computed = {
     user() {
@@ -423,7 +423,6 @@ const store = new ReactVueLike.Store({
     },
     'update-user-info'(state, v) {
       Object.keys(v).forEach(key => state.user[key] = v[key]);
-      ;
     }
   },
   actions: {
@@ -439,20 +438,6 @@ const store = new ReactVueLike.Store({
 });
 
 export default store;
-```
-
-index.js:
-```js
-import React from 'react';
-import ReactDOM from 'react-dom';
-import ReactVueLike from 'react-vue-like';
-import store from './store';
-import App from './app';
-
-ReactVueLike.use(store, { App })
-
-
-ReactDOM.render(<App />, document.getElementById('#root'));
 ```
 
 ## License
