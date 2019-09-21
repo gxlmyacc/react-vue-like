@@ -1,6 +1,6 @@
 {
   "name": "react-vue-like",
-  "version": "0.0.26",
+  "version": "0.0.27",
   "description": "write react component like vue",
   "keywords": [
     "react-vue-like",
@@ -54,6 +54,7 @@
     "@babel/plugin-transform-strict-mode": "^7.2.0",
     "@babel/preset-env": "7.4.5",
     "@babel/preset-react": "^7.0.0",
+    "camelcase": "^5.3.1",
     "find-up": "^4.1.0",
     "hash-sum": "^2.0.0",
     "lodash.clonedeep": "^4.5.0",
@@ -77,7 +78,6 @@
   "devDependencies": {
     "babel-eslint": "^10.0.2",
     "babel-loader": "^8.0.6",
-    "babylon": "^6.18.0",
     "clean-webpack-plugin": "^1.0.1",
     "cross-env": "^5.2.0",
     "eslint": "^6.0.1",

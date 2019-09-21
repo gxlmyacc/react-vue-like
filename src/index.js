@@ -5,6 +5,7 @@ import Directive from './directive';
 import Mixin from './mixin';
 import Store from './store';
 import before from './before';
+import { checkKeyCodes } from './utils';
 
 export * from './utils';
 
@@ -13,6 +14,7 @@ ReactVueLike.Mixin = Mixin;
 ReactVueLike.observable = observable;
 ReactVueLike.flow = flow;
 ReactVueLike.action = action;
+ReactVueLike._k = checkKeyCodes;
 
 export {
   Directive as ReactVueLikeDirective

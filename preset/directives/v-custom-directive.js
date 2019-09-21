@@ -1,9 +1,12 @@
+const camelCase = require('camelcase');
 const {
   DirectiveName,
   iterativeAttrAST,
   var2Expression,
   removeAttrAST,
-  extractNodeCode
+  extractNodeCode,
+  directiveRegx,
+  parseDirective
 } = require('../utils');
 
 const options = require('../options');
@@ -12,31 +15,24 @@ module.exports = function ({ types: t, template }) {
   function JSXElementVisitor(path) {
     const prefix = options.prefix;
     const attrNameKeys = options.attrNameKeys;
-    const attrName = new RegExp(`^${prefix}([a-z0-9-]+)(?:_([a-z0-9-]+))?((?:\\$[a-z0-9-]+)*)$`, 'i');
+    const attrName = directiveRegx('[a-z0-9\\-]+', prefix);
 
     let bindings = [];
 
     iterativeAttrAST(path.node, attr => {
       if (path.node.openingElement.name.name === DirectiveName) return;
-      const matched = attr.name.name.match(attrName);
-      if (!matched) return;
-      let [, name, arg, modifiers] = matched;
+      let parsed = parseDirective(attr.name.name, attrName);
+      if (!parsed || !parsed.name) return;
 
-      if (attrNameKeys.indexOf(`${prefix}${name}`) > -1) return;
+      if (attrNameKeys.indexOf(`${prefix}${parsed.name}`) > -1) return;
 
       this.hasDirectvie = true;
 
-      const binding = {
+      const binding = Object.assign(parsed, {
+        name: camelCase(parsed.name),
         attr,
-        name,
-        arg: arg || '',
-        modifiers: {},
         expression: extractNodeCode(path, attr.value.expression),
-      };
-
-      if (modifiers) {
-        modifiers = modifiers.split('$').filter(Boolean).forEach(key => binding.modifiers[key] = true);
-      }
+      });
       bindings.push(binding);
     });
 

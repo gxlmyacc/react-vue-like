@@ -476,30 +476,41 @@ function createDisplayProp(condition, showValue) {
   );
 }
 
-function appendAttrEvent(node, eventName, funcExpression) {
-  const handlerNode = node.parent.attributes.filter(attr => (attr && attr.name && attr.name.name) === eventName)[0];
-  const argument = t.identifier('e');
+function mergeAttrEvent(handlerNode, funcExpression, argumentName = 'e') {
+  const callee = handlerNode.value.expression;
+  const argument = t.identifier(argumentName);
+  funcExpression.body.body.push(t.returnStatement(
+    t.callExpression(
+      callee,
+      [argument]
+    )
+  ));
+  handlerNode.value = t.JSXExpressionContainer(funcExpression);
+  // handlerNode.value = t.JSXExpressionContainer(
+  //   t.arrowFunctionExpression(
+  //     [argument],
+  //     t.blockStatement([
+  //       t.expressionStatement(
+  //         t.callExpression(
+  //           funcExpression,
+  //           [argument]
+  //         )
+  //       ),
+  //       t.expressionStatement(
+  //         t.callExpression(
+  //           callee,
+  //           [argument]
+  //         )
+  //       )
+  //     ])
+  //   )
+  // );
+}
+
+function appendAttrEvent(node, eventName, funcExpression, argumentName = 'e') {
+  const handlerNode = node.parent.attributes.find(attr => (attr.name && attr.name.name) === eventName);
   if (handlerNode) {
-    const callee = handlerNode.value.expression;
-    handlerNode.value = t.JSXExpressionContainer(
-      t.arrowFunctionExpression(
-        [argument],
-        t.blockStatement([
-          t.expressionStatement(
-            t.callExpression(
-              funcExpression,
-              [argument]
-            )
-          ),
-          t.expressionStatement(
-            t.callExpression(
-              callee,
-              [argument]
-            )
-          )
-        ])
-      )
-    );
+    mergeAttrEvent(handlerNode, funcExpression, argumentName);
   } else {
     node.insertAfter(t.JSXAttribute(
       t.jSXIdentifier(eventName),
@@ -541,11 +552,6 @@ function addDefaultImport(path, varName, libraryName) {
       t.stringLiteral(libraryName),
     )
   );
-}
-
-
-function camelize(str) {
-  return str.replace(/-(\w)/g, function (_, c) { return c ? c.toUpperCase() : ''; });
 }
 
 function fileExists(path) {
@@ -673,11 +679,39 @@ function isReactVueLike(classDeclarationPath) {
     && (['ReactVueLike', 'ReactVueLike.Mixin'].includes(expr2var(classDeclarationPath.node.superClass)));
 }
 
+function directiveRegx(regx, prefix = '') {
+  return new RegExp(`^${prefix}(${regx})(?:_([a-zA-Z0-9-]+))?((?:\\$[a-zA-Z0-9-]+)*)$`);
+}
+
+function parseModifiers(modifiers) {
+  let ret = {};
+  modifiers && modifiers.split('$').filter(Boolean).forEach(key => ret[key] = true);
+  return ret;
+}
+
+function parseDirective(directiveName, regx, prefix = '') {
+  if (!directiveName || !regx) return;
+  if (!(regx instanceof RegExp)) regx = directiveRegx(regx, prefix);
+  const matched = directiveName.match(regx);
+  if (!matched) return;
+  let ret = { };
+  let [, name, arg, modifiers] = matched;
+  ret.name = name;
+  ret.arg = arg || '';
+  ret.modifiers = parseModifiers(modifiers);
+  return ret;
+}
+
+function bindModifiers(value, modifiers) {
+  if (modifiers.number) value = `Number(${value})`;
+  else if (modifiers.trim) value = `((${value}) || '').trim()`;
+  return value;
+}
+
 module.exports = {
   DirectiveName,
   getConstCache,
   fileExists,
-  camelize,
   isRequired,
   isReactComponent,
   addImport,
@@ -701,6 +735,7 @@ module.exports = {
   removeAttributeVisitor,
   transformElseIfBindings,
   throwAttributeError,
+  mergeAttrEvent,
   appendAttrEvent,
   parseCondition,
   createDisplayProp,
@@ -710,5 +745,9 @@ module.exports = {
   childrenToArrayExpr,
   findClassStaticPath,
   isReactVueLike,
+  directiveRegx,
+  parseDirective,
+  parseModifiers,
+  bindModifiers,
   log
 };

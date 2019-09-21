@@ -43,6 +43,30 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "babel-preset-demo-model",
+      "program": "${workspaceFolder}/node_modules/@babel/cli/bin/babel.js",
+      "args": [
+        "preset/demo/src/model.js",
+        "-d",
+        "preset/demo/out"
+      ],
+      "cwd":"${workspaceFolder}"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "babel-preset-demo-modifier",
+      "program": "${workspaceFolder}/node_modules/@babel/cli/bin/babel.js",
+      "args": [
+        "preset/demo/src/modifier.js",
+        "-d",
+        "preset/demo/out"
+      ],
+      "cwd":"${workspaceFolder}"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "babel-preset-demo-scope",
       "program": "${workspaceFolder}/node_modules/@babel/cli/bin/babel.js",
       "args": [

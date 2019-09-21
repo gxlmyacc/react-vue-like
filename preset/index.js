@@ -4,6 +4,7 @@ const { fileExists } = require('./utils');
 const options = require('./options');
 const transformClass = require('./transforms/transform-class');
 const transformRequire = require('./transforms/transform-require');
+const transformModifier = require('./transforms/transform-modifier');
 const transformComponent = require('./transforms/transform-component');
 const transformAction = require('./transforms/transform-action');
 const transformFilter = require('./transforms/transform-filter');
@@ -49,6 +50,7 @@ module.exports = declare((api, opts = {}) => {
 
   if (options.transform.class) plugins.push(transformClass);
   if (options.transform.require) plugins.push(transformRequire);
+  if (options.transform.modifier) plugins.push(transformModifier);
   if (options.transform.component) plugins.push(transformComponent);
   if (options.transform.action) plugins.push(transformAction);
   if (options.transform.filter) plugins.push(transformFilter);

@@ -1,6 +1,35 @@
+
+const genGuard = function (condition) { return ('if(' + condition + ')return null;'); };
+
 module.exports = {
   prefix: 'v-',
   compRegx: /^([A-Z])|([a-z][a-z0-9]+-[a-z0-9]+)/,
+  keyCodes: {
+    esc: 27,
+    tab: 9,
+    enter: 13,
+    space: 32,
+    up: 38,
+    left: 37,
+    right: 39,
+    down: 40,
+    delete: [8, 46]
+  },
+  modifierCode: {
+    stop: 'e.stopPropagation();',
+    prevent: 'e.preventDefault();',
+    persist: 'e.persist();',
+    native: 'e=e.nativeEvent;',
+    self: genGuard('e.target !== e.currentTarget'),
+    ctrl: genGuard('!e.ctrlKey'),
+    shift: genGuard('!e.shiftKey'),
+    alt: genGuard('!e.altKey'),
+    meta: genGuard('!e.metaKey'),
+    left: genGuard("'button' in e && e.button !== 0"),
+    middle: genGuard("'button' in e && e.button !== 1"),
+    right: genGuard("'button' in e && e.button !== 2")
+  },
+  genGuard,
   attrName: {
     for: 'for',
     show: 'show',
@@ -17,10 +46,11 @@ module.exports = {
     scope: true
   },
   transform: {
-    class: false,
+    class: true,
     require: {
       img: 'src'
     },
+    modifier: true,
     component: true,
     action: true,
     filter: true,

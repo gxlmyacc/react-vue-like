@@ -220,3 +220,18 @@ function getComponentName(vm) {
   const type = vm && vm.$options;
   return type ? (type.displayName || type.name) : '<Anonymous>';
 }
+
+export function checkKeyCodes(
+  eventKeyCode,
+  key,
+  scope,
+  eventKey
+) {
+  let keyCodes = config.keyCodes[key];
+  if (!keyCodes) return true;
+  if (Array.isArray(keyCodes)) {
+    return keyCodes.indexOf(eventKeyCode) === -1;
+  }
+  if (isFunction(keyCodes)) return keyCodes(eventKeyCode, key, scope, eventKey);
+  return keyCodes !== eventKeyCode;
+}

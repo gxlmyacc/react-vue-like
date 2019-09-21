@@ -151,8 +151,14 @@ module.exports = function ({ types: t, template }) {
 
   return {
     visitor: {
-      ClassDeclaration: ClassVisitor,
-      ClassExpression: ClassVisitor
+      Program: {
+        exit(path) {
+          path.traverse({
+            ClassDeclaration: ClassVisitor,
+            ClassExpression: ClassVisitor
+          });
+        }
+      }
     }
   };
 };
