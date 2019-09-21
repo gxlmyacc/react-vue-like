@@ -7,7 +7,7 @@ write react component like vue, implementation based on mbox@4.
 
 ## Support Vue feature
 
-- `props` will transfrom react's `propTypes` and `defaultProps`
+- `props` will transfrom to react's `propTypes` and `defaultProps`
 - `components` if tag name has `-` char will be treat as a component that find from self's `components` section or root's `components` section
 - `filter`
 - `directive`
@@ -20,8 +20,8 @@ write react component like vue, implementation based on mbox@4.
 - `scoped style` if import's style file name has `?scoped`, then it will treat as `scoped style`
 - `slot`
 - `v-if/v-else-if/v-else`,`v-show`,`v-model`, `v-html`
-- `attribute transform` img src attribute string value transform to require expression
-- `ref` string ref transform `ref function` that set `ref` to `$refs`
+- `attribute transform` img src attribute string value transform to `require` expression
+- `ref` `string ref` transform to `ref function` and set `ref` to `$refs`
 - `Vue like props` like `$el`,`$options`,`$parent`,`$root`,`$refs`,`$slots`,`$attrs`
 - `Vue like methods` like `$nextTick`,`$set`,`$delete`,`$forceUpdate`,`$watch`,`$emit`,`$on`,`$off`,`$once`,`renderError`, `ReactVueLike.use`, `ReactVueLike.config`
 - `attrs inheirt` default ReactVueLike will inherit `className`, `style`, `id`, `disabled` attributes
@@ -173,7 +173,6 @@ entry file:
 import React from 'react';
 import ReactDOM from 'react-dom';
 import ReactVueLike from 'react-vue-like';
-import ReactViewRouter from 'react-view-router';
 import store from './store';
 import router from './router';
 import filters from './filters';
@@ -186,6 +185,17 @@ ReactVueLike.use(router, { App });
 ReactVueLike.use(filters, { App });
 ReactVueLike.use(directives, { App });
 ReactVueLike.use(components, { App });
+
+router.beforeEach((to, from, next) => {
+  if (to) {
+    console.log(
+      '%croute changed',
+      'background-color:#ccc;color:green;font-weight:bold;font-size:14px;',
+      to.url, to.query, to.meta, to.redirectedFrom
+    );
+    return next();
+  }
+});
 
 ReactDOM.render(<App />, document.getElementById('#root'));
 ```
@@ -403,6 +413,11 @@ class SomeComponent extends ReactVueLike {
     doSomething() {
       console.log('doSomething');
     }
+  }
+
+  // when render throw error, then will call renderError
+  renderError(error) {
+    return `render has some error:${error.message}`;
   }
 
   render() {

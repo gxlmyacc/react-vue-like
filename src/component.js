@@ -678,7 +678,7 @@ class ReactVueLike extends React.Component {
       node = this._renderFn && this._renderFn(...args);
     } catch (ex) {
       handleError(ex, this, 'render');
-      node = this.renderError();
+      node = this.renderError(ex);
     }
 
     // let el = this.$el;
