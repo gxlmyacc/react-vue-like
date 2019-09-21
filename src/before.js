@@ -3,6 +3,7 @@ import Directive from './directive';
 import Mixin from './mixin';
 import beforeProps from './before-props';
 import beforeAction from './before-action';
+import beforeClass from './before-class';
 
 function isReactComponent(source) {
   if (typeof source !== 'string') return true;
@@ -11,6 +12,8 @@ function isReactComponent(source) {
 }
 
 export default function before(source, props, target, isMixin) {
+  if (!isMixin) beforeClass(props);
+
   if (!source || !source.prototype) return source;
   if (source.__ReactVueLikeHandled) return source;
 

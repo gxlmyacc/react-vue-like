@@ -21,7 +21,7 @@ const config = {
   // silent: false,
   errorHandler: null,
   warnHandler: null,
-  useAction: true,
+  enforceActions: false,
   keyCodes: {
     // esc: 27,
     // tab: 9,

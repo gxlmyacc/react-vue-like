@@ -52,7 +52,7 @@ module.exports = function ({ types: t, template }) {
                   if (t.isStringLiteral(classAttr.value)) {
                     classAttr.value = t.stringLiteral(`${this.scopeId} ${classAttr.value.value}`);
                   } else if (t.isJSXExpressionContainer(classAttr.value)) {
-                    classAttr.value.expression = template("$SCOPEID$ + ' ' + ($SOURCE$)")({
+                    classAttr.value.expression = template('[$SCOPEID$,$SOURCE$]')({
                       $SCOPEID$: t.stringLiteral(this.scopeId),
                       $SOURCE$: classAttr.value.expression
                     }).expression;

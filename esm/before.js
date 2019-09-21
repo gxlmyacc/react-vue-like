@@ -15,6 +15,8 @@ var _beforeProps = _interopRequireDefault(require("./before-props"));
 
 var _beforeAction = _interopRequireDefault(require("./before-action"));
 
+var _beforeClass = _interopRequireDefault(require("./before-class"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function isReactComponent(source) {
@@ -24,6 +26,7 @@ function isReactComponent(source) {
 }
 
 function before(source, props, target, isMixin) {
+  if (!isMixin) (0, _beforeClass.default)(props);
   if (!source || !source.prototype) return source;
   if (source.__ReactVueLikeHandled) return source;
   const isReactVueLikeClass = source.prototype instanceof _component.default;

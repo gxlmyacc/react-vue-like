@@ -190,15 +190,11 @@ function isAsync(fn) {
 
 function newConfigure() {
   let options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-  _config.default.useAction = options.enforceActions !== undefined && options.enforceActions !== 'never';
+  _config.default.enforceActions = options.enforceActions !== undefined && options.enforceActions !== 'never';
   return (0, _mobx.configure)(Object.assign({
     isolateGlobalState: true
   }, options));
 }
-
-if (_config.default.useAction) newConfigure({
-  enforceActions: 'observed'
-});
 
 function newIsActon(fn) {
   return (0, _mobx.isAction)(fn) || fn.isMobxFlow;

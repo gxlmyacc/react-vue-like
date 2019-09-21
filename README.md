@@ -80,7 +80,6 @@ see [Vue components](https://vuejs.org/v2/api/index.html#components)
    }
  }
  ```
-  render will output ``
 
 ### `directives` 
 
@@ -505,8 +504,29 @@ like `$nextTick`,`$set`,`$delete`,`$forceUpdate`,`$watch`,`$emit`,`$on`,`$off`,`
 ### `attrs inheirt` 
 default ReactVueLike component will inherit `className`, `style`, `id`, `disabled` attributes that be defined in it`s parent component
 
-### `class attribute` 
-`class attribute` in jsx will transfrom to `className`
+### `class attribute support and enhance` 
+`class attribute` in jsx will transfrom to `className`, and now `class/className` support `String/Array/Object`. see [Vue class](https://vuejs.org/v2/guide/class-and-style.html)
+
+```js
+class Test extends ReactVueLike {
+  
+  static data() {
+    return {
+      myClass: {
+        cc: true,
+        dd: false
+      }
+    }
+  }
+ 
+  render() {
+    return (<div class="root">
+      <span className={['aa', 'bb', this.myClass, ['ee', 'ff'] ]}></span>
+    </div>);
+  }
+
+}
+```
 
 ### `prop and event modifiers`
 see:

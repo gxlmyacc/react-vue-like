@@ -196,7 +196,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
     let _watch = {};
     let _directives = {};
     let _filters = {};
-    let _provides = [];
+    let _provideFns = [];
     let _injects = [];
     ctxs.forEach(function (ctx) {
       if (ctx.filters) Object.assign(_filters, ctx.filters);
@@ -205,7 +205,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
       if (ctx.computed) Object.assign(_computed, ctx.computed);
       if (ctx.methods) Object.assign(_methods, ctx.methods);
       if (ctx.watch) Object.assign(_watch, ctx.watch);
-      if (ctx.provide) _provides.push(ctx.provide);
+      if (ctx.provide) _provideFns.push(ctx.provide);
       if (ctx.inject) ctx.inject.forEach(function (key) {
         return !_injects.includes(key) && _injects.push(key);
       });
@@ -219,8 +219,18 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
     this._methods = _methods;
     this._computed = _computed;
     this._watch = _watch;
-    this._provides = _provides;
+    this._provideFns = _provideFns;
     this._injects = _injects;
+    (0, _utils.defComputed)(this, '$provides', function () {
+      if (_this2._provides) return _this2._provides;
+      let ret = {};
+
+      _this2._provideFns.forEach(function (p) {
+        return Object.assign(ret, (0, _utils.isFunction)(p) ? p.call(_this2) : p);
+      });
+
+      return _this2._provides = ret;
+    });
     this._inheritMergeStrategies = Object.assign({}, _config.default.inheritMergeStrategies, this.$options.inheritMergeStrategies);
     (0, _mobx2.action)(function () {
       Object.keys(_this2._inheritMergeStrategies).forEach(function (key) {
@@ -292,14 +302,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
     });
 
     if (attrs.className && props.className && attrs.className !== props.className) {
-      let ac = attrs.className.split(' ');
-      let pc = props.className.split(' ');
-      pc.forEach(function (c) {
-        if (!c) return;
-        if (~ac.indexOf(c)) return;
-        ac.push(c);
-      });
-      attrs.className = ac.join(' ');
+      attrs.className = [attrs.className, props.className];
       delete props.className;
     }
 
@@ -461,37 +464,28 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
     if (!this.$parent) return;
 
     try {
-      const injects = this._injects;
-
-      const getProvides = function getProvides(vm) {
-        const provides = vm && vm._provides;
-        if (!provides || !provides.length) return;
-        let ret = {};
-        provides.forEach(function (p) {
-          return Object.assign(ret, (0, _utils.isFunction)(p) ? p.call(vm) : p);
-        });
-        return ret;
-      };
+      const injects = this._injects.slice();
 
       if (injects.length) {
         (0, _utils.iterativeParent)(this, function (vm) {
-          let _provide = getProvides(vm);
+          return Object.keys(vm.$provides).some(function (key) {
+            let idx = injects.indexOf(key);
 
-          if (_provide) {
-            for (let i = injects.length - 1; i; i--) {
-              let key = injects[i];
-              let v = _provide[key];
-
-              if (v !== undefined) {
-                _this9.$set(_this9, key, v);
-
-                injects.splice(i, 1);
-              }
+            if (~idx) {
+              let v = vm.$provides[key];
+              if (v !== undefined) _this9.$set(_this9, key, v);
+              injects.splice(idx, 1);
             }
-          }
 
-          return !injects.length;
+            return !injects.length;
+          });
         }, ReactVueLike);
+
+        if (process.env.NODE_ENV !== 'production') {
+          injects.forEach(function (key) {
+            return (0, _utils.warn)(`inject '${key}' not found it's provide!`, _this9);
+          });
+        }
       }
     } catch (e) {
       (0, _utils.handleError)(e, this, 'resolveInject');
@@ -598,9 +592,12 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
   static config() {
     let options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
     Object.assign(_config.default, options);
-    if (_config.default.useAction !== undefined) (0, _mobx.configure)({
-      enforceActions: _config.default.action ? 'observed' : 'never'
-    });
+
+    if (_config.default.enforceActions !== undefined) {
+      (0, _mobx.configure)({
+        enforceActions: _config.default.enforceActions ? 'observed' : 'never'
+      });
+    }
   }
 
   static mixin(m) {

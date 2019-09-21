@@ -97,7 +97,7 @@ class Directive extends _react.default.Component {
               if (!d) throw new Error(`directive '${binding.name}' not be found!`);
               let event = d[eventName];
               if (!event) return;
-              if (_config.default.useAction) event = (0, _mobx.action)(event);
+              if (_config.default.enforceActions) event = (0, _mobx.action)(event);
               event.call(_this2.$parent, el, binding, _this2._reactInternalFiber);
             });
 

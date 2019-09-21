@@ -159,7 +159,7 @@ function defComputed(obj, key, get, set) {
     configurable: true,
     get,
     set: set || function (v) {
-      throw new Error(`computed props: ${key} is readonly!`);
+      throw new Error(`props: ${key} is readonly!`);
     }
   });
 }

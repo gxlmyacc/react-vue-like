@@ -254,14 +254,7 @@ class ReactVueLike extends React.Component {
     });
 
     if (attrs.className && props.className && attrs.className !== props.className) {
-      let ac = attrs.className.split(' ');
-      let pc = props.className.split(' ');
-      pc.forEach(c => {
-        if (!c) return;
-        if (~ac.indexOf(c)) return;
-        ac.push(c);
-      });
-      attrs.className = ac.join(' ');
+      attrs.className = [attrs.className, props.className];
       delete props.className;
     }
     if (isObject(attrs.style) && isObject(props.style) && attrs.style !== props.style) {

@@ -31,7 +31,7 @@ function wrapModuleState(module) {
       module._state[key] = v;
     };
 
-    if (_config.default.useAction) set = (0, _mobx.action)(set);
+    if (_config.default.enforceActions) set = (0, _mobx.action)(set);
     (0, _utils.defComputed)(ret, key, function () {
       return module._state[key];
     }, set);
