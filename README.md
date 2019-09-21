@@ -22,6 +22,19 @@ write react component like vue, implementation based on mbox@4.
    }
  }
 ```
+equals:
+ ```js
+ import PropTypes from 'prop-types';
+ class Test extends ReactVueLike {
+   static propTypes = {
+     aa: PropTypes.string.isRequired,
+     bb: PropTypes.bool
+   }
+   static defaultProps = {
+     aa: 'aa'
+   }
+ }
+```
 ### `components` 
 if tag name has `-` char will be treat as a component that find from self's `components` section or root's `components` section.
  example:
