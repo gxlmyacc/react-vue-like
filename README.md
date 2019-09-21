@@ -355,7 +355,7 @@ class Test extends ReactVueLike {
       vif: true,
       vshow: true,
       text1: '',
-      text2: '',
+      text2: 0,
       text3: ''
     }
   }
@@ -371,7 +371,7 @@ class Test extends ReactVueLike {
 
       <input v-model$trim={this.text1}></input>
       <input type="number" v-model$number={this.text2}></input>
-      <input type="number" v-model$lazy={this.text3}></input>
+      <input v-model$lazy={this.text3}></input>
 
       <span v-html="<a href='#'>dd</a>"></span>
     </div>);

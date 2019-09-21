@@ -18,11 +18,11 @@ module.exports = function ({ types: t, template }) {
 
               let modifiers = parsed.modifiers;
               let value = attr.value.expression;
-              let newValue = bindModifiers('e && e.target ? e.target.value : e', modifiers);
+              let newValue = bindModifiers('_e && _e.target ? _e.target.value : _e', modifiers);
               let event = modifiers.lazy ? 'onBlur' : 'onChange';
 
               appendAttrEvent(path, event, t.arrowFunctionExpression(
-                [t.identifier('e')],
+                [t.identifier('_e')],
                 t.blockStatement([
                   template(`$1=${newValue}`)({ $1: value })
                 ])

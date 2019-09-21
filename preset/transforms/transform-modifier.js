@@ -35,17 +35,17 @@ module.exports = function ({ types: t, template }) {
     function genFilterCode(key) {
       // eslint-disable-next-line
       let keyVal = parseInt(key, 10);
-      if (keyVal) return ('e.keyCode!==' + keyVal);
+      if (keyVal) return ('_e.keyCode!==' + keyVal);
       let code = keyCodes[key];
-      if (code) return ('e.keyCode!==' + code);
+      if (code) return ('_e.keyCode!==' + code);
       this.needReactVueLike = true;
       return (
-        `ReactVueLike._k.call(this,e.keyCode,${JSON.stringify(key)},{},e.key)`
+        `ReactVueLike._k.call(this,_e.keyCode,${JSON.stringify(key)},{},_e.key)`
       );
     }
 
     function genKeyFilter(keys) {
-      return (`if(!('button' in e)&&${(keys.map(genFilterCode.bind(this)).join('&&'))})return null;`);
+      return (`if(!('button' in _e)&&${(keys.map(genFilterCode.bind(this)).join('&&'))})return null;`);
     }
 
     // event
@@ -65,7 +65,7 @@ module.exports = function ({ types: t, template }) {
         genModifierCode += genGuard(
           ['ctrl', 'shift', 'alt', 'meta']
             .filter(function (keyModifier) { return !modifiers[keyModifier]; })
-            .map(function (keyModifier) { return ('e.' + keyModifier + 'Key'); })
+            .map(function (keyModifier) { return ('_e.' + keyModifier + 'Key'); })
             .join('||')
         );
       } else keys.push(key);
@@ -80,7 +80,7 @@ module.exports = function ({ types: t, template }) {
     if (!code) return;
     const body = template(code)({});
     mergeAttrEvent(attr, t.arrowFunctionExpression(
-      [t.identifier('e')],
+      [t.identifier('_e')],
       t.blockStatement(Array.isArray(body) ? body : [body])
     ));
   }

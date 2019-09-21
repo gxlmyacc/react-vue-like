@@ -25,58 +25,65 @@ class App extends _reactVueLike.default {
         _this.aa = v;
       })
     }), " */}", _react.default.createElement("div", {
-      onClick: function onClick(e) {
-        e.stopPropagation();
-        return _this.test(e);
+      onClick: function onClick(_e) {
+        _e.stopPropagation();
+
+        return _this.test(_e);
       }
     }), _react.default.createElement("div", {
-      onClick: function onClick(e) {
-        e.preventDefault();
-        return _this.test(e);
+      onClick: function onClick(_e) {
+        _e.preventDefault();
+
+        return _this.test(_e);
       }
     }), _react.default.createElement("div", {
       onClickCapture: this.test
     }), _react.default.createElement("div", {
-      onClick: function onClick(e) {
-        if (e.target !== e.currentTarget) return null;
-        return _this.test(e);
+      onClick: function onClick(_e) {
+        if (_e.target !== _e.currentTarget) return null;
+        return _this.test(_e);
       }
     }), _react.default.createElement("div", {
-      onClick: function onClick(e) {
-        if (!('button' in e) && _reactVueLike.default._k.call(_this, e.keyCode, "native", {}, e.key)) return null;
-        return _this.test(e);
+      onClick: function onClick(_e) {
+        _e = _e.nativeEvent;
+        return _this.test(_e);
       }
     }), _react.default.createElement("div", {
-      onClick: function onClick(e) {
-        if (!('button' in e) && _reactVueLike.default._k.call(_this, e.keyCode, "once", {}, e.key)) return null;
-        return _this.test(e);
+      onClick: function onClick(_e) {
+        if (!('button' in _e) && _reactVueLike.default._k.call(_this, _e.keyCode, "once", {}, _e.key)) return null;
+        return _this.test(_e);
       }
     }), _react.default.createElement("div", {
-      onClick: function onClick(e) {
-        if (!('button' in e) && e.keyCode !== 37) return null;
-        if ('button' in e && e.button !== 0) return null;
-        return _this.test(e);
+      onClick: function onClick(_e) {
+        if (!('button' in _e) && _e.keyCode !== 37) return null;
+        if ('button' in _e && _e.button !== 0) return null;
+        return _this.test(_e);
       }
     }), _react.default.createElement("div", {
-      onClick: function onClick(e) {
-        if (!('button' in e) && e.keyCode !== 39) return null;
-        if ('button' in e && e.button !== 2) return null;
-        return _this.test(e);
+      onClick: function onClick(_e) {
+        if (!('button' in _e) && _e.keyCode !== 39) return null;
+        if ('button' in _e && _e.button !== 2) return null;
+        return _this.test(_e);
       }
     }), _react.default.createElement("div", {
-      onClick: function onClick(e) {
-        if ('button' in e && e.button !== 1) return null;
-        return _this.test(e);
+      onClick: function onClick(_e) {
+        if ('button' in _e && _e.button !== 1) return null;
+        return _this.test(_e);
       }
     }), _react.default.createElement("div", {
-      onClick: function onClick(e) {
-        if (!('button' in e) && e.keyCode !== 13) return null;
-        return _this.test(e);
+      onClick: function onClick(_e) {
+        if (!('button' in _e) && _reactVueLike.default._k.call(_this, _e.keyCode, "passive", {}, _e.key)) return null;
+        return _this.test(_e);
       }
     }), _react.default.createElement("div", {
-      onClick: function onClick(e) {
-        if (!('button' in e) && e.keyCode !== 13) return null;
-        return _this.test(e);
+      onClick: function onClick(_e) {
+        if (!('button' in _e) && _e.keyCode !== 13) return null;
+        return _this.test(_e);
+      }
+    }), _react.default.createElement("div", {
+      onClick: function onClick(_e) {
+        if (!('button' in _e) && _e.keyCode !== 13) return null;
+        return _this.test(_e);
       }
     }));
   }

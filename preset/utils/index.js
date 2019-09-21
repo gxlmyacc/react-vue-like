@@ -476,7 +476,7 @@ function createDisplayProp(condition, showValue) {
   );
 }
 
-function mergeAttrEvent(handlerNode, funcExpression, argumentName = 'e') {
+function mergeAttrEvent(handlerNode, funcExpression, argumentName = '_e') {
   const callee = handlerNode.value.expression;
   const argument = t.identifier(argumentName);
   funcExpression.body.body.push(t.returnStatement(
@@ -507,7 +507,7 @@ function mergeAttrEvent(handlerNode, funcExpression, argumentName = 'e') {
   // );
 }
 
-function appendAttrEvent(node, eventName, funcExpression, argumentName = 'e') {
+function appendAttrEvent(node, eventName, funcExpression, argumentName = '_e') {
   const handlerNode = node.parent.attributes.find(attr => (attr.name && attr.name.name) === eventName);
   if (handlerNode) {
     mergeAttrEvent(handlerNode, funcExpression, argumentName);

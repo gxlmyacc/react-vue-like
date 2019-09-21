@@ -16,18 +16,18 @@ module.exports = {
     delete: [8, 46]
   },
   modifierCode: {
-    stop: 'e.stopPropagation();',
-    prevent: 'e.preventDefault();',
-    persist: 'e.persist();',
-    native: 'e=e.nativeEvent;',
-    self: genGuard('e.target !== e.currentTarget'),
-    ctrl: genGuard('!e.ctrlKey'),
-    shift: genGuard('!e.shiftKey'),
-    alt: genGuard('!e.altKey'),
-    meta: genGuard('!e.metaKey'),
-    left: genGuard("'button' in e && e.button !== 0"),
-    middle: genGuard("'button' in e && e.button !== 1"),
-    right: genGuard("'button' in e && e.button !== 2")
+    stop: '_e.stopPropagation();',
+    prevent: '_e.preventDefault();',
+    persist: '_e.persist();',
+    native: '_e=_e.nativeEvent;',
+    self: genGuard('_e.target !== _e.currentTarget'),
+    ctrl: genGuard('!_e.ctrlKey'),
+    shift: genGuard('!_e.shiftKey'),
+    alt: genGuard('!_e.altKey'),
+    meta: genGuard('!_e.metaKey'),
+    left: genGuard("'button' in _e && _e.button !== 0"),
+    middle: genGuard("'button' in _e && _e.button !== 1"),
+    right: genGuard("'button' in _e && _e.button !== 2")
   },
   genGuard,
   attrName: {
