@@ -24,6 +24,7 @@ write react component like vue, implementation based on mbox@4.
 - `ref` string ref transform `ref function` that set `ref` to `$refs`
 - `Vue like props` like `$el`,`$options`,`$parent`,`$root`,`$refs`,`$slots`,`$attrs`
 - `Vue like methods` like `$nextTick`,`$set`,`$delete`,`$forceUpdate`,`$watch`,`$emit`,`$on`,`$off`,`$once`,`renderError`, `ReactVueLike.use`, `ReactVueLike.config`
+- `attrs inheirt` default ReactVueLike will inherit `className`, `style`, `id`, `disabled` attributes
 - `Vuex.Store` see `ReactVueLike.Store`
 
 ## Other feature
