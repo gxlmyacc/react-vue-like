@@ -416,6 +416,35 @@ default ReactVueLike component will inherit `className`, `style`, `id`, `disable
 ### `class attribute` 
 `class attribute` in jsx will transfrom to `className`
 
+### `prop and event modifiers`
+see:
+  [v-model](https://vuejs.org/v2/api/index.html#v-model)
+  [v-bind](https://vuejs.org/v2/api/index.html#v-bind)
+  [v-no](https://vuejs.org/v2/api/index.html#v-on)
+```js
+class Test extends ReactVueLike {
+ 
+  render() {
+    return (<div>
+      <div aa$sync={this.aa}></div> */}
+      <div onClick$stop={this.test}></div>
+      <div onClick$prevent={this.test}></div>
+      <div onClick$capture={this.test}></div>
+      <div onClick$self={this.test}></div>
+      <div onClick$native={this.test}></div>
+      <div onClick$once={this.test}></div>
+      <div onClick$left={this.test}></div>
+      <div onClick$right={this.test}></div>
+      <div onClick$middle={this.test}></div>
+      <div onClick$passive={this.test}></div>
+      <div onClick$enter={this.test}></div>
+      <div onClick$13={this.test}></div>
+    </div>);
+  }
+
+}
+```
+
 ### `Vuex.Store` 
 see `ReactVueLike.Store`
 
