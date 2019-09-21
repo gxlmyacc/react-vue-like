@@ -7,29 +7,422 @@ write react component like vue, implementation based on mbox@4.
 
 ## Support Vue feature
 
-- `props` will transfrom to react's `propTypes` and `defaultProps`
-- `components` if tag name has `-` char will be treat as a component that find from self's `components` section or root's `components` section
-- `filter`
-- `directive`
-- `mixin`
-- `data`
-- `methods`
-- `computed`
-- `watch`
-- `lifecycle`
-- `scoped style` if import's style file name has `?scoped`, then it will treat as `scoped style`
-- `slot`
-- `v-if/v-else-if/v-else`,`v-show`,`v-model`, `v-html`
-- `attribute transform` img src attribute string value transform to `require` expression
-- `ref` `string ref` transform to `ref function` and set `ref` to `$refs`
-- `Vue like props` like `$el`,`$options`,`$parent`,`$root`,`$refs`,`$slots`,`$attrs`
-- `Vue like methods` like `$nextTick`,`$set`,`$delete`,`$forceUpdate`,`$watch`,`$emit`,`$on`,`$off`,`$once`,`renderError`, `ReactVueLike.use`, `ReactVueLike.config`
-- `attrs inheirt` default ReactVueLike will inherit `className`, `style`, `id`, `disabled` attributes
-- `Vuex.Store` see `ReactVueLike.Store`
+### `props` 
+ will transfrom to react's `propTypes` and `defaultProps`
+ example:
+ ```js
+ class Test extends ReactVueLike {
+   static props = {
+     aa: {
+       type: String,
+       default: 'aa',
+       required: true,
+     },
+     bb: Boolean,
+   }
+ }
+```
+### `components` 
+if tag name has `-` char will be treat as a component that find from self's `components` section or root's `components` section.
+ example:
+ ```js
+ import AComponent from './AComponent';
+
+ class Test extends ReactVueLike {
+   static components = {
+     AComponent
+   }
+
+   render() {
+     return (<a-component>dd</a-component>)
+   }
+ }
+```
+
+### `filter`
+ example:
+ ```js
+ class Test extends ReactVueLike {
+   static filters = {
+     prefix(val, suffix = '') {
+       return `test:${val}${suffix}`;
+     }
+   }
+
+   render() {
+     return (<div>
+       {// output: test:hello }
+       { 'hello' | 'test' }  
+       {// output: test:helloa suffix }
+       { 'hello' | 'test'('a suffix') }
+       </div>);
+   }
+ }
+ ```
+  render will output ``
+
+### `directive` 
+
+example:
+  ```js
+  class Test extends ReactVueLike {
+   static directives = {
+     test: {
+       bind(el, binding, vnode) {
+
+       },
+       insert(el, binding, vnode) {
+
+       },
+       update(el, binding, vnode) {
+
+       },
+       unbind(el, binding, vnode) {
+
+       },
+     }
+   }
+
+   render() {
+     return (<div v-test_arg$aa$bb={1+1}></div>);
+   }
+ }
+  ```
+  `v-test_arg$aa$bb={1+1}`, the `binding` will be:
+  ```js
+   { 
+     name: 'test', 
+     arg: '',
+     value: 2,
+     modifiers: {
+       aa: true,
+       bb: true
+     },
+     expression: '1+1'
+  }
+  ```
+
+### `mixin`
+ example:
+```js
+class Test extends ReactVueLike {
+  static mixins = [
+    {
+      data() {
+        return {
+          text: 'aa',
+        };
+      },
+      methods: {
+        test() {
+          console.log('test');
+        }
+      }
+    }
+  ]
+  
+
+  render() {
+    return (<div>
+      <span onClick={this.test}>{this.text}</span>
+    </div>);
+  }
+}
+```
+### `data`
+ example:
+ ```js
+ class Test extends ReactVueLike {
+   static data() {
+     return {
+       text: 'aa',
+       formData: {
+         name: 'dddd'
+       }
+     }
+   }
+
+   render() {
+     return (<div>
+        <span>{this.text}</span>
+        <span>{this.formData.name}</span>
+       </div>);
+   }
+ }
+ ```
+### `methods`
+ example:
+ ```js
+ class Test extends ReactVueLike {
+   static methods = {
+     test1() {
+       console.log('test1');
+     }
+   }
+
+   test2() {
+      console.log('test2');
+   }
+
+   render() {
+     return (<div>
+        <span onClick={this.test1}>aa</span>
+        <span onClick={this.test2}>dd</span>
+       </div>);
+   }
+ }
+ ```
+### `computed`
+ example:
+ ```js
+ class Test extends ReactVueLike {
+   static data() {
+     return {
+       text: 'aa',
+     }
+   }
+
+   static computed = {
+     test1() {
+       return `test1:${this.text}`;
+     },
+     test2: {
+       get() {
+         return `test2:${this.text}`;
+       },
+       set(v) {
+         this.text = v;
+       }
+     }
+   }
+
+   render() {
+     return (<div>
+        <span>{this.text}</span>
+        <span>{this.test1}</span>
+        <span onClick={() => this.test2 = 'bb'}>{this.test2}</span>
+       </div>);
+   }
+ }
+ ```
+
+### `watch`
+
+ example:
+ ```js
+ class Test extends ReactVueLike {
+   static data() {
+     return {
+       text: 'aa',
+     }
+   }
+
+   static watch = {
+     text(newVal, olVal) {
+       console.log('text chagned', newVal, oldVal);
+     },
+   }
+
+   render() {
+     return (<div>
+        <span>{this.text}</span>
+        <button onClick={() => this.text = 'bb'}>change</button>
+       </div>);
+   }
+ }
+ ```
+
+### `lifecycle`
+
+ example:
+ ```js
+class Test extends ReactVueLike {
+
+  breforeCreate() { }
+
+  created() { }
+
+  beforeMount() { }
+
+  mounted() { }
+
+  beforeUpdate() {  }
+
+  updated() { }
+
+  beforeDestory() { }
+
+  render() {
+    return (<div>haha</div>);
+  }
+
+}
+ ```
+
+### `scoped style` 
+  if import's style file name has `?scoped`, then it will treat as `scoped style`
+ example:
+```js
+import React from 'react';
+import ReactVueLike from 'react-vue-like';
+
+import './test.scss?scoped';
+
+class Test extends ReactVueLike {
+
+  render() {
+    return (<div>haha</div>);
+  }
+
+}
+```
+
+### `slot`
+
+ example:
+```js
+import React from 'react';
+import ReactVueLike from 'react-vue-like';
+
+class ChildComponent extends ReactVueLike {
+
+  render() {
+    return (<div>
+      <slot name="header">
+      haha1
+      {
+        [1, 2, 3].map(v => <slot value={v} user={user} />)
+      }
+      haha2
+      <slot name="footer">
+    </div>);
+  }
+
+}
+```
+
+```js
+import React from 'react';
+import ReactVueLike from 'react-vue-like';
+import ChildComponent from './ChildComponent';
+
+class ParentComponent extends ReactVueLike {
+
+  render() {
+    return (<ChildComponent>
+      {/* if child-component is `ReactVueLike Component` then it will has `$slots: { header, default, footer }` */}
+      {/* if child-component is `React Component` then it will has `header, footer` attributes, default slot will be it's 'children'  */}
+      <span slot="header">this is header</span>
+
+      {/* scoped slot */}
+      <template>
+        ({ value, user }) => <span>this is body: {user.name}: {value}</span>
+      </template>
+
+      <span slot="footer">this is footer</span>
+    </ChildComponent>);
+  }
+
+}
+```
+
+### `v-if/v-else-if/v-else`,`v-show`,`v-model`, `v-html`
+
+ example:
+```js
+import React from 'react';
+import ReactVueLike from 'react-vue-like';
+
+import './test.scss?scoped';
+
+class Test extends ReactVueLike {
+
+  static data() {
+    return {
+      vif: true,
+      vshow: true,
+      text1: '',
+      text2: '',
+      text3: ''
+    }
+  }
+
+  render() {
+    return (<div>
+      <span v-if={this.vif}>v-if showing</span>
+      <span v-else>else showing</span>
+
+      <span v-show={this.vshow}>
+        v-show showing
+      </span>
+
+      <input v-model$trim={this.text1}></input>
+      <input type="number" v-model$number={this.text2}></input>
+      <input type="number" v-model$lazy={this.text3}></input>
+
+      <span v-html="<a href='#'>dd</a>"></span>
+    </div>);
+  }
+
+}
+```
+
+### `attribute transform` 
+  img src attribute string value transform to `require` expression
+ example:
+```js
+class Test extends ReactVueLike {
+
+  render() {
+    return (<div>
+      { /* src will transform to `require('./image/pic1.png')` */ }
+      <img src="./image/pic1.png">
+    </div>);
+  }
+
+}
+```
+
+### `ref` 
+`string ref` transform to `ref function` and set `ref` to `$refs`
+```js
+class Test extends ReactVueLike {
+  
+  test() {
+    this.$refs.some.doSomething();
+  }
+ 
+  render() {
+    return (<div>
+      { /* 
+      if ref value is string, then ref value will transform to `ref=>this.$refs.some=ref`, otherwith do nothing.
+      */ }
+      <SomeComponent ref="some" onClick={this.test}></SomeComponent>
+    </div>);
+  }
+
+}
+```
+
+### `Vue like props` 
+like `$el`,`$options`,`$parent`,`$root`,`$refs`,`$slots`,`$attrs`
+
+### `Vue like methods` 
+like `$nextTick`,`$set`,`$delete`,`$forceUpdate`,`$watch`,`$emit`,`$on`,`$off`,`$once`,`renderError`, `ReactVueLike.use`, `ReactVueLike.config`
+
+### `attrs inheirt` 
+default ReactVueLike component will inherit `className`, `style`, `id`, `disabled` attributes that be defined in it`s parent component
+
+### `class attribute` 
+`class attribute` in jsx will transfrom to `className`
+
+### `Vuex.Store` 
+see `ReactVueLike.Store`
 
 ## Other feature
 
-- `const var` support `__filename`, `__dirname`, `__packagename`, `__packageversion`, `__now`
+###  `const var` 
+support `__filename`, `__dirname`, `__packagename`, `__packageversion`, `__now`
 
 ## Installation
 
@@ -215,87 +608,19 @@ class App extends ReactVueLike {
 
   static isRoot = true
 
-  static props = {
-    aa: {
-      type: String
-      required: true,
-      default: 'a'
-    }
-  }
-
-  static components = {
-    SomeComponent
-  }
-
-  static mixins = [
-    { 
-      methods: {
-        mixinMeth() {
-          console.log('ddddd');
-        }
-      }
-    }
-  ]
-
   static data() {
     return {
-      vif: true,
-      vshow: true,
       formData: {
-        text: 'aaa'
-      },
+        text: ''
+      }
     };
   }
 
-  static filters = {
-    dd(v) {
-      return 'dd:' + v;
-    },
-    aa: {
-      bb(v) {
-        return 'aa.bb:' + v;
-      }
-    }
-  }
-
-  static directives = {
-    test: {
-      bind(el, binding, vnode) {
-        console.log('bind', el, binding, vnode);
-      },
-      insert(el, binding, vnode) {
-        console.log('insert', el, binding, vnode);
-      },
-      updated(el, binding, vnode) {
-        console.log('updated', el, binding, vnode);
-      },
-      unbind(el, binding, vnode) {
-        console.log('unbind', el, binding, vnode);
-      },
-    }
-  }
 
   static computed = {
     computedText() {
       return `haha:${this.formData.text}`;
     },
-    globalLoading() {
-      return this.$store.state.globalLoading;
-    },
-    aaa: {
-      get() {
-        return this.vshow;
-      },
-      set(v) {
-        this.vshow = v;
-      }
-    }
-  }
-
-  static watch = {
-    vshow(newVal, oldVal) {
-      console.log('vshow is changed');
-    }
   }
 
   static methods = {
@@ -304,86 +629,8 @@ class App extends ReactVueLike {
     }
   }
 
-  breforeCreate() {
-
-  }
-
-  created() {
-
-  }
-
-  beforeMount() {
-
-  }
-
-  mounted() {
-
-  }
-
-  beforeUpdate() {
-
-  }
-
-  updated() {
-
-  }
-
-  beforeDestory() {
-
-  }
-
   render() {
     return (<div class="root">
-      
-      {/* v-if directive */}
-      <span className="dddd" v-if={this.vif}>v-if showing</span>
-
-      {/* v-show directive */}
-      <span className={'aa' + ' bb'} v-show={this.vif && this.vshow} style={{ display: 'none' }}>v-show showing</span>
-
-      {/* v-model directive */}
-      <input className={callFunc()} v-model={this.formData.text} />
-      <input v-model={this.formData.text1} onChange={a => console.log(a)} />
-
-      {/* custom directive */}
-      <span v-test_dd$aa$bb={[1,'2',true, null, undefined,
-        new Date(1, a), new RegExp(), /dd/i, this.vif, {}, [],
-        fun(), (function func1(aa = {}, { dd: cc }, [ dd = 1 ]){ let ee = 1, rr; }), ...ddd,
-        a > c ? (b - 1) : (c + 1 ? (c || d ? e ^ d : 11) : true),
-        !d, i++, --i,
-        { [dd]: 1, cc: 2, get ee(){}, set ee(v){}, rr(){} },
-        `11${1}22${3}44`
-      ]}>
-      </span>
-
-      <Test dd="1" onClick={this.func1} />
-
-      <Test2 v-test2={{ aa: 1 }} />
-
-      {/* custom filter */}
-      <span> dd { dd | dd } dd </span>
-      <span a={ 11 | cc }> 
-        aa { 2 | 'aa.bb.cc'(123, 333) } 
-        bb { 11 | dd.cc.ee  } 
-        cc { 22 | aa.bb.cc.dd(11) } 
-        dd { 33 | bb(bb) } 
-        ee { 44 | dd }
-      </span>
-
-      {/* will find from components section */}
-      <some-component>
-        {/* if some-component is `ReactVueLike Component` then it will has `$slots: { header, default, footer }` */}
-        {/* if some-component is `React Component` then it will has `header, footer` attributes, default slot will be it's 'children'  */}
-        <span slot="header">this is header</span>
-
-        {/* scope slot */}
-        <template>
-          ({ value, user }) => <span>this is body: {user.name}: {value}</span>
-        </template>
-
-        <span slot="footer">this is footer</span>
-      </some-component>
-
       {/* root RouterView need `router` prop */}
       <RouterView router={router} />
     </div>);

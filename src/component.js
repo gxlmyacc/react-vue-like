@@ -65,7 +65,7 @@ function initListeners(ctxs, props) {
   };
   ctxs.forEach(ctx => {
     LIFECYCLE_HOOKS.forEach(key => {
-      const name = `hook:${key}`;
+      const name = camelize(`hook:${key}`);
       let handler = ctx[key];
       if (!handler && ctx.prototype && ctx.prototype[key]) handler = ctx.prototype[key];
       if (handler) addListener(name, handler);
