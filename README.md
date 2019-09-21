@@ -105,7 +105,7 @@ example:
   ```js
    { 
      name: 'test', 
-     arg: '',
+     arg: 'arg',
      value: 2,
      modifiers: {
        aa: true,
@@ -408,7 +408,7 @@ class Test extends ReactVueLike {
   render() {
     return (<div>
       { /* 
-      if ref value is string, then ref value will transform to `ref=>this.$refs.some=ref`, otherwith do nothing.
+      if ref value is string, then ref value will transform to `ref=>this.$refs.some=ref`, otherwise do nothing.
       */ }
       <SomeComponent ref="some" onClick={this.test}></SomeComponent>
     </div>);
@@ -801,6 +801,14 @@ const store = new ReactVueLike.Store({
 
 export default store;
 ```
+
+## Node
+
+1. In ReactVueLike Component, try not to use `this.prop`s, please use `this.$attrs` instead. and you can use `this.$slots.default` instead of `this.props.children`;
+
+2. the `prop name` that bind to ReactVueLike Component, do not begin with '_'or'$' chars, they are recognized as internal values of ReactVueLike. 
+
+3.
 
 ## License
 
