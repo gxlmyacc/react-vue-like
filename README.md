@@ -8,7 +8,11 @@ write react component like vue, implementation based on mbox@4.
 ## Support Vue feature
 
 ### `props` 
- will transfrom to react's `propTypes` and `defaultProps`
+
+will transfrom to react's `propTypes` and `defaultProps`
+
+see [Vue props](https://vuejs.org/v2/api/index.html#props)
+
  example:
  ```js
  class Test extends ReactVueLike {
@@ -36,7 +40,11 @@ equals:
  }
 ```
 ### `components` 
+
 if tag name has `-` char will be treat as a component that find from self's `components` section or root's `components` section.
+
+see [Vue components](https://vuejs.org/v2/api/index.html#components)
+
  example:
  ```js
  import AComponent from './AComponent';
@@ -74,7 +82,9 @@ if tag name has `-` char will be treat as a component that find from self's `com
  ```
   render will output ``
 
-### `directive` 
+### `directives` 
+
+see [Vue directives](https://vuejs.org/v2/api/index.html#directives)
 
 example:
   ```js
@@ -116,6 +126,7 @@ example:
   ```
 
 ### `mixin`
+see [Vue mixin](https://vuejs.org/v2/api/index.html#mixins)
  example:
 ```js
 class Test extends ReactVueLike {
@@ -143,6 +154,7 @@ class Test extends ReactVueLike {
 }
 ```
 ### `data`
+see [Vue data](https://vuejs.org/v2/api/index.html#data)
  example:
  ```js
  class Test extends ReactVueLike {
@@ -164,6 +176,9 @@ class Test extends ReactVueLike {
  }
  ```
 ### `methods`
+
+see [Vue methods](https://vuejs.org/v2/api/index.html#methods)
+
  example:
  ```js
  class Test extends ReactVueLike {
@@ -186,69 +201,77 @@ class Test extends ReactVueLike {
  }
  ```
 ### `computed`
- example:
- ```js
- class Test extends ReactVueLike {
-   static data() {
-     return {
-       text: 'aa',
-     }
-   }
 
-   static computed = {
-     test1() {
-       return `test1:${this.text}`;
-     },
-     test2: {
-       get() {
-         return `test2:${this.text}`;
-       },
-       set(v) {
-         this.text = v;
-       }
-     }
-   }
+see [Vue computed](https://vuejs.org/v2/api/index.html#computed)
 
-   render() {
-     return (<div>
-        <span>{this.text}</span>
-        <span>{this.test1}</span>
-        <span onClick={() => this.test2 = 'bb'}>{this.test2}</span>
-       </div>);
-   }
- }
- ```
+example:
+```js
+class Test extends ReactVueLike {
+  static data() {
+    return {
+      text: 'aa',
+    }
+  }
+
+  static computed = {
+    test1() {
+      return `test1:${this.text}`;
+    },
+    test2: {
+      get() {
+        return `test2:${this.text}`;
+      },
+      set(v) {
+        this.text = v;
+      }
+    }
+  }
+
+  render() {
+    return (<div>
+      <span>{this.text}</span>
+      <span>{this.test1}</span>
+      <span onClick={() => this.test2 = 'bb'}>{this.test2}</span>
+      </div>);
+  }
+}
+```
 
 ### `watch`
 
- example:
- ```js
- class Test extends ReactVueLike {
-   static data() {
-     return {
-       text: 'aa',
-     }
-   }
+see [Vue watch](https://vuejs.org/v2/api/index.html#watch)
 
-   static watch = {
-     text(newVal, olVal) {
-       console.log('text chagned', newVal, oldVal);
-     },
-   }
+example:
 
-   render() {
-     return (<div>
-        <span>{this.text}</span>
-        <button onClick={() => this.text = 'bb'}>change</button>
-       </div>);
-   }
- }
- ```
+```js
+class Test extends ReactVueLike {
+  static data() {
+    return {
+      text: 'aa',
+    }
+  }
+
+  static watch = {
+    text(newVal, olVal) {
+      console.log('text chagned', newVal, oldVal);
+    },
+  }
+
+  render() {
+    return (<div>
+      <span>{this.text}</span>
+      <button onClick={() => this.text = 'bb'}>change</button>
+      </div>);
+  }
+}
+```
 
 ### `lifecycle`
 
- example:
- ```js
+see [Options-Lifecycle-Hooks](https://vuejs.org/v2/api/index.html#Options-Lifecycle-Hooks)
+
+example:
+```js
 class Test extends ReactVueLike {
 
   breforeCreate() { }
@@ -270,11 +293,13 @@ class Test extends ReactVueLike {
   }
 
 }
- ```
+```
 
 ### `scoped style` 
-  if import's style file name has `?scoped`, then it will treat as `scoped style`
- example:
+
+if import's style file name has `?scoped`, then it will treat as `scoped style`
+
+example:
 ```js
 import React from 'react';
 import ReactVueLike from 'react-vue-like';
@@ -292,7 +317,7 @@ class Test extends ReactVueLike {
 
 ### `slot`
 
- example:
+example:
 ```js
 import React from 'react';
 import ReactVueLike from 'react-vue-like';
@@ -341,7 +366,9 @@ class ParentComponent extends ReactVueLike {
 
 ### `v-if/v-else-if/v-else`,`v-show`,`v-model`, `v-html`
 
- example:
+see [Vue Directives](https://vuejs.org/v2/api/index.html#Directives) 
+
+example:
 ```js
 import React from 'react';
 import ReactVueLike from 'react-vue-like';
@@ -373,6 +400,7 @@ class Test extends ReactVueLike {
       <input type="number" v-model$number={this.text2}></input>
       <input v-model$lazy={this.text3}></input>
 
+      {/* equals: dangerouslySetInnerHTML={{ __html: "<a href='#'>dd</a>" }} */}
       <span v-html="<a href='#'>dd</a>"></span>
     </div>);
   }
@@ -381,7 +409,7 @@ class Test extends ReactVueLike {
 ```
 
 ### `event mechanism`
-you can use `$emit` to send event message to `bind Event` that bing by `$on` or `onXXXX` event:
+you can use `$emit` to send event message to `bind Event` that bind by `$on` or `onXXXX` event. see [Instance-Methods-Events](https://vuejs.org/v2/api/index.html#Instance-Methods-Events)
 
 ```js
 import React from 'react';
@@ -446,7 +474,9 @@ class Test extends ReactVueLike {
 ```
 
 ### `ref` 
-`string ref` transform to `ref function` and set `ref` to `$refs`
+
+`string ref` transform to `ref function` and set `ref` to `$refs`. see[vue ref](https://vuejs.org/v2/api/index.html#ref)
+
 ```js
 class Test extends ReactVueLike {
   
@@ -467,10 +497,10 @@ class Test extends ReactVueLike {
 ```
 
 ### `Vue like props` 
-like `$el`,`$options`,`$parent`,`$root`,`$refs`,`$slots`,`$attrs`
+like `$el`,`$options`,`$parent`,`$root`,`$refs`,`$slots`,`$attrs`. see[Instance-Properties](https://vuejs.org/v2/api/index.html#Instance-Properties)
 
 ### `Vue like methods` 
-like `$nextTick`,`$set`,`$delete`,`$forceUpdate`,`$watch`,`$emit`,`$on`,`$off`,`$once`,`renderError`, `ReactVueLike.use`, `ReactVueLike.config`
+like `$nextTick`,`$set`,`$delete`,`$forceUpdate`,`$watch`,`$emit`,`$on`,`$off`,`$once`,`renderError`, `ReactVueLike.use`, `ReactVueLike.config`. see [Instance-Methods-Data](https://vuejs.org/v2/api/index.html#Instance-Methods-Data) and [Instance-Methods-Events](https://vuejs.org/v2/api/index.html#Instance-Methods-Events)
 
 ### `attrs inheirt` 
 default ReactVueLike component will inherit `className`, `style`, `id`, `disabled` attributes that be defined in it`s parent component
@@ -503,6 +533,54 @@ class Test extends ReactVueLike {
       <div onClick$enter={this.test}></div>
       <div onClick$13={this.test}></div>
     </div>);
+  }
+
+}
+```
+
+### `provide/inject`
+
+see [provide/inject](https://vuejs.org/v2/api/index.html#provide-inject)
+
+```js
+import React from 'react';
+import ReactVueLike from 'react-vue-like';
+import ChildComponent from './ChildComponent';
+
+class ParentComponent extends ReactVueLike {
+
+  static provide() {
+    return {
+      text: this.formData
+    }
+  }
+
+  static data() {
+    return {
+      formData: {
+        text: '111'
+      }
+    }
+  }
+
+  render() {
+    return (<ChildComponent>
+    </ChildComponent>);
+  }
+
+}
+```
+
+```js
+import React from 'react';
+import ReactVueLike from 'react-vue-like';
+
+class ChildComponent extends ReactVueLike {
+
+  static inject = ['formData'];
+
+  render() {
+    return (<div>{this.formData.text}</div>);
   }
 
 }
@@ -664,6 +742,8 @@ import filters from './filters';
 import directives from './directives';
 import components from './components';
 import App from 'react-vue-like';
+
+ReactVueLike.config({ enforceActions: true });
 
 ReactVueLike.use(store, { App });
 ReactVueLike.use(router, { App });
@@ -851,7 +931,7 @@ const store = new ReactVueLike.Store({
 export default store;
 ```
 
-## Node
+## Note
 
 1. In ReactVueLike Component, try not to use `this.props`, please use `this.$attrs` instead. and you can use `this.$slots.default` instead of `this.props.children`;
 

@@ -14,6 +14,7 @@ exports.isObject = isObject;
 exports.isFalsy = isFalsy;
 exports.warn = warn;
 exports.handleError = handleError;
+exports.checkKeyCodes = checkKeyCodes;
 Object.defineProperty(exports, "toJS", {
   enumerable: true,
   get: function get() {
@@ -191,7 +192,7 @@ function parseExpr(ctx, expr) {
 }
 
 function camelize(str) {
-  let ret = str.replace(/-(\w)/g, function (_, c) {
+  let ret = str.replace(/[-|:](\w)/g, function (_, c) {
     return c ? c.toUpperCase() : '';
   });
   if (/^[A-Z]/.test(ret)) ret = ret.charAt(0).toLowerCase() + ret.substr(1);
@@ -368,6 +369,18 @@ function generateComponentTrace(vm) {
 }
 
 function getComponentName(vm) {
-  const type = vm && vm._type;
+  const type = vm && vm.$options;
   return type ? type.displayName || type.name : '<Anonymous>';
+}
+
+function checkKeyCodes(eventKeyCode, key, scope, eventKey) {
+  let keyCodes = _config.default.keyCodes[key];
+  if (!keyCodes) return true;
+
+  if (Array.isArray(keyCodes)) {
+    return keyCodes.indexOf(eventKeyCode) === -1;
+  }
+
+  if (isFunction(keyCodes)) return keyCodes(eventKeyCode, key, scope, eventKey);
+  return keyCodes !== eventKeyCode;
 }

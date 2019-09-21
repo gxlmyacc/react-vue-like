@@ -66,7 +66,7 @@ class Directive extends React.Component {
       if (!d) throw new Error(`directive '${binding.name}' not be found!`);
       let event = d[eventName];
       if (!event) return;
-      if (config.useAction) event = action(event);
+      if (config.enforceActions) event = action(event);
       event.call(this.$parent, el, binding, this._reactInternalFiber);
     });
   }

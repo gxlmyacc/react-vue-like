@@ -327,6 +327,12 @@ class Store {
     };
   }
 
+  install(ReactVueLike, _ref) {
+    let App = _ref.App;
+    if (!App.inherits) App.inherits = {};
+    App.inherits.$store = this;
+  }
+
 }
 
 var _default = Store;

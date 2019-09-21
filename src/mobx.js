@@ -18,10 +18,9 @@ export function isAsync(fn) {
 }
 
 function newConfigure(options = {}) {
-  config.useAction = (options.enforceActions !== undefined) && (options.enforceActions !== 'never');
+  config.enforceActions = (options.enforceActions !== undefined) && (options.enforceActions !== 'never');
   return configure(Object.assign({ isolateGlobalState: true }, options));
 }
-if (config.useAction) newConfigure({ enforceActions: 'observed' });
 
 function newIsActon(fn) {
   return isAction(fn) || fn.isMobxFlow;

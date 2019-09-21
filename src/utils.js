@@ -27,7 +27,7 @@ export function defComputed(obj, key, get, set) {
     enumerable: true,
     configurable: true,
     get,
-    set: set || function (v) { throw new Error(`computed props: ${key} is readonly!`); }
+    set: set || function (v) { throw new Error(`props: ${key} is readonly!`); }
   });
 }
 

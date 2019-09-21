@@ -48,6 +48,7 @@ _component.default.Mixin = _mixin.default;
 _component.default.observable = _mobx.observable;
 _component.default.flow = _mobx.flow;
 _component.default.action = _mobx.action;
+_component.default._k = _utils.checkKeyCodes;
 
 function ReactHook() {
   const _createElement = _react.default.createElement;

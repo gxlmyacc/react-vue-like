@@ -147,7 +147,7 @@ class ReactVueLike extends React.Component {
     let _watch = {};
     let _directives = {};
     let _filters = {};
-    let _provides = [];
+    let _provideFns = [];
     let _injects = [];
     ctxs.forEach(ctx => {
       if (ctx.filters) Object.assign(_filters, ctx.filters);
@@ -156,7 +156,7 @@ class ReactVueLike extends React.Component {
       if (ctx.computed) Object.assign(_computed, ctx.computed);
       if (ctx.methods) Object.assign(_methods, ctx.methods);
       if (ctx.watch) Object.assign(_watch, ctx.watch);
-      if (ctx.provide) _provides.push(ctx.provide);
+      if (ctx.provide) _provideFns.push(ctx.provide);
       if (ctx.inject) ctx.inject.forEach(key => !_injects.includes(key) && _injects.push(key));
     });
 
@@ -171,8 +171,16 @@ class ReactVueLike extends React.Component {
     this._methods = _methods;
     this._computed = _computed;
     this._watch = _watch;
-    this._provides = _provides;
+    this._provideFns = _provideFns;
     this._injects = _injects;
+
+    defComputed(this, '$provides',
+      () => {
+        if (this._provides) return this._provides;
+        let ret = {};
+        this._provideFns.forEach(p => Object.assign(ret, isFunction(p) ? p.call(this) : p));
+        return this._provides = ret;
+      });
 
     this._inheritMergeStrategies = Object.assign({}, config.inheritMergeStrategies, this.$options.inheritMergeStrategies);
     action(() => {
@@ -384,29 +392,20 @@ class ReactVueLike extends React.Component {
   _resolveInject() {
     if (!this.$parent) return;
     try {
-      const injects = this._injects;
-      const getProvides = vm => {
-        const provides = vm && vm._provides;
-        if (!provides || !provides.length) return;
-        let ret = {};
-        provides.forEach(p => Object.assign(ret, isFunction(p) ? p.call(vm) : p));
-        return ret;
-      };
+      const injects = this._injects.slice();
       if (injects.length) {
-        iterativeParent(this, vm => {
-          let _provide = getProvides(vm);
-          if (_provide) {
-            for (let i = injects.length - 1; i; i--) {
-              let key = injects[i];
-              let v = _provide[key];
-              if (v !== undefined) {
-                this.$set(this, key, v);
-                injects.splice(i, 1);
-              }
-            }
+        iterativeParent(this, vm => Object.keys(vm.$provides).some(key => {
+          let idx = injects.indexOf(key);
+          if (~idx) {
+            let v = vm.$provides[key];
+            if (v !== undefined) this.$set(this, key, v);
+            injects.splice(idx, 1);
           }
           return !injects.length;
-        }, ReactVueLike);
+        }), ReactVueLike);
+        if (process.env.NODE_ENV !== 'production') {
+          injects.forEach(key => warn(`inject '${key}' not found it's provide!`, this));
+        }
       }
     } catch (e) {
       handleError(e, this, 'resolveInject');
@@ -478,7 +477,9 @@ class ReactVueLike extends React.Component {
 
   static config(options = {}) {
     Object.assign(config, options);
-    if (config.useAction !== undefined) configure({ enforceActions: config.action ? 'observed' : 'never' });
+    if (config.enforceActions !== undefined) {
+      configure({ enforceActions: config.enforceActions ? 'observed' : 'never' });
+    }
   }
 
   static mixin(m) {

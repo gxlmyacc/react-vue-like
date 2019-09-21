@@ -97,7 +97,7 @@ function initListeners(ctxs, props) {
 
   ctxs.forEach(function (ctx) {
     LIFECYCLE_HOOKS.forEach(function (key) {
-      const name = `hook:${key}`;
+      const name = (0, _utils.camelize)(`hook:${key}`);
       let handler = ctx[key];
       if (!handler && ctx.prototype && ctx.prototype[key]) handler = ctx.prototype[key];
       if (handler) addListener(name, handler);
@@ -164,7 +164,6 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
           attrs = _parseProps.attrs;
 
     this._isVueLike = true;
-    this._type = target;
     this._ticks = [];
     this._inherits = inherits ? _objectSpread({}, inherits) : null;
     this._el = null;
@@ -175,6 +174,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
     this.$children = [];
     this.$attrs = attrs;
     this.$slots = _props.$slots || {};
+    this.$options = target;
     if (this.$slots.default === undefined) this.$slots.default = _props.children;
     (0, _mobx2.extendObservable)(this, {
       _isMounted: false
@@ -221,7 +221,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
     this._watch = _watch;
     this._provides = _provides;
     this._injects = _injects;
-    this._inheritMergeStrategies = Object.assign({}, _config.default.inheritMergeStrategies, this._type.inheritMergeStrategies);
+    this._inheritMergeStrategies = Object.assign({}, _config.default.inheritMergeStrategies, this.$options.inheritMergeStrategies);
     (0, _mobx2.action)(function () {
       Object.keys(_this2._inheritMergeStrategies).forEach(function (key) {
         let merge = _this2._inheritMergeStrategies[key];
@@ -235,7 +235,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
         } else _this2._inherits[key] = parent;
       });
     })();
-    this._optionMergeStrategies = Object.assign({}, _config.default.optionMergeStrategies, this._type.optionMergeStrategies);
+    this._optionMergeStrategies = Object.assign({}, _config.default.optionMergeStrategies, this.$options.optionMergeStrategies);
     this.$emit('hook:beforeCreate', _props); // if (_props.el instanceof Element) this.$mount(_props.el);
   }
 
@@ -278,8 +278,8 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
   _resolveSpreadAttrs(tagName, props) {
     var _this3 = this;
 
-    if (this._type.inheritAttrs === false) return props;
-    let inheritAttrs = Array.isArray(this._type.inheritAttrs) ? this._type.inheritAttrs : _config.default.inheritAttrs;
+    if (this.$options.inheritAttrs === false) return props;
+    let inheritAttrs = Array.isArray(this.$options.inheritAttrs) ? this.$options.inheritAttrs : _config.default.inheritAttrs;
     const RETX_DOM = /^[a-z]/;
     let attrs = {};
     const isPrimitiveTag = RETX_DOM.test(tagName);
@@ -408,7 +408,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
     Object.keys(_data).forEach(function (key) {
       if (key in _this6._propData) {
         let e = new Error(`key '${key}' in data() cannot be duplicated with props`);
-        (0, _utils.handleError)(e, _this6, `constructor:${_this6._type.name}`);
+        (0, _utils.handleError)(e, _this6, `constructor:${_this6.$options.name}`);
         throw e;
       }
 
@@ -423,7 +423,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
   }
 
   _resolveComputed() {
-    let _computed = generateComputed(this._computed, this._propData, this.$data, this._type);
+    let _computed = generateComputed(this._computed, this._propData, this.$data, this.$options);
 
     (0, _mobx2.extendObservable)(this, _computed);
   }
@@ -437,7 +437,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
 
     bindMethods(this, this._methods);
     const pMethods = {};
-    Object.getOwnPropertyNames(this._type.prototype).filter(function (key) {
+    Object.getOwnPropertyNames(this.$options.prototype).filter(function (key) {
       return !ReactVueLike.prototype[key];
     }).map(function (key) {
       return (0, _utils.isFunction)(_this7[key]) && (pMethods[key] = _this7[key]);
@@ -501,10 +501,10 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
 
   _resolveComp(compName) {
     let comp;
-    if (this._type.components) comp = this._type.components[compName];
+    if (this.$options.components) comp = this.$options.components[compName];
 
-    if (!this._isVueLikeRoot && !comp && this.$root._type.components) {
-      comp = this.$root._type.components[compName];
+    if (!this._isVueLikeRoot && !comp && this.$root.$options.components) {
+      comp = this.$root.$options.components[compName];
     }
 
     if (!_utils.isProduction && !comp) (0, _utils.warn)(`can not resolve component '${compName}'!`, this);
@@ -650,7 +650,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
     };
 
     ReactVueLikeProxy.prototype = _react.default.Component.prototype;
-    ReactVueLikeProxy.dispalyName = this._type.dispalyName || this._type.name;
+    ReactVueLikeProxy.dispalyName = this.$options.dispalyName || this.$options.name;
 
     _reactDom.default.render(_react.default.createElement(ReactVueLikeProxy, this.props), el);
 
@@ -729,6 +729,14 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
   }
 
   $delete(target, expr) {
+    var _this11 = this;
+
+    if ((0, _utils.isObject)(expr)) {
+      return Object.keys(expr).forEach(function (key) {
+        return _this11.$delete(target, expr[key]);
+      });
+    }
+
     let _parseExpr4 = (0, _utils.parseExpr)(target, expr),
         obj = _parseExpr4.obj,
         key = _parseExpr4.key;
@@ -747,13 +755,13 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
   }
 
   $on(eventName, handler) {
-    var _this11 = this;
+    var _this12 = this;
 
     eventName = (0, _utils.camelize)(eventName);
     if (!this.$listeners[eventName]) this.$listeners[eventName] = [];
     this.$listeners[eventName].push(handler);
     return function () {
-      return _this11.$off(eventName, handler);
+      return _this12.$off(eventName, handler);
     };
   }
 
@@ -790,11 +798,23 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
 
   render() {
     if (!this._isMounted) return null;
+    let node;
 
-    let node = this._renderFn && this._renderFn.apply(this, arguments); // let el = this.$el;
+    try {
+      node = this._renderFn && this._renderFn.apply(this, arguments);
+    } catch (ex) {
+      (0, _utils.handleError)(ex, this, 'render');
+
+      try {
+        node = this.renderError(ex);
+      } catch (ex) {
+        (0, _utils.handleError)(ex, this, 'renderError');
+        throw ex;
+      }
+    } // let el = this.$el;
     // if (el) {
-    //   let inheritAttrs = Array.isArray(this._type.inheritAttrs)
-    //     ? this._type.inheritAttrs
+    //   let inheritAttrs = Array.isArray(this.$options.inheritAttrs)
+    //     ? this.$options.inheritAttrs
     //     : config.inheritAttrs;
     //   inheritAttrs.forEach(key => {
     //     let v = this.props[key];
@@ -810,10 +830,14 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
     //     }
     //   });
     // }
-    // console.log('ReactVueLike.render', this._type.name, node);
+    // console.log('ReactVueLike.render', this.$options.name, node);
 
 
     return node;
+  }
+
+  renderError() {
+    return null;
   }
 
   getSnapshotBeforeUpdate(prevProps, prevState) {
@@ -822,16 +846,16 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
   }
 
   componentDidMount() {
-    var _this12 = this;
+    var _this13 = this;
 
     this._resolveParent();
 
     this._isWillMount = true;
 
     this._resolveWillMount(function () {
-      return _this12.$emit('hook:beforeMount');
+      return _this13.$emit('hook:beforeMount');
     }, function () {
-      return _this12.$emit('hook:mounted');
+      return _this13.$emit('hook:mounted');
     });
   }
 

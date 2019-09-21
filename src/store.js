@@ -13,7 +13,7 @@ function wrapModuleState(module) {
       }
       module._state[key] = v;
     };
-    if (config.useAction) set = action(set);
+    if (config.enforceActions) set = action(set);
     defComputed(
       ret,
       key,
