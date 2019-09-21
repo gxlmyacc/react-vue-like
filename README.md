@@ -804,11 +804,9 @@ export default store;
 
 ## Node
 
-1. In ReactVueLike Component, try not to use `this.prop`s, please use `this.$attrs` instead. and you can use `this.$slots.default` instead of `this.props.children`;
+1. In ReactVueLike Component, try not to use `this.props`, please use `this.$attrs` instead. and you can use `this.$slots.default` instead of `this.props.children`;
 
 2. the `prop name` that bind to ReactVueLike Component, do not begin with '_'or'$' chars, they are recognized as internal values of ReactVueLike. 
-
-3.
 
 ## License
 
