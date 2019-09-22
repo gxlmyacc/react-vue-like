@@ -6,15 +6,47 @@
 write react component like vue, implementation based on mbox@4.
 
 # Table of Contents:
+
 * [Installation](#installation)
-* [Support Vue feature](#support-vue-feature)
-* [props](#props)
-* [Other feature](#other-feature)
-* [String literals vs expressions](#string-literals-vs-expressions)
-* [Supported directives](#supported-directives)
+
+* [Support Vue Feature](#support-vue-feature)
+
+  * [props](#props)
+  * [components](#components)
+  * [filters](#filters)
+  * [directives](#directives)
+  * [mixin](#mixin)
+  * [data](#data)
+  * [methods](#methods)
+  * [computed](#computed)
+  * [watch](#watch)
+  * [Lifecycle](#lifecycle)
+  * [Scoped Style](#scoped-style)
+  * [Slot](#slot)
+  * [Vue Internal Directives](#vue-internal-directives)
+  * [Event Mechanism](#event-mechanism)
+  * [Attribute Transform](#attribute-transform)
+  * [Ref](#ref)
+  * [Vue Like Props](#vue-like-props)
+  * [Vue like Methods](#vue-like-methods)
+  * [Attrs Inheirt](#attrs-inheirt)
+  * [Class Attribute Support And Enhance](#class-attribute-support-and-enhance)
+  * [Prop And Event Modifiers](#prop-and-event-modifiers)
+  * [Provide/Inject](#provide/inject)
+  * [Vuex.Store](#vuex.Store)
+  
+* [Other Feature](#other-feature)
+
+  * [Const Var](#const-var)
+  * [Instance Methods](#instance-methods)
+  * [Static Methods](#static-methods)
+
 * [Usage](#usage)
+
 * [Note](#note)
+
 * [License](#license)
+
 
 ## Installation
 
@@ -79,7 +111,7 @@ see [Vue components](https://vuejs.org/v2/api/index.html#components)
  }
 ```
 
-### `filter`
+### `filters`
  example:
  ```js
  class Test extends ReactVueLike {
@@ -428,8 +460,8 @@ class ParentComponent extends ReactVueLike {
 }
 ```
 
-### `v-if/v-else-if/v-else`,`v-show`,`v-model`, `v-html`
-
+### `Vue Internal Directives`
+`v-if/v-else-if/v-else`,`v-show`,`v-model`, `v-html`
 see [Vue Directives](https://vuejs.org/v2/api/index.html#Directives) 
 
 example:
@@ -470,7 +502,7 @@ class Test extends ReactVueLike {
 }
 ```
 
-### `event mechanism`
+### `Event Mechanism`
 you can use `$emit` to send event message to `bind Event` that bind by `$on` or `onXXXX` event. see [Instance-Methods-Events](https://vuejs.org/v2/api/index.html#Instance-Methods-Events)
 
 ```js
@@ -599,10 +631,10 @@ like `$el`,`$options`,`$parent`,`$root`,`$refs`,`$slots`,`$attrs`. see[Instance-
 ### `Vue like methods` 
 like `$nextTick`,`$set`,`$delete`,`$forceUpdate`,`$watch`,`$emit`,`$on`,`$off`,`$once`,`renderError`, `ReactVueLike.use`, `ReactVueLike.config`. see [Instance-Methods-Data](https://vuejs.org/v2/api/index.html#Instance-Methods-Data) and [Instance-Methods-Events](https://vuejs.org/v2/api/index.html#Instance-Methods-Events)
 
-### `attrs inheirt` 
+### `Attrs Inheirt` 
 default ReactVueLike component will inherit `className`, `style`, `id`, `disabled` attributes that be defined in it`s parent component
 
-### `class attribute support and enhance` 
+### `Class Attribute Support And Enhance` 
 `class attribute` in jsx will transfrom to `className`, and now `class/className` support `String/Array/Object` types. see [Vue class](https://vuejs.org/v2/guide/class-and-style.html)
 
 ```js
@@ -626,7 +658,7 @@ class Test extends ReactVueLike {
 }
 ```
 
-### `prop and event modifiers`
+### `Prop And Event Modifiers`
 see:
   [v-model](https://vuejs.org/v2/api/index.html#v-model)
   [v-bind](https://vuejs.org/v2/api/index.html#v-bind)
@@ -656,7 +688,7 @@ class Test extends ReactVueLike {
 }
 ```
 
-### `provide/inject`
+### `Provide/Inject`
 
 see [provide/inject](https://vuejs.org/v2/api/index.html#provide-inject)
 
@@ -709,7 +741,7 @@ see `ReactVueLike.Store`
 
 ## Other feature
 
-###  `const var` 
+###  `Const Var` 
 support `__filename`, `__dirname`, `__packagename`, `__packageversion`, `__now`
 
 ### `Instance Methods`
