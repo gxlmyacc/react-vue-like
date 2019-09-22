@@ -500,7 +500,7 @@ class ChildComponent extends ReactVueLike {
   render() {
     return (<div>
       <button onClick={this.$emit('click')}>click</button>
-      <button onClick={this.$emit('change-user', { name: 'james' })}>change user</button>
+      <button onClick={this.$parent.$emit('change-user', { name: 'james' })}>change user</button>
       <button onClick={this.$emit('custom-event', 'something')}>cusom event</button>
     </div>);
   }

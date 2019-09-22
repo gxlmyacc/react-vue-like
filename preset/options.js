@@ -4,7 +4,7 @@ const genGuard = function (condition) { return ('if(' + condition + ')return nul
 module.exports = {
   prefix: 'v-',
   compRegx: /^([A-Z])|([a-z][a-z0-9]+-[a-z0-9]+)/,
-  forRegx: /\.(map|filter|reverse|sort|slice)$/,
+  forRegx: /\.(map|filter|reverse|sort|slice|flat|flatMap)$/,
   keyCodes: {
     esc: 27,
     tab: 9,
