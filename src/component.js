@@ -8,6 +8,7 @@ import {
   parseExpr, camelize, isFunction, iterativeParent, handleError, defComputed
 } from './utils';
 import config from './config';
+import collect from './collect';
 
 function generateComputed(obj, propData, data, target) {
   const ret = {};
@@ -112,8 +113,10 @@ class ReactVueLike extends React.Component {
     if (isRoot) this._isVueLikeRoot = true;
     if (isAbstract) this._isVueLikeAbstract = true;
 
-    this._renderFn = this.render;
+    this._renderFn = collect.wrap(this.render, this._eachRenderElement.bind(this));
     this.render = ReactVueLike.prototype.render;
+    this._renderErrorFn = collect.wrap(this.renderError, this._eachRenderElement.bind(this));
+    this.renderError = ReactVueLike.prototype.renderError;
 
     const { propData, attrs } = parseProps(target, _props, propTypes);
 
@@ -234,34 +237,46 @@ class ReactVueLike extends React.Component {
     return ret || children || null;
   }
 
-  _resolveSpreadAttrs(tagName, props) {
-    if (this.$options.inheritAttrs === false) return props;
+  _eachRenderElement(component, props, children, isRoot) {
+    if (!component) return;
 
+    if (isRoot && this.$options.inheritAttrs !== false) this._resolveRootAttrs(component, props);
+
+    let scopeId = this.$options.__scopeId;
+    if (scopeId) {
+      if (!props.className) props.className = scopeId;
+      else if (Array.isArray(props.className)) props.className.unshift(scopeId);
+      else props.className = [scopeId, props.className];
+    }
+  }
+
+  _resolveRootAttrs(component, props) {
     let inheritAttrs = Array.isArray(this.$options.inheritAttrs)
       ? this.$options.inheritAttrs
       : config.inheritAttrs;
 
-    const RETX_DOM = /^[a-z]/;
-    let attrs = {};
-    const isPrimitiveTag = RETX_DOM.test(tagName);
+    const isPrimitiveTag = typeof component === 'string';
+
     inheritAttrs.forEach(key => {
       let v = this.props[key];
       if (isFalsy(v)) return;
-      if (key !== 'style' && isPrimitiveTag && !isPrimitive(v)) v = '';
-      if (v === true) v = '';
-      attrs[key] = v;
+      switch (key) {
+        case 'className':
+          if (props.className) {
+            if (v !== props.className) props.className = [v, props.className];
+          } else props.className = v;
+          break;
+        case 'style':
+          if (props.style) {
+            if (v !== props.style) props.style = Object.assign({}, v, props.style);
+          } else props.style = v;
+          break;
+        default:
+          if (props[key] !== undefined) return;
+          if (v === true || (isPrimitiveTag && !isPrimitive(v))) v = '';
+          props[key] = v;
+      }
     });
-
-    if (attrs.className && props.className && attrs.className !== props.className) {
-      attrs.className = [attrs.className, props.className];
-      delete props.className;
-    }
-    if (isObject(attrs.style) && isObject(props.style) && attrs.style !== props.style) {
-      Object.assign(attrs.style, props.style);
-      delete props.style;
-    }
-
-    return Object.assign(attrs, props);
   }
 
   _resolveFilter(filter, filterName) {
@@ -664,46 +679,27 @@ class ReactVueLike extends React.Component {
     });
   }
 
-  render(...args) {
+  render() {
     if (!this._isMounted) return null;
     let node;
     try {
-      node = this._renderFn && this._renderFn(...args);
+      node = (this._renderFn && this._renderFn()) || null;
     } catch (ex) {
       handleError(ex, this, 'render');
-      try {
-        node = this.renderError(ex);
-      } catch (ex) {
-        handleError(ex, this, 'renderError');
-        throw ex;
-      }
+      node = this.renderError(ex);
     }
-
-    // let el = this.$el;
-    // if (el) {
-    //   let inheritAttrs = Array.isArray(this.$options.inheritAttrs)
-    //     ? this.$options.inheritAttrs
-    //     : config.inheritAttrs;
-    //   inheritAttrs.forEach(key => {
-    //     let v = this.props[key];
-    //     if (!v) return;
-    //     switch (key) {
-    //       case 'className':
-    //         el.classList.add(...(v.split(' ').filter(Boolean)));
-    //         break;
-    //       case 'style':
-    //         if (isObject(v)) Object.assign(el.style, v);
-    //         break;
-    //       default: //
-    //     }
-    //   });
-    // }
-    // console.log('ReactVueLike.render', this.$options.name, node);
     return node;
   }
 
-  renderError() {
-    return null;
+  renderError(ex) {
+    let node;
+    try {
+      node = (this._renderErrorFn && this._renderErrorFn(ex)) || null;
+    } catch (ex) {
+      handleError(ex, this, 'renderError');
+      throw ex;
+    }
+    return node;
   }
 
   getSnapshotBeforeUpdate(prevProps, prevState) {

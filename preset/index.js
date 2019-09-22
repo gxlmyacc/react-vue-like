@@ -12,7 +12,6 @@ const transformFilter = require('./transforms/transform-filter');
 const transformConst = require('./transforms/transform-const');
 const transformRef = require('./transforms/transform-ref');
 const transformSlot = require('./transforms/transform-slot');
-// const vFor = require('./directives/v-for');
 const vIf = require('./directives/v-if');
 const vShow = require('./directives/v-show');
 const vModel = require('./directives/v-model');

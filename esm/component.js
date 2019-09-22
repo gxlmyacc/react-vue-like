@@ -19,6 +19,8 @@ var _utils = require("./utils");
 
 var _config = _interopRequireDefault(require("./config"));
 
+var _collect = _interopRequireDefault(require("./collect"));
+
 var _class, _class2, _temp;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -156,8 +158,10 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
           inherits = target.inherits;
     if (isRoot) this._isVueLikeRoot = true;
     if (isAbstract) this._isVueLikeAbstract = true;
-    this._renderFn = this.render;
+    this._renderFn = _collect.default.wrap(this.render, this._eachRenderElement.bind(this));
     this.render = ReactVueLike.prototype.render;
+    this._renderErrorFn = _collect.default.wrap(this.renderError, this._eachRenderElement.bind(this));
+    this.renderError = ReactVueLike.prototype.renderError;
 
     const _parseProps = parseProps(target, _props, propTypes),
           propData = _parseProps.propData,
@@ -258,17 +262,19 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
   }
 
   _resolveRef(refName, el, key) {
-    this.$refs[refName] = el; // if (!key) {
-    //   this.$refs[refName] = el;
-    //   return;
-    // }
-    // if (typeof key === 'number') {
-    //   if (!this.$refs[refName]) this.$refs[refName] = [];
-    //   this.$refs[refName][key] = el;
-    //   return;
-    // }
-    // if (!this.$refs[refName]) this.$refs[refName] = {};
-    // this.$refs[refName][key] = el;
+    if (!key) {
+      this.$refs[refName] = el;
+      return;
+    }
+
+    if (typeof key === 'number') {
+      if (!this.$refs[refName]) this.$refs[refName] = [];
+      this.$refs[refName][key] = el;
+      return;
+    }
+
+    if (!this.$refs[refName]) this.$refs[refName] = {};
+    this.$refs[refName][key] = el;
   }
 
   _resolveSlot(slotName, scope, children) {
@@ -285,33 +291,46 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
     return ret || children || null;
   }
 
-  _resolveSpreadAttrs(tagName, props) {
+  _eachRenderElement(component, props, children, isRoot) {
+    if (!component) return;
+    if (isRoot && this.$options.inheritAttrs !== false) this._resolveRootAttrs(component, props);
+    let scopeId = this.$options.__scopeId;
+
+    if (scopeId) {
+      if (!props.className) props.className = scopeId;else if (Array.isArray(props.className)) props.className.unshift(scopeId);else props.className = [scopeId, props.className];
+    }
+  }
+
+  _resolveRootAttrs(component, props) {
     var _this3 = this;
 
-    if (this.$options.inheritAttrs === false) return props;
     let inheritAttrs = Array.isArray(this.$options.inheritAttrs) ? this.$options.inheritAttrs : _config.default.inheritAttrs;
-    const RETX_DOM = /^[a-z]/;
-    let attrs = {};
-    const isPrimitiveTag = RETX_DOM.test(tagName);
+    const isPrimitiveTag = typeof component === 'string';
     inheritAttrs.forEach(function (key) {
       let v = _this3.props[key];
       if ((0, _utils.isFalsy)(v)) return;
-      if (key !== 'style' && isPrimitiveTag && !(0, _utils.isPrimitive)(v)) v = '';
-      if (v === true) v = '';
-      attrs[key] = v;
+
+      switch (key) {
+        case 'className':
+          if (props.className) {
+            if (v !== props.className) props.className = [v, props.className];
+          } else props.className = v;
+
+          break;
+
+        case 'style':
+          if (props.style) {
+            if (v !== props.style) props.style = Object.assign({}, v, props.style);
+          } else props.style = v;
+
+          break;
+
+        default:
+          if (props[key] !== undefined) return;
+          if (v === true || isPrimitiveTag && !(0, _utils.isPrimitive)(v)) v = '';
+          props[key] = v;
+      }
     });
-
-    if (attrs.className && props.className && attrs.className !== props.className) {
-      attrs.className = [attrs.className, props.className];
-      delete props.className;
-    }
-
-    if ((0, _utils.isObject)(attrs.style) && (0, _utils.isObject)(props.style) && attrs.style !== props.style) {
-      Object.assign(attrs.style, props.style);
-      delete props.style;
-    }
-
-    return Object.assign(attrs, props);
   }
 
   _resolveFilter(filter, filterName) {
@@ -798,43 +817,26 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
     let node;
 
     try {
-      node = this._renderFn && this._renderFn.apply(this, arguments);
+      node = this._renderFn && this._renderFn() || null;
     } catch (ex) {
       (0, _utils.handleError)(ex, this, 'render');
-
-      try {
-        node = this.renderError(ex);
-      } catch (ex) {
-        (0, _utils.handleError)(ex, this, 'renderError');
-        throw ex;
-      }
-    } // let el = this.$el;
-    // if (el) {
-    //   let inheritAttrs = Array.isArray(this.$options.inheritAttrs)
-    //     ? this.$options.inheritAttrs
-    //     : config.inheritAttrs;
-    //   inheritAttrs.forEach(key => {
-    //     let v = this.props[key];
-    //     if (!v) return;
-    //     switch (key) {
-    //       case 'className':
-    //         el.classList.add(...(v.split(' ').filter(Boolean)));
-    //         break;
-    //       case 'style':
-    //         if (isObject(v)) Object.assign(el.style, v);
-    //         break;
-    //       default: //
-    //     }
-    //   });
-    // }
-    // console.log('ReactVueLike.render', this.$options.name, node);
-
+      node = this.renderError(ex);
+    }
 
     return node;
   }
 
-  renderError() {
-    return null;
+  renderError(ex) {
+    let node;
+
+    try {
+      node = this._renderErrorFn && this._renderErrorFn(ex) || null;
+    } catch (ex) {
+      (0, _utils.handleError)(ex, this, 'renderError');
+      throw ex;
+    }
+
+    return node;
   }
 
   getSnapshotBeforeUpdate(prevProps, prevState) {

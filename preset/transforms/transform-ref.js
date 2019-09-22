@@ -5,6 +5,9 @@ module.exports = function ({ types: t, template }) {
   const attrName = directiveRegx('ref');
   const forRegx = options.forRegx;
   function ClassVisitor(path) {
+    if (this.handled.includes(path.node)) return;
+    this.handled.push(path.node);
+
     if (!isReactVueLike(path)) return;
     this.isReactVueLike = true;
   }
@@ -12,7 +15,9 @@ module.exports = function ({ types: t, template }) {
     visitor: {
       Program: {
         enter(path) {
-          const ctx = {};
+          const ctx = {
+            handled: []
+          };
           path.traverse({
             ClassDeclaration: ClassVisitor,
             ClassExpression: ClassVisitor,
@@ -28,7 +33,7 @@ module.exports = function ({ types: t, template }) {
               else if (path.node.name.name !== parsed.name) path.node.name = t.jsxIdentifier(parsed.name);
 
               const ref = path.node.value;
-              const useKey = parsed.arg === 'key' || parsed.modifiers.key;
+              const useKey = parsed.arg || parsed.modifiers.key;
 
               const funcParent = path.getFunctionParent();
               const isInFor = funcParent && funcParent.parentKey === 'arguments'
@@ -37,7 +42,8 @@ module.exports = function ({ types: t, template }) {
                 && forRegx.test(memberExpr2Str(funcParent.parent.callee));
               let key;
               if (isInFor) {
-                const keyAttr = useKey && path.parent.attributes.find(attr => attr.name && attr.name.name === 'key');
+                let keyName = typeof useKey == 'string' ? useKey : 'key';
+                const keyAttr = useKey && path.parent.attributes.find(attr => attr.name && attr.name.name === keyName);
                 if (useKey && keyAttr) {
                   key = keyAttr.value;
                   if (t.isJSXExpressionContainer(key)) key = key.expression;

@@ -10,8 +10,6 @@ const options = require('../options');
 module.exports = function ({ types: t, template }) {
   const inheritAttrs = new RegExp(`^[^(${options.prefix.replace(/-/g, '\\-')})|_|$][A-Za-z0-9\\-_]+$`);
   function wrapElementAttrs(path, element) {
-    // if (this.cached.includes(element)) return;
-    // this.cached.push(element);
     let attrs = [];
     // let hasSpread = false;
     element.openingElement.attributes.forEach(attr => {
@@ -35,7 +33,7 @@ module.exports = function ({ types: t, template }) {
     element.openingElement.attributes.splice(0,
       element.openingElement.attributes.length,
       t.jSXSpreadAttribute(
-        template('this._resolveSpreadAttrs($TAG$, $PROPS$)')({
+        template('this._resolveRootAttrs($TAG$, $PROPS$)')({
           $TAG$: t.stringLiteral(expr2var(element.openingElement.name)),
           $PROPS$: t.objectExpression(attrs),
           // $SPREAD$: t.booleanLiteral(hasSpread)
@@ -142,7 +140,10 @@ module.exports = function ({ types: t, template }) {
     path.traverse({
       ClassMethod(path) {
         const node = path.node;
-        if (node.kind === 'method' && expr2var(node.key) === 'render') {
+        if (node.kind === 'method'
+          && (
+            expr2var(node.key) === 'render' || expr2var(node.key) === 'renderError'
+          )) {
           traverseReturn.call(this, path);
           path.stop();
         }

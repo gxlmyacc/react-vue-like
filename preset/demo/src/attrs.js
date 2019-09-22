@@ -20,13 +20,11 @@ class App extends ReactVueLike {
   render() {
     let a = true;
     // let ret = () => <div></div>;
-    let ret = function() {
-      return <div></div>;
-    }
+    let ret = <div></div>;
     if (a) {
       ret = () => {
         console.log('ddd');
-        return <span></span>;
+        return <span>{ret}</span>;
       }
     }
     // else ret = () => <p></p>;

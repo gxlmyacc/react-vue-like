@@ -607,6 +607,13 @@ function childrenToArrayExpr(children, trim) {
   return children.length === 1 ? children[0] : t.arrayExpression(children);
 }
 
+function findClassVarName(classDeclarationPath) {
+  if (t.isClassExpression(classDeclarationPath) && classDeclarationPath.key === 'right') {
+    return expr2var(classDeclarationPath.parent.left);
+  }
+  return expr2var(classDeclarationPath.node.id);
+}
+
 function findClassStaticPath(classDeclarationPath, propertyName) {
   let bodyPath;
   let isArg1Ok;
@@ -745,6 +752,7 @@ module.exports = {
   extractNodeCode,
   expr2var,
   childrenToArrayExpr,
+  findClassVarName,
   findClassStaticPath,
   isReactVueLike,
   directiveRegx,

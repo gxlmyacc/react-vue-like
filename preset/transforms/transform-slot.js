@@ -9,6 +9,9 @@ const { compRegx } = require('../options');
 
 module.exports = function ({ types: t, template }) {
   function ClassVisitor(path) {
+    if (this.handled.includes(path.node)) return;
+    this.handled.push(path.node);
+
     if (!isReactVueLike(path)) return;
 
     path.traverse({
@@ -50,6 +53,9 @@ module.exports = function ({ types: t, template }) {
     });
   }
   return {
+    pre(state) {
+      this.handled = [];
+    },
     visitor: {
       ClassDeclaration: ClassVisitor,
       ClassExpression: ClassVisitor,

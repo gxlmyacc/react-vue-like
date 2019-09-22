@@ -54,6 +54,8 @@ class HomeMainSomeIndex extends ReactVueLike {
         <h1>HomeMainSomeIndex</h1>
         { this.text }
         <br />
+        { this.formData.text }
+        <br />
         logined: { String(this.logined) }
         <br />
         <input v-model={this.formData.text} />

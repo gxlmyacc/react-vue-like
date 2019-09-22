@@ -4,6 +4,7 @@ const COMP_METHS = [
   'data',
   'provide',
   'render',
+  'renderError',
 ];
 
 module.exports = function ({ types: t, template }) {
@@ -69,9 +70,10 @@ module.exports = function ({ types: t, template }) {
   }
 
   function ClassVisitor(path) {
-    if (!isReactVueLike(path)) return;
     if (handled.includes(path.node)) return;
     handled.push(path.node);
+
+    if (!isReactVueLike(path)) return;
 
     let allMethods = [];
 
@@ -117,12 +119,10 @@ module.exports = function ({ types: t, template }) {
   }
 
   return {
+    pre(state) {
+      handled = [];
+    },
     visitor: {
-      Program: {
-        enter() {
-          handled = [];
-        },
-      },
       ClassDeclaration: ClassVisitor,
       ClassExpression: ClassVisitor,
       CallExpression(path) {

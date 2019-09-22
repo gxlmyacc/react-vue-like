@@ -97,6 +97,7 @@ module.exports = {
     'no-await-in-loop': 0,
     // 禁用按位运算符
     'no-bitwise': 0,
+    'no-debugger': 1,
     // 不允许在 case 子句中使用词法声明
     'no-case-declarations': 2,
     // 禁止条件表达式中出现赋值操作符
