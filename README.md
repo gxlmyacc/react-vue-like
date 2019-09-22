@@ -335,7 +335,7 @@ will transform to like this:
   height: 100%;
 }
 
-.aa .bb.v-123dse43 >>> .cc {
+.aa .bb.v-123dse43 .cc {
   background-color: red;
 }
 
