@@ -15,6 +15,7 @@ module.exports = {
     path.resolve('./preset/index.js'),
   ],
   plugins: [
+    '@babel/plugin-syntax-jsx',
     ['@babel/plugin-proposal-decorators', { legacy: true }],
     '@babel/plugin-proposal-class-properties',
     '@babel/plugin-transform-strict-mode',

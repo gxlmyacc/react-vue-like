@@ -1,6 +1,6 @@
 
 const camelCase = require('camelcase');
-const { appendAttrEvent, mergeAttrEvent, directiveRegx, parseDirective, bindModifiers } = require('../utils');
+const { appendAttrEvent, mergeAttrEvent, directiveRegx, parseDirective, bindModifiers, expr2var } = require('../utils');
 const options = require('../options');
 
 module.exports = function ({ types: t, template }) {
@@ -12,11 +12,13 @@ module.exports = function ({ types: t, template }) {
   function JSXAttributeVisitor(path) {
     const attr = path.node;
     if (!attr.name || !t.isJSXExpressionContainer(attr.value)) return;
-    const parsed = parseDirective(attr.name.name, attrName);
+    const parsed = parseDirective(expr2var(attr.name), attrName);
     if (!parsed || !Object.keys(parsed.modifiers).length) return;
     const isEvent = /^on[A-Z]/.test(parsed.name);
 
-    attr.name.name = parsed.name;
+    if (t.isJSXNamespacedName(attr.name)) {
+      attr.name = t.jsxIdentifier(parsed.name);
+    } else attr.name.name = parsed.name;
     const value = attr.value.expression;
 
     const modifiers = parsed.modifiers;
@@ -35,17 +37,17 @@ module.exports = function ({ types: t, template }) {
     function genFilterCode(key) {
       // eslint-disable-next-line
       let keyVal = parseInt(key, 10);
-      if (keyVal) return ('_e.keyCode!==' + keyVal);
+      if (keyVal) return ('$event.keyCode!==' + keyVal);
       let code = keyCodes[key];
-      if (code) return ('_e.keyCode!==' + code);
+      if (code) return ('$event.keyCode!==' + code);
       this.needReactVueLike = true;
       return (
-        `ReactVueLike._k.call(this,_e.keyCode,${JSON.stringify(key)},{},_e.key)`
+        `ReactVueLike._k.call(this,$event.keyCode,${JSON.stringify(key)},{},$event.key)`
       );
     }
 
     function genKeyFilter(keys) {
-      return (`if(!('button' in _e)&&${(keys.map(genFilterCode.bind(this)).join('&&'))})return null;`);
+      return (`if(!('button' in $event)&&${(keys.map(genFilterCode.bind(this)).join('&&'))})return null;`);
     }
 
     // event
@@ -65,7 +67,7 @@ module.exports = function ({ types: t, template }) {
         genModifierCode += genGuard(
           ['ctrl', 'shift', 'alt', 'meta']
             .filter(function (keyModifier) { return !modifiers[keyModifier]; })
-            .map(function (keyModifier) { return ('_e.' + keyModifier + 'Key'); })
+            .map(function (keyModifier) { return ('$event.' + keyModifier + 'Key'); })
             .join('||')
         );
       } else keys.push(key);
@@ -80,7 +82,7 @@ module.exports = function ({ types: t, template }) {
     if (!code) return;
     const body = template(code)({});
     mergeAttrEvent(attr, t.arrowFunctionExpression(
-      [t.identifier('_e')],
+      [t.identifier('$event')],
       t.blockStatement(Array.isArray(body) ? body : [body])
     ));
   }

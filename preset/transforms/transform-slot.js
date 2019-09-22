@@ -66,11 +66,13 @@ module.exports = function ({ types: t, template }) {
           let slotNode = path.node.children[slotIndex];
           if (!t.isJSXElement(slotNode)) continue;
           let openingElement = slotNode.openingElement;
-          let slotAttrIndex = openingElement.attributes.findIndex(a => a.name && a.name.name === 'slot');
+          let slotAttrIndex = openingElement.attributes.findIndex(a => a.name && (a.name.namespace
+            ? a.name.namespace.name === 'v-slot'
+            : a.name.name === 'slot'));
           let slotAttr; let slotAttrName;
           if (~slotAttrIndex) {
             slotAttr = openingElement.attributes[slotAttrIndex];
-            slotAttrName = slotAttr.value.value;
+            slotAttrName = slotAttr.name.namespace ? slotAttr.name.name.name : slotAttr.value.value;
           }
           if (openingElement.name.name === 'template') {
             path.node.children[slotIndex] = slotNode = childrenToArrayExpr(slotNode.children, true);

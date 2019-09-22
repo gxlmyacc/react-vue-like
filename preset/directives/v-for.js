@@ -1,5 +1,5 @@
 
-const { objValueStr2AST } = require('../utils');
+const { objValueStr2AST, expr2var } = require('../utils');
 const options = require('../options');
 
 module.exports = function ({ types: t }) {
@@ -42,11 +42,11 @@ module.exports = function ({ types: t }) {
 
       function getAndRemoveForBinding(openingElement) {
         if (openingElement.type !== 'JSXOpeningElement') return;
-        const index = openingElement.attributes.findIndex(attr => (attr && attr.name && attr.name.name) === forAttrName);
+        const index = openingElement.attributes.findIndex(attr => (attr && attr.name && expr2var(attr.name)) === forAttrName);
         if (index < 0) return;
 
         let forBinding = openingElement.attributes[index].value;
-        openingElement.attributes = openingElement.attributes.filter(attr => attr.name && attr.name.name !== forAttrName);
+        openingElement.attributes = openingElement.attributes.filter(attr => attr.name && expr2var(attr.name) !== forAttrName);
 
         if (forBinding.type === 'StringLiteral') return forBinding.value;
         if (forBinding.type === 'JSXExpressionContainer' && forBinding.expression) {

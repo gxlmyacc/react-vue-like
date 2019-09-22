@@ -1,6 +1,7 @@
 const { declare } = require('@babel/helper-plugin-utils');
+const syntaxJsx = require('@babel/plugin-syntax-jsx').default;
 const path = require('path');
-const { fileExists } = require('./utils');
+const { fileExists, isFunction } = require('./utils');
 const options = require('./options');
 const transformClass = require('./transforms/transform-class');
 const transformRequire = require('./transforms/transform-require');
@@ -27,6 +28,15 @@ if (fileExists(path.join(process.cwd(), 'package.json'))) {
   pkg = require(path.join(process.cwd(), 'package.json'));
 }
 
+function pluginHook(plugin) {
+  if (!isFunction(plugin)) return plugin;
+  return function () {
+    let ret = plugin.apply(this, arguments);
+    if (!ret.inherits) ret.inherits = syntaxJsx;
+    return ret;
+  };
+}
+
 module.exports = declare((api, opts = {}) => {
   api.assertVersion(7);
   if (!opts) opts = {};
@@ -45,7 +55,7 @@ module.exports = declare((api, opts = {}) => {
 
   options.pkg = pkg;
 
-  const plugins = [
+  let plugins = [
   ];
 
   if (options.transform.class) plugins.push(transformClass);
@@ -67,6 +77,8 @@ module.exports = declare((api, opts = {}) => {
   if (options.inject.file) plugins.push(injectFile);
   if (options.inject.scope) plugins.push(injectScope);
   if (options.inject.attrs) plugins.push(injectAttrs);
+
+  plugins = plugins.map(p => pluginHook(p));
 
   return {
     plugins

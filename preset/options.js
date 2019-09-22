@@ -4,6 +4,7 @@ const genGuard = function (condition) { return ('if(' + condition + ')return nul
 module.exports = {
   prefix: 'v-',
   compRegx: /^([A-Z])|([a-z][a-z0-9]+-[a-z0-9]+)/,
+  forRegx: /\.(map|filter|reverse|sort|slice)$/,
   keyCodes: {
     esc: 27,
     tab: 9,
@@ -16,18 +17,18 @@ module.exports = {
     delete: [8, 46]
   },
   modifierCode: {
-    stop: '_e.stopPropagation();',
-    prevent: '_e.preventDefault();',
-    persist: '_e.persist();',
-    native: '_e=_e.nativeEvent;',
-    self: genGuard('_e.target !== _e.currentTarget'),
-    ctrl: genGuard('!_e.ctrlKey'),
-    shift: genGuard('!_e.shiftKey'),
-    alt: genGuard('!_e.altKey'),
-    meta: genGuard('!_e.metaKey'),
-    left: genGuard("'button' in _e && _e.button !== 0"),
-    middle: genGuard("'button' in _e && _e.button !== 1"),
-    right: genGuard("'button' in _e && _e.button !== 2")
+    stop: '$event.stopPropagation();',
+    prevent: '$event.preventDefault();',
+    persist: '$event.persist();',
+    native: '$event=$event.nativeEvent;',
+    self: genGuard('$event.target !== $event.currentTarget'),
+    ctrl: genGuard('!$event.ctrlKey'),
+    shift: genGuard('!$event.shiftKey'),
+    alt: genGuard('!$event.altKey'),
+    meta: genGuard('!$event.metaKey'),
+    left: genGuard("'button' in $event && $event.button !== 0"),
+    middle: genGuard("'button' in $event && $event.button !== 1"),
+    right: genGuard("'button' in $event && $event.button !== 2")
   },
   genGuard,
   attrName: {

@@ -1,6 +1,6 @@
 const hash = require('hash-sum');
 const options = require('../options');
-// const { isReactVueLike } = require('../utils');
+const { expr2var } = require('../utils');
 
 function createScopeId(filename) {
   if (options.pkg) filename = `${options.pkg.name}!${filename}`;
@@ -47,7 +47,7 @@ module.exports = function ({ types: t, template }) {
           if (ctx.scopeId) {
             path.traverse({
               JSXElement(path) {
-                const classAttr = path.node.openingElement.attributes.find(attr => attr.name && attr.name.name === 'className');
+                const classAttr = path.node.openingElement.attributes.find(attr => attr.name && expr2var(attr.name) === 'className');
                 if (classAttr) {
                   if (t.isStringLiteral(classAttr.value)) {
                     classAttr.value = t.stringLiteral(`${this.scopeId} ${classAttr.value.value}`);

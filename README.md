@@ -106,7 +106,7 @@ example:
    }
 
    render() {
-     return (<div v-test_arg$aa$bb={1+1}></div>);
+     return (<div v-test_arg$aa$bb={1+1} {/* or */} v-test:arg$aa$bb={1+1} ></div>);
    }
  }
   ```
@@ -478,6 +478,16 @@ class Test extends ReactVueLike {
 
 ```js
 class Test extends ReactVueLike {
+
+  static data() {
+    return {
+      list: [
+        { key: 'a', value: 1 },
+        { key: 'b', value: 2 },
+        { key: 'c', value: 3 },
+      ]
+    }
+  }
   
   test() {
     this.$refs.some.doSomething();
@@ -486,9 +496,34 @@ class Test extends ReactVueLike {
   render() {
     return (<div>
       { /* 
-      if ref value is string, then ref value will transform to `ref=>this.$refs.some=ref`, otherwise do nothing.
+      if ref value is string, then ref value will transform to `ref=>this.$refs['some']=ref`, otherwise do nothing.
       */ }
       <SomeComponent ref="some" onClick={this.test}></SomeComponent>
+
+      {
+        this.list.map((v, i/*if not has second param, will auto inject `$index` */) => {
+          {/* support Array.map/filter/sort/slice/reverse */}
+          return [
+            {/* 
+              will transform to:
+              ref=> {
+                if (!this.$refs['item1']) this.$refs['item1'] = [];
+                this.$refs['item1'][$index] = ref;
+              }
+            */}
+            <span ref="item1" key={v.key}>{v.value}</span>,
+
+            {/* 
+              will transform to:
+              ref=> {
+                if (!this.$refs['item1']) this.$refs['item1'] = {};
+                this.$refs['item1'][v.key] = ref;
+              }
+            */}
+            <span ref$key="item2" key={v.key}>{v.value}</span>,
+          ]
+        })
+      }
     </div>);
   }
 
@@ -505,7 +540,7 @@ like `$nextTick`,`$set`,`$delete`,`$forceUpdate`,`$watch`,`$emit`,`$on`,`$off`,`
 default ReactVueLike component will inherit `className`, `style`, `id`, `disabled` attributes that be defined in it`s parent component
 
 ### `class attribute support and enhance` 
-`class attribute` in jsx will transfrom to `className`, and now `class/className` support `String/Array/Object`. see [Vue class](https://vuejs.org/v2/guide/class-and-style.html)
+`class attribute` in jsx will transfrom to `className`, and now `class/className` support `String/Array/Object` types. see [Vue class](https://vuejs.org/v2/guide/class-and-style.html)
 
 ```js
 class Test extends ReactVueLike {

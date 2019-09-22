@@ -1,5 +1,6 @@
 const camelCase = require('camelcase');
 const {
+  expr2var,
   DirectiveName,
   iterativeAttrAST,
   var2Expression,
@@ -21,7 +22,7 @@ module.exports = function ({ types: t, template }) {
 
     iterativeAttrAST(path.node, attr => {
       if (path.node.openingElement.name.name === DirectiveName) return;
-      let parsed = parseDirective(attr.name.name, attrName);
+      let parsed = parseDirective(expr2var(attr.name), attrName);
       if (!parsed || !parsed.name) return;
 
       if (attrNameKeys.indexOf(`${prefix}${parsed.name}`) > -1) return;
@@ -40,7 +41,7 @@ module.exports = function ({ types: t, template }) {
 
     bindings = bindings.map(({ attr, ...binding }) => {
       binding.value = attr.value.expression;
-      removeAttrAST(path.node, attr.name.name);
+      removeAttrAST(path.node, expr2var(attr.name));
       return binding;
     });
 

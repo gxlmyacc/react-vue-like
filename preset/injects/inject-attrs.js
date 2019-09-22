@@ -8,6 +8,7 @@ const {
 const options = require('../options');
 
 module.exports = function ({ types: t, template }) {
+  const inheritAttrs = new RegExp(`^[^(${options.prefix.replace(/-/g, '\\-')})|_|$][A-Za-z0-9\\-_]+$`);
   function wrapElementAttrs(path, element) {
     // if (this.cached.includes(element)) return;
     // this.cached.push(element);
@@ -22,11 +23,11 @@ module.exports = function ({ types: t, template }) {
         //     || (t.isMemberExpression(expr)
         //       && ['this.props', 'this.$attrs'].includes(extractNodeCode(path, expr)));
         // }
-      } else if (t.isJSXAttribute(attr) && !attr.name.name.startsWith(options.prefix)) {
+      } else if (t.isJSXAttribute(attr) && inheritAttrs.test(expr2var(attr.name))) {
         let value = attr.value;
         if (t.isJSXExpressionContainer(value)) value = value.expression;
         attrs.push(t.objectProperty(
-          t.identifier(attr.name.name),
+          t.identifier(expr2var(attr.name)),
           value
         ));
       }

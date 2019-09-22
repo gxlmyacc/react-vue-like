@@ -211,18 +211,17 @@ class ReactVueLike extends React.Component {
   }
 
   _resolveRef(refName, el, key) {
-    this.$refs[refName] = el;
-    // if (!key) {
-    //   this.$refs[refName] = el;
-    //   return;
-    // }
-    // if (typeof key === 'number') {
-    //   if (!this.$refs[refName]) this.$refs[refName] = [];
-    //   this.$refs[refName][key] = el;
-    //   return;
-    // }
-    // if (!this.$refs[refName]) this.$refs[refName] = {};
-    // this.$refs[refName][key] = el;
+    if (!key) {
+      this.$refs[refName] = el;
+      return;
+    }
+    if (typeof key === 'number') {
+      if (!this.$refs[refName]) this.$refs[refName] = [];
+      this.$refs[refName][key] = el;
+      return;
+    }
+    if (!this.$refs[refName]) this.$refs[refName] = {};
+    this.$refs[refName][key] = el;
   }
 
   _resolveSlot(slotName, scope, children) {

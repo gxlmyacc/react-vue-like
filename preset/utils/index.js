@@ -143,6 +143,8 @@ function expr2var(expr) {
     case 'Identifier':
     case 'JSXIdentifier':
       return expr.name;
+    case 'JSXNamespacedName':
+      return `${expr.namespace.name}:${expr.name.name}`;
     case 'NumericLiteral':
     case 'BooleanLiteral':
     case 'StringLiteral':
@@ -263,7 +265,7 @@ function getAttrASTAndIndexByName(node, attrName) {
   if (type !== 'JSXOpeningElement') return null;
 
   const index = attributes.findIndex(
-    attr => attr.name && attr.name.name === attrName
+    attr => attr.name && expr2var(attr.name) === attrName
   );
   if (index < 0) return null;
 
@@ -476,41 +478,36 @@ function createDisplayProp(condition, showValue) {
   );
 }
 
-function mergeAttrEvent(handlerNode, funcExpression, argumentName = '_e') {
+function mergeAttrEvent(handlerNode, funcExpression, params) {
   const callee = handlerNode.value.expression;
-  const argument = t.identifier(argumentName);
   funcExpression.body.body.push(t.returnStatement(
     t.callExpression(
       callee,
-      [argument]
+      params || funcExpression.params
     )
   ));
   handlerNode.value = t.JSXExpressionContainer(funcExpression);
+  // let params = params || funcExpression.params;
   // handlerNode.value = t.JSXExpressionContainer(
   //   t.arrowFunctionExpression(
-  //     [argument],
+  //     params,
   //     t.blockStatement([
   //       t.expressionStatement(
-  //         t.callExpression(
-  //           funcExpression,
-  //           [argument]
-  //         )
+  //         t.callExpression(funcExpression, params)
   //       ),
   //       t.expressionStatement(
-  //         t.callExpression(
-  //           callee,
-  //           [argument]
-  //         )
+  //         t.callExpression(callee, params)
   //       )
   //     ])
   //   )
   // );
 }
 
-function appendAttrEvent(node, eventName, funcExpression, argumentName = '_e') {
-  const handlerNode = node.parent.attributes.find(attr => (attr.name && attr.name.name) === eventName);
+function appendAttrEvent(node, eventName, funcExpression) {
+  const handlerNode = node.parent.attributes.find(attr =>
+    (attr.name && (attr.name.namespace ? attr.name.namespace.name : attr.name.name)) === eventName);
   if (handlerNode) {
-    mergeAttrEvent(handlerNode, funcExpression, argumentName);
+    mergeAttrEvent(handlerNode, funcExpression);
   } else {
     node.insertAfter(t.JSXAttribute(
       t.jSXIdentifier(eventName),
@@ -680,7 +677,7 @@ function isReactVueLike(classDeclarationPath) {
 }
 
 function directiveRegx(regx, prefix = '') {
-  return new RegExp(`^${prefix}(${regx})(?:_([a-zA-Z0-9-]+))?((?:\\$[a-zA-Z0-9-]+)*)$`);
+  return new RegExp(`^${prefix.replace(/-/g, '\\-')}(${regx})(?:[_|:]([a-zA-Z0-9-]+))?((?:\\$[a-zA-Z0-9-]+)*)$`);
 }
 
 function parseModifiers(modifiers) {
@@ -708,10 +705,15 @@ function bindModifiers(value, modifiers) {
   return value;
 }
 
+function isFunction(fn) {
+  return typeof fn === 'function';
+}
+
 module.exports = {
   DirectiveName,
   getConstCache,
   fileExists,
+  isFunction,
   isRequired,
   isReactComponent,
   addImport,

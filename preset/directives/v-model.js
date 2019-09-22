@@ -1,9 +1,9 @@
 
-const { appendAttrEvent, directiveRegx, parseDirective, bindModifiers } = require('../utils');
+const { appendAttrEvent, directiveRegx, parseDirective, bindModifiers, expr2var } = require('../utils');
 const options = require('../options');
 
 module.exports = function ({ types: t, template }) {
-  const attrName = directiveRegx(options.attrName.model);
+  const attrName = directiveRegx(options.attrName.model.replace(/-/g, '\\-'));
   return {
     visitor: {
       Program: {
@@ -12,17 +12,20 @@ module.exports = function ({ types: t, template }) {
             JSXAttribute(path) {
               const attr = path.node;
               if (!attr.name || !t.isJSXExpressionContainer(attr.value)) return;
-              const parsed = parseDirective(attr.name.name, attrName);
+              const parsed = parseDirective(expr2var(attr.name), attrName);
               if (!parsed) return;
-              attr.name.name = parsed.arg || 'value';
+              let name = parsed.arg || 'value';
+              if (t.isJSXNamespacedName(attr.name)) {
+                attr.name = t.jsxIdentifier(name);
+              } else attr.name.name = name;
 
               let modifiers = parsed.modifiers;
               let value = attr.value.expression;
-              let newValue = bindModifiers('_e && _e.target ? _e.target.value : _e', modifiers);
+              let newValue = bindModifiers('e && e.target ? e.target.value : e', modifiers);
               let event = modifiers.lazy ? 'onBlur' : 'onChange';
 
               appendAttrEvent(path, event, t.arrowFunctionExpression(
-                [t.identifier('_e')],
+                [t.identifier('e')],
                 t.blockStatement([
                   template(`$1=${newValue}`)({ $1: value })
                 ])
