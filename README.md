@@ -5,6 +5,14 @@
 
 write react component like vue, implementation based on mbox@4.
 
+## Installation
+
+```bash
+npm install react-vue-like --save
+# or
+yarn add react-vue-like
+```
+
 ## Support Vue feature
 
 ### `props` 
@@ -693,13 +701,30 @@ see `ReactVueLike.Store`
 ###  `const var` 
 support `__filename`, `__dirname`, `__packagename`, `__packageversion`, `__now`
 
-## Installation
+### `Instance Methods`
 
-```bash
-npm install react-vue-like --save
-# or
-yarn add react-vue-like
-```
+`function $computed(target, expr, value)` defined a computed in `ReactVueLike Component` instance.
+
+`function $runAction(nameOfFn, fn?)` run `fn` in mobx action, equals `runInAction` in `mobx`. 
+
+### `Static Methods`
+
+`ReactVueLike.runAction(nameOfFn, fn?)` - equals `$runAction` in component instance.
+
+`ReactVueLike.observable` - `observable` method in `mobx`, just re-export.
+
+`ReactVueLike.flow` - `flow` method in `mobx`, just re-export.
+
+`ReactVueLike.action` - `action` method in `mobx`, just re-export.
+
+`ReactVueLike.config` - config something in ReactVueLike, example: `ReactVueLike.config({ enforceActions: true })`;
+
+`toJS, isObservable, isObservableProp, isObservableObject, isObservableArray, isObservableMap, isBoxedObservable,
+isArrayLike, isAction, isComputed, isComputedProp,
+observable, extendObservable, observe, decorate, reaction, intercept,
+computed, action, autorun, when, runInAction, createAtom,
+set, get, remove, has, flow, configure,
+onBecomeObserved, onBecomeUnobserved` mobx methods, just re-export.
 
 ## Usage
 
