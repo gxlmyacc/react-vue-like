@@ -299,6 +299,17 @@ class Test extends ReactVueLike {
 if import's style file name has `?scoped`, then it will treat as `scoped style`
 
 example:
+```scss
+.aa .bb {
+  height: 100%;
+}
+
+.aa .bb >>> .cc {
+  background-color: red;
+}
+
+```
+
 ```js
 import React from 'react';
 import ReactVueLike from 'react-vue-like';
@@ -308,7 +319,42 @@ import './test.scss?scoped';
 class Test extends ReactVueLike {
 
   render() {
-    return (<div>haha</div>);
+    return (<div className="aa">
+      haha
+      <span>dd</span>
+      <a-component className="bb" />
+    </div>);
+  }
+
+}
+```
+
+will transform to like this:
+```scss
+.aa .bb.v-123dse43 {
+  height: 100%;
+}
+
+.aa .bb.v-123dse43 >>> .cc {
+  background-color: red;
+}
+
+```
+
+```js
+import React from 'react';
+import ReactVueLike from 'react-vue-like';
+
+import './test.scss?scoped';
+
+class Test extends ReactVueLike {
+
+  render() {
+    return (<div className="v-123dse43 aa">
+      haha
+      <span className="v-123dse43">dd</span>
+      <a-component className="v-123dse43 bb" />
+    </div>);
   }
 
 }
@@ -371,8 +417,6 @@ example:
 ```js
 import React from 'react';
 import ReactVueLike from 'react-vue-like';
-
-import './test.scss?scoped';
 
 class Test extends ReactVueLike {
 
