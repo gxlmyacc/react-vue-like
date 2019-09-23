@@ -22,6 +22,7 @@ const config = {
   errorHandler: null,
   warnHandler: null,
   enforceActions: false,
+  useCollect: false,
   keyCodes: {
     // esc: 27,
     // tab: 9,

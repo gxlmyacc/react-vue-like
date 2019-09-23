@@ -1,6 +1,6 @@
 const hash = require('hash-sum');
 const options = require('../options');
-const { isReactVueLike, findClassVarName } = require('../utils');
+const { isReactVueLike, expr2var, findClassVarName } = require('../utils');
 
 function createScopeId(filename) {
   if (options.pkg) filename = `${options.pkg.name}!${filename}`;
@@ -50,27 +50,27 @@ module.exports = function ({ types: t, template }) {
             ClassExpression: ClassVisitor
           }, ctx);
 
-          // if (ctx.scopeId) {
-          //   path.traverse({
-          //     JSXElement(path) {
-          //       const classAttr = path.node.openingElement.attributes.find(attr => attr.name && expr2var(attr.name) === 'className');
-          //       if (classAttr) {
-          //         if (t.isStringLiteral(classAttr.value)) {
-          //           classAttr.value = t.stringLiteral(`${this.scopeId} ${classAttr.value.value}`);
-          //         } else if (t.isJSXExpressionContainer(classAttr.value)) {
-          //           classAttr.value.expression = template('[$SCOPEID$,$SOURCE$]')({
-          //             $SCOPEID$: t.stringLiteral(this.scopeId),
-          //             $SOURCE$: classAttr.value.expression
-          //           }).expression;
-          //         }
-          //       } else {
-          //         path.get('openingElement').pushContainer('attributes', t.JSXAttribute(
-          //           t.JSXIdentifier('className'), t.stringLiteral(this.scopeId)
-          //         ));
-          //       }
-          //     }
-          //   }, ctx);
-          // }
+          if (ctx.scopeId) {
+            path.traverse({
+              JSXElement(path) {
+                const classAttr = path.node.openingElement.attributes.find(attr => attr.name && expr2var(attr.name) === 'className');
+                if (classAttr) {
+                  if (t.isStringLiteral(classAttr.value)) {
+                    classAttr.value = t.stringLiteral(`${this.scopeId} ${classAttr.value.value}`);
+                  } else if (t.isJSXExpressionContainer(classAttr.value)) {
+                    classAttr.value.expression = template('[$SCOPEID$,$SOURCE$]')({
+                      $SCOPEID$: t.stringLiteral(this.scopeId),
+                      $SOURCE$: classAttr.value.expression
+                    }).expression;
+                  }
+                } else {
+                  path.get('openingElement').pushContainer('attributes', t.JSXAttribute(
+                    t.JSXIdentifier('className'), t.stringLiteral(this.scopeId)
+                  ));
+                }
+              }
+            }, ctx);
+          }
         }
       }
     }

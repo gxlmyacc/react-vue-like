@@ -15,6 +15,7 @@ const config = {
   warnHandler: null,
 
   enforceActions: false,
+  useCollect: false,
 
   keyCodes: {
     // esc: 27,

@@ -1,5 +1,9 @@
 
 import React from 'react';
+import config from './config';
+
+const ForwardRefMeth = React.forwardRef(() => null);
+export const REACT_FORWARD_REF_TYPE = ForwardRefMeth.$$typeof;
 
 class Collect {
 
@@ -14,32 +18,34 @@ class Collect {
     const getRoot = root => {
       if (!root) return root;
       if (Array.isArray(root)) return root.map(r => getRoot(r));
+      if (root.__collect) root.__collect.isRoot = true;
       return root.__collect || root;
     };
-    return { root: getRoot(root), result: root, elements };
+    return { root: getRoot(root), elements };
   }
 
   push(component, props, children) {
-    const node = { __collect: { cid: this.elements.length, component, props, children } };
+    const node = {
+      __collect: { cid: this.elements.length, component, props, children },
+    };
     this.elements.push(node);
     return node;
   }
 
-  render(root, elements, each) {
-    const na = !Array.isArray(root);
+  render(elements, each) {
     elements.forEach(node => {
       const el = node.__collect;
       delete node.__collect;
 
       const props = el.props || {};
-      each && each(el.component, props, el.children, root && (na ? root === el : root.includes(el)));
+      each && each(el.component, props, el.children, Boolean(el.isRoot));
 
       Object.assign(node, React.createElement(el.component, props, ...el.children));
     });
   }
 
-  wrap(fn, each, after) {
-    if (!fn) return fn;
+  wrap(fn, each, pre, after) {
+    if (!fn || !config.useCollect) return fn;
     let collect = this;
     return function render() {
       collect.start();
@@ -47,7 +53,9 @@ class Collect {
       let result = fn.apply(this, arguments);
       let { root, elements } = collect.end(result);
 
-      collect.render(root, elements, each);
+      pre && pre(root);
+
+      collect.render(elements, each);
 
       after && after(result);
 

@@ -293,19 +293,20 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
 
   _eachRenderElement(component, props, children, isRoot) {
     if (!component) return;
-    if (isRoot && this.$options.inheritAttrs !== false) this._resolveRootAttrs(component, props);
-    let scopeId = this.$options.__scopeId;
-
-    if (scopeId) {
-      if (!props.className) props.className = scopeId;else if (Array.isArray(props.className)) props.className.unshift(scopeId);else props.className = [scopeId, props.className];
-    }
+    if (isRoot && this.$options.inheritAttrs !== false) this._resolveRootAttrs(component, props); // let scopeId = this.$options.__scopeId;
+    // if (scopeId) {
+    //   if (!props.className) props.className = scopeId;
+    //   else if (Array.isArray(props.className)) props.className.unshift(scopeId);
+    //   else props.className = [scopeId, props.className];
+    // }
   }
 
   _resolveRootAttrs(component, props) {
     var _this3 = this;
 
     let inheritAttrs = Array.isArray(this.$options.inheritAttrs) ? this.$options.inheritAttrs : _config.default.inheritAttrs;
-    const isPrimitiveTag = typeof component === 'string';
+    const RETX_DOM = /^[a-z][a-z0-9]*$/;
+    const isPrimitiveTag = typeof component === 'string' && RETX_DOM.test(component);
     inheritAttrs.forEach(function (key) {
       let v = _this3.props[key];
       if ((0, _utils.isFalsy)(v)) return;
@@ -330,6 +331,8 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
           if (v === true || isPrimitiveTag && !(0, _utils.isPrimitive)(v)) v = '';
           props[key] = v;
       }
+
+      return props;
     });
   }
 
@@ -827,13 +830,12 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
   }
 
   renderError(ex) {
-    let node;
+    let node = null;
 
     try {
       node = this._renderErrorFn && this._renderErrorFn(ex) || null;
     } catch (ex) {
       (0, _utils.handleError)(ex, this, 'renderError');
-      throw ex;
     }
 
     return node;

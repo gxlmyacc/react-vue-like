@@ -242,12 +242,12 @@ class ReactVueLike extends React.Component {
 
     if (isRoot && this.$options.inheritAttrs !== false) this._resolveRootAttrs(component, props);
 
-    let scopeId = this.$options.__scopeId;
-    if (scopeId) {
-      if (!props.className) props.className = scopeId;
-      else if (Array.isArray(props.className)) props.className.unshift(scopeId);
-      else props.className = [scopeId, props.className];
-    }
+    // let scopeId = this.$options.__scopeId;
+    // if (scopeId) {
+    //   if (!props.className) props.className = scopeId;
+    //   else if (Array.isArray(props.className)) props.className.unshift(scopeId);
+    //   else props.className = [scopeId, props.className];
+    // }
   }
 
   _resolveRootAttrs(component, props) {
@@ -255,7 +255,8 @@ class ReactVueLike extends React.Component {
       ? this.$options.inheritAttrs
       : config.inheritAttrs;
 
-    const isPrimitiveTag = typeof component === 'string';
+    const RETX_DOM = /^[a-z][a-z0-9]*$/;
+    const isPrimitiveTag = typeof component === 'string' && RETX_DOM.test(component);
 
     inheritAttrs.forEach(key => {
       let v = this.props[key];
@@ -276,6 +277,7 @@ class ReactVueLike extends React.Component {
           if (v === true || (isPrimitiveTag && !isPrimitive(v))) v = '';
           props[key] = v;
       }
+      return props;
     });
   }
 
@@ -692,12 +694,11 @@ class ReactVueLike extends React.Component {
   }
 
   renderError(ex) {
-    let node;
+    let node = null;
     try {
       node = (this._renderErrorFn && this._renderErrorFn(ex)) || null;
     } catch (ex) {
       handleError(ex, this, 'renderError');
-      throw ex;
     }
     return node;
   }

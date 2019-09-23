@@ -41,7 +41,7 @@ module.exports = {
     html: 'html',
   },
   inject: {
-    attrs: false,
+    attrs: true,
     file: true,
     scopeRegx: /(\.(?:le|sc|sa|c)ss)\?scoped(.*)$/,
     scope: true
