@@ -8,6 +8,8 @@ function createScopeId(filename) {
 }
 
 module.exports = function ({ types: t, template }) {
+  const scopeAttrs = options.inject.scopeAttrs;
+  const useCollect = options.useCollect;
   return {
     visitor: {
       Program: {
@@ -31,11 +33,13 @@ module.exports = function ({ types: t, template }) {
             if (!this.scopeId) return path.stop();
             if (!isReactVueLike(path)) return path.skip();
 
-            const varName = findClassVarName(path);
-            let parentPath = t.isProgram(path.parentPath.node) ? path : path.parentPath;
-            parentPath.insertAfter(template(`${varName}.__scopeId = $SCOPEID$;`)({
-              $SCOPEID$: t.stringLiteral(this.scopeId)
-            }));
+            if (useCollect) {
+              const varName = findClassVarName(path);
+              let parentPath = t.isProgram(path.parentPath.node) ? path : path.parentPath;
+              parentPath.insertAfter(template(`${varName}.__scopeId = $SCOPEID$;`)({
+                $SCOPEID$: t.stringLiteral(this.scopeId)
+              }));
+            }
           }
 
           path.traverse({
@@ -50,7 +54,7 @@ module.exports = function ({ types: t, template }) {
             ClassExpression: ClassVisitor
           }, ctx);
 
-          if (ctx.scopeId) {
+          if (scopeAttrs && ctx.scopeId) {
             path.traverse({
               JSXElement(path) {
                 const classAttr = path.node.openingElement.attributes.find(attr => attr.name && expr2var(attr.name) === 'className');

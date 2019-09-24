@@ -27,10 +27,10 @@ class Collect {
     return { root: getRoot(root), elements };
   }
 
-  push(isCreate, component, props, children) {
+  push(fn, component, props, children) {
     props = props || {};
     const node = {
-      __collect: { isCreate, cid: this.elements.length, component, props, children },
+      __collect: { fn, /* cid: this.elements.length, */ component, props, children },
 
       $$typeof: REACT_ELEMENT_TYPE,
       props,
@@ -50,10 +50,7 @@ class Collect {
 
       each && each(el.component, el.props, el.children, Boolean(el.isRoot));
 
-      let ret = el.isCreate
-        ? React.createElement(el.component, el.props, ...el.children)
-        : React.cloneElement(el.component, el.props, ...el.children);
-
+      let ret = el.fn.call(React, el.component, el.props, ...el.children);
       if (ret) Object.defineProperties(node, Object.getOwnPropertyDescriptors(ret));
     });
   }
@@ -78,6 +75,7 @@ class Collect {
   }
 
 }
+
 
 export default new Collect();
 

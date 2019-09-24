@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = exports.REACT_FORWARD_REF_TYPE = void 0;
+exports.default = void 0;
 
 var _react = _interopRequireDefault(require("react"));
 
@@ -19,12 +19,8 @@ function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.
 
 function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } }
 
-const ForwardRefMeth = _react.default.forwardRef(function () {
-  return null;
-});
-
-const REACT_FORWARD_REF_TYPE = ForwardRefMeth.$$typeof;
-exports.REACT_FORWARD_REF_TYPE = REACT_FORWARD_REF_TYPE;
+const hasSymbol = typeof Symbol === 'function' && Symbol.for;
+const REACT_ELEMENT_TYPE = hasSymbol ? Symbol.for('react.element') : 0xeac7;
 
 class Collect {
   start() {
@@ -50,32 +46,25 @@ class Collect {
     };
   }
 
-  push(isCreate, component, props, children) {
+  push(fn, component, props, children) {
+    props = props || {};
     const node = {
       __collect: {
-        isCreate,
-        cid: this.elements.length,
+        fn,
+
+        /* cid: this.elements.length, */
         component,
-        props: props || {},
+        props,
         children
       },
-
-      get props() {
-        return this.__collect.props;
-      },
-
-      get ref() {
-        return this.__collect.props.ref;
-      },
-
-      get key() {
-        return this.__collect.props.key;
-      },
-
-      get type() {
-        return this.__collect.component;
+      $$typeof: REACT_ELEMENT_TYPE,
+      props,
+      ref: props.ref || null,
+      key: props.key || null,
+      type: component,
+      _store: {
+        validated: Boolean(component) && (typeof component === 'string' || component.prototype instanceof _react.default.Component)
       }
-
     };
     this.elements.push(node);
     return node;
@@ -83,10 +72,14 @@ class Collect {
 
   render(elements, each) {
     elements.forEach(function (node) {
+      var _el$fn;
+
       const el = node.__collect;
       delete node.__collect;
       each && each(el.component, el.props, el.children, Boolean(el.isRoot));
-      let ret = el.isCreate ? _react.default.createElement.apply(_react.default, [el.component, el.props].concat(_toConsumableArray(el.children))) : _react.default.cloneElement.apply(_react.default, [el.component, el.props].concat(_toConsumableArray(el.children)));
+
+      let ret = (_el$fn = el.fn).call.apply(_el$fn, [_react.default, el.component, el.props].concat(_toConsumableArray(el.children)));
+
       if (ret) Object.defineProperties(node, Object.getOwnPropertyDescriptors(ret));
     });
   }

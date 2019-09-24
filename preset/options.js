@@ -5,6 +5,7 @@ module.exports = {
   prefix: 'v-',
   compRegx: /^([A-Z])|([a-z][a-z0-9]+-[a-z0-9]+)/,
   forRegx: /\.(map|filter|reverse|sort|slice|flat|flatMap)$/,
+  useCollect: true,
   keyCodes: {
     esc: 27,
     tab: 9,
@@ -41,10 +42,11 @@ module.exports = {
     html: 'html',
   },
   inject: {
-    attrs: true,
+    attrs: false,
     file: true,
     scopeRegx: /(\.(?:le|sc|sa|c)ss)\?scoped(.*)$/,
-    scope: true
+    scope: true,
+    scopeAttrs: false,
   },
   transform: {
     class: true,

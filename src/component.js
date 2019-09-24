@@ -242,12 +242,12 @@ class ReactVueLike extends React.Component {
 
     if (isRoot && this.$options.inheritAttrs !== false) this._resolveRootAttrs(component, props, true);
 
-    // let scopeId = this.$options.__scopeId;
-    // if (scopeId) {
-    //   if (!props.className) props.className = scopeId;
-    //   else if (Array.isArray(props.className)) props.className.unshift(scopeId);
-    //   else props.className = [scopeId, props.className];
-    // }
+    let scopeId = this.$options.__scopeId;
+    if (scopeId) {
+      if (!props.className) props.className = scopeId;
+      else if (Array.isArray(props.className)) props.className.unshift(scopeId);
+      else props.className = [scopeId, props.className];
+    }
   }
 
   _resolveRootAttrs(component, props, isInternal) {

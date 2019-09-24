@@ -4,8 +4,10 @@ import collect from './collect';
 
 function ReactHook() {
   const _createElement = React.createElement;
-  React.createElement = function createElement(Component, props, ...children) {
-    if (collect.elements) return collect.push(true, Component, props, children);
+  const _cloneElement = React.cloneElement;
+
+  function createElement(Component, props, ...children) {
+    if (collect.elements) return collect.push(createElement, Component, props, children);
 
     const $component = props && props.$component;
     if ($component) {
@@ -22,13 +24,15 @@ function ReactHook() {
       newComponent = Component.beforeConstructor(props, ...children);
     }
     return _createElement.call(this, newComponent || Component, props, ...children);
-  };
+  }
 
-  const _cloneElement = React.cloneElement;
-  React.cloneElement = function cloneElement(element, props, ...children) {
-    if (collect.elements) return collect.push(false, element, props, children);
+  function cloneElement(element, props, ...children) {
+    if (collect.elements) return collect.push(cloneElement, element, props, children);
     return _cloneElement.call(this, element, props, ...children);
-  };
+  }
+
+  React.createElement = createElement;
+  React.cloneElement = cloneElement;
 }
 
 export default ReactHook;

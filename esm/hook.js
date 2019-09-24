@@ -15,13 +15,14 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function ReactHook() {
   const _createElement = _react.default.createElement;
+  const _cloneElement = _react.default.cloneElement;
 
-  _react.default.createElement = function createElement(Component, props) {
+  function createElement(Component, props) {
     for (var _len = arguments.length, children = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
       children[_key - 2] = arguments[_key];
     }
 
-    if (_collect.default.elements) return _collect.default.push(true, Component, props, children);
+    if (_collect.default.elements) return _collect.default.push(createElement, Component, props, children);
     const $component = props && props.$component;
 
     if ($component) {
@@ -40,18 +41,19 @@ function ReactHook() {
     }
 
     return _createElement.call.apply(_createElement, [this, newComponent || Component, props].concat(children));
-  };
+  }
 
-  const _cloneElement = _react.default.cloneElement;
-
-  _react.default.cloneElement = function cloneElement(element, props) {
+  function cloneElement(element, props) {
     for (var _len2 = arguments.length, children = new Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
       children[_key2 - 2] = arguments[_key2];
     }
 
-    if (_collect.default.elements) return _collect.default.push(false, element, props, children);
+    if (_collect.default.elements) return _collect.default.push(cloneElement, element, props, children);
     return _cloneElement.call.apply(_cloneElement, [this, element, props].concat(children));
-  };
+  }
+
+  _react.default.createElement = createElement;
+  _react.default.cloneElement = cloneElement;
 }
 
 var _default = ReactHook;
