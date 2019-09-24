@@ -2,8 +2,11 @@
 import React from 'react';
 import config from './config';
 
-const ForwardRefMeth = React.forwardRef(() => null);
-export const REACT_FORWARD_REF_TYPE = ForwardRefMeth.$$typeof;
+const hasSymbol = typeof Symbol === 'function' && Symbol.for;
+
+const REACT_ELEMENT_TYPE = hasSymbol
+  ? Symbol.for('react.element')
+  : 0xeac7;
 
 class Collect {
 
@@ -24,9 +27,17 @@ class Collect {
     return { root: getRoot(root), elements };
   }
 
-  push(component, props, children) {
+  push(isCreate, component, props, children) {
+    props = props || {};
     const node = {
-      __collect: { cid: this.elements.length, component, props, children },
+      __collect: { isCreate, cid: this.elements.length, component, props, children },
+
+      $$typeof: REACT_ELEMENT_TYPE,
+      props,
+      ref: props.ref || null,
+      key: props.key || null,
+      type: component,
+      _store: { validated: Boolean(component) && (typeof component === 'string' || component.prototype instanceof React.Component) }
     };
     this.elements.push(node);
     return node;
@@ -37,10 +48,13 @@ class Collect {
       const el = node.__collect;
       delete node.__collect;
 
-      const props = el.props || {};
-      each && each(el.component, props, el.children, Boolean(el.isRoot));
+      each && each(el.component, el.props, el.children, Boolean(el.isRoot));
 
-      Object.assign(node, React.createElement(el.component, props, ...el.children));
+      let ret = el.isCreate
+        ? React.createElement(el.component, el.props, ...el.children)
+        : React.cloneElement(el.component, el.props, ...el.children);
+
+      if (ret) Object.defineProperties(node, Object.getOwnPropertyDescriptors(ret));
     });
   }
 

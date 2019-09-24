@@ -50,14 +50,32 @@ class Collect {
     };
   }
 
-  push(component, props, children) {
+  push(isCreate, component, props, children) {
     const node = {
       __collect: {
+        isCreate,
         cid: this.elements.length,
         component,
-        props,
+        props: props || {},
         children
+      },
+
+      get props() {
+        return this.__collect.props;
+      },
+
+      get ref() {
+        return this.__collect.props.ref;
+      },
+
+      get key() {
+        return this.__collect.props.key;
+      },
+
+      get type() {
+        return this.__collect.component;
       }
+
     };
     this.elements.push(node);
     return node;
@@ -67,9 +85,9 @@ class Collect {
     elements.forEach(function (node) {
       const el = node.__collect;
       delete node.__collect;
-      const props = el.props || {};
-      each && each(el.component, props, el.children, Boolean(el.isRoot));
-      Object.assign(node, _react.default.createElement.apply(_react.default, [el.component, props].concat(_toConsumableArray(el.children))));
+      each && each(el.component, el.props, el.children, Boolean(el.isRoot));
+      let ret = el.isCreate ? _react.default.createElement.apply(_react.default, [el.component, el.props].concat(_toConsumableArray(el.children))) : _react.default.cloneElement.apply(_react.default, [el.component, el.props].concat(_toConsumableArray(el.children)));
+      if (ret) Object.defineProperties(node, Object.getOwnPropertyDescriptors(ret));
     });
   }
 

@@ -240,7 +240,7 @@ class ReactVueLike extends React.Component {
   _eachRenderElement(component, props, children, isRoot) {
     if (!component) return;
 
-    if (isRoot && this.$options.inheritAttrs !== false) this._resolveRootAttrs(component, props);
+    if (isRoot && this.$options.inheritAttrs !== false) this._resolveRootAttrs(component, props, true);
 
     // let scopeId = this.$options.__scopeId;
     // if (scopeId) {
@@ -250,7 +250,9 @@ class ReactVueLike extends React.Component {
     // }
   }
 
-  _resolveRootAttrs(component, props) {
+  _resolveRootAttrs(component, props, isInternal) {
+    if (config.useCollect && !isInternal) return props;
+
     let inheritAttrs = Array.isArray(this.$options.inheritAttrs)
       ? this.$options.inheritAttrs
       : config.inheritAttrs;

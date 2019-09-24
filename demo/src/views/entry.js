@@ -14,7 +14,7 @@ import routes from './pages';
 module.exports = async function (param) {
   router.use({ routes });
 
-  ReactVueLike.config({ enforceActions: true });
+  ReactVueLike.config({ enforceActions: true, useCollect: true });
 
   ReactVueLike.use(config, { App });
   ReactVueLike.use(util, { App });

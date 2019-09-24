@@ -293,7 +293,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
 
   _eachRenderElement(component, props, children, isRoot) {
     if (!component) return;
-    if (isRoot && this.$options.inheritAttrs !== false) this._resolveRootAttrs(component, props); // let scopeId = this.$options.__scopeId;
+    if (isRoot && this.$options.inheritAttrs !== false) this._resolveRootAttrs(component, props, true); // let scopeId = this.$options.__scopeId;
     // if (scopeId) {
     //   if (!props.className) props.className = scopeId;
     //   else if (Array.isArray(props.className)) props.className.unshift(scopeId);
@@ -301,9 +301,10 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
     // }
   }
 
-  _resolveRootAttrs(component, props) {
+  _resolveRootAttrs(component, props, isInternal) {
     var _this3 = this;
 
+    if (_config.default.useCollect && !isInternal) return props;
     let inheritAttrs = Array.isArray(this.$options.inheritAttrs) ? this.$options.inheritAttrs : _config.default.inheritAttrs;
     const RETX_DOM = /^[a-z][a-z0-9]*$/;
     const isPrimitiveTag = typeof component === 'string' && RETX_DOM.test(component);
