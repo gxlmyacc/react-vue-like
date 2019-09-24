@@ -13,24 +13,30 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 class App extends ReactVueLike {
   static data() {
-    return {};
+    return {
+      header: true,
+      body: true,
+      footer: true
+    };
   }
 
   render() {
     let a = [1, 2, 3];
     console.log(a);
-    return _react.default.createElement("div", this._resolveSpreadAttrs("div", {}), this._resolveSlot("default", {}, ["\n        ddd\n        ", _react.default.createElement("div", null, "slot"), "\n      "]), _react.default.createElement(SomeComp, {
+    return _react.default.createElement("div", null, this.header ? this._resolveSlot("default", {
+      className: "11"
+    }, ["\n        ddd\n        ", _react.default.createElement("div", null, "slot"), "\n      "]) : null, _react.default.createElement(SomeComp, {
       $slots: {
-        footer: _react.default.createElement("div", null),
-        body: function body(_ref) {
-          let item = _ref.item;
-          return _react.default.createElement("div", {
-            name: item.name
-          });
-        },
         header: _react.default.createElement("div", null)
       }
-    }));
+    }, this.body ? ["\n          ", function (_ref) {
+      let item = _ref.item;
+      return _react.default.createElement("div", {
+        name: item.name
+      });
+    }, "\n        "] : null, this.footer ? _react.default.createElement("div", {
+      slot: "footer"
+    }) : null));
   }
 
 }

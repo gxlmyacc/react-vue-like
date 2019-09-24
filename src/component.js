@@ -113,10 +113,10 @@ class ReactVueLike extends React.Component {
     if (isRoot) this._isVueLikeRoot = true;
     if (isAbstract) this._isVueLikeAbstract = true;
 
-    this._renderFn = collect.wrap(this.render, this._eachRenderElement.bind(this));
-    this.render = ReactVueLike.prototype.render;
-    this._renderErrorFn = collect.wrap(this.renderError, this._eachRenderElement.bind(this));
-    this.renderError = ReactVueLike.prototype.renderError;
+    this._renderFn = collect.wrap(target.prototype.render, this._eachRenderElement.bind(this));
+    if (target.prototype.render) this.render = ReactVueLike.prototype.render;
+    this._renderErrorFn = collect.wrap(target.prototype.renderError, this._eachRenderElement.bind(this));
+    if (target.prototype.renderError) this.renderError = ReactVueLike.prototype.renderError;
 
     const { propData, attrs } = parseProps(target, _props, propTypes);
 
@@ -690,7 +690,7 @@ class ReactVueLike extends React.Component {
       node = (this._renderFn && this._renderFn()) || null;
     } catch (ex) {
       handleError(ex, this, 'render');
-      node = this.renderError(ex);
+      node = this.renderError && this.renderError(ex);
     }
     return node;
   }

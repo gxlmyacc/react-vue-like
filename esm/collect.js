@@ -28,7 +28,7 @@ class Collect {
   }
 
   end(root) {
-    let elements = this.elements;
+    let elements = this.elements || [];
     this.elements = null;
 
     const getRoot = function getRoot(root) {
@@ -71,7 +71,7 @@ class Collect {
   }
 
   render(elements, each) {
-    elements.forEach(function (node) {
+    elements && elements.forEach(function (node) {
       var _el$fn;
 
       const el = node.__collect;

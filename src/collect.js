@@ -15,7 +15,7 @@ class Collect {
   }
 
   end(root) {
-    let elements = this.elements;
+    let elements = this.elements || [];
     this.elements = null;
 
     const getRoot = root => {
@@ -44,7 +44,7 @@ class Collect {
   }
 
   render(elements, each) {
-    elements.forEach(node => {
+    elements && elements.forEach(node => {
       const el = node.__collect;
       delete node.__collect;
 

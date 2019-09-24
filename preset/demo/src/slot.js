@@ -6,7 +6,9 @@ class App extends ReactVueLike {
 
   static data() {
     return {
-
+      header: true,
+      body: true,
+      footer: true
     };
   }
 
@@ -18,17 +20,17 @@ class App extends ReactVueLike {
     let a = [1, 2, 3];
     console.log(a);
     return <div>
-      <slot>
+      <slot className="11" v-if={this.header}>
         ddd
-        <div>slot</div>
+        <div>slot text</div>
       </slot>
       <SomeComp>
         <div slot="header">
         </div>
-        <template slot="body">
+        <template v-if={this.body} slot="body">
           { ({ item }) => <div name={item.name}></div> }
         </template>
-        <div slot="footer">
+        <div v-if={this.footer} slot="footer">
         </div>
       </SomeComp>
     </div>

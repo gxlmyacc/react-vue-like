@@ -63,6 +63,13 @@ module.exports = function () {
 
   return {
     visitor: {
+      // Program: {
+      //   enter(path) {
+      //     path.traverse({
+      //       JSXElement: JSXElementVisitor
+      //     });
+      //   }
+      // }
       JSXElement: JSXElementVisitor
     }
   };

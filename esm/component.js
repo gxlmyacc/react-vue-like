@@ -158,10 +158,10 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
           inherits = target.inherits;
     if (isRoot) this._isVueLikeRoot = true;
     if (isAbstract) this._isVueLikeAbstract = true;
-    this._renderFn = _collect.default.wrap(this.render, this._eachRenderElement.bind(this));
-    this.render = ReactVueLike.prototype.render;
-    this._renderErrorFn = _collect.default.wrap(this.renderError, this._eachRenderElement.bind(this));
-    this.renderError = ReactVueLike.prototype.renderError;
+    this._renderFn = _collect.default.wrap(target.prototype.render, this._eachRenderElement.bind(this));
+    if (target.prototype.render) this.render = ReactVueLike.prototype.render;
+    this._renderErrorFn = _collect.default.wrap(target.prototype.renderError, this._eachRenderElement.bind(this));
+    if (target.prototype.renderError) this.renderError = ReactVueLike.prototype.renderError;
 
     const _parseProps = parseProps(target, _props, propTypes),
           propData = _parseProps.propData,
@@ -824,7 +824,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
       node = this._renderFn && this._renderFn() || null;
     } catch (ex) {
       (0, _utils.handleError)(ex, this, 'render');
-      node = this.renderError(ex);
+      node = this.renderError && this.renderError(ex);
     }
 
     return node;
