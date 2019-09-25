@@ -39,8 +39,8 @@ function bindMethods(ctx, methods) {
 }
 
 function bindWatch(ctx, watch) {
-  if (!watch) return;
-  Object.keys(watch).forEach(key => ctx.$watch(key, watch[key]));
+  if (!watch) return [];
+  return Object.keys(watch).map(key => ctx.$watch(key, watch[key]));
 }
 
 const LIFECYCLE_HOOKS = [
@@ -174,6 +174,7 @@ class ReactVueLike extends React.Component {
     this._methods = _methods;
     this._computed = _computed;
     this._watch = _watch;
+    this._watched = [];
     this._provideFns = _provideFns;
     this._injects = _injects;
 
@@ -380,7 +381,7 @@ class ReactVueLike extends React.Component {
   }
 
   _resolveWatch() {
-    bindWatch(this, this._watch);
+    this._watched = bindWatch(this, this._watch);
   }
 
   _resolveMethods() {
@@ -440,6 +441,8 @@ class ReactVueLike extends React.Component {
 
   _resolveDestory() {
     this._flushTicks();
+
+    this._watched.forEach(v => v && v());
 
     const $ref = this.props.$ref;
     if (!this._isVueLikeAbstract && $ref) {
