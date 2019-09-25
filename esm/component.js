@@ -277,16 +277,16 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
     this.$refs[refName][key] = el;
   }
 
-  _resolveSlot(slotName, scope, children) {
-    let slot = this.$slots[slotName];
+  _resolveSlot(props, children) {
+    let slot = this.$slots[props.name || 'default'];
     let ret;
 
     if (Array.isArray(slot)) {
       ret = slot.map(function (s) {
-        return (0, _utils.isFunction)(s) ? s(scope) : s;
+        return (0, _utils.isFunction)(s) ? s(props) : s;
       });
       if (!ret.length) ret = null;
-    } else ret = (0, _utils.isFunction)(slot) ? slot(scope) : slot;
+    } else ret = (0, _utils.isFunction)(slot) ? slot(props) : slot;
 
     return ret || children || null;
   }
@@ -297,7 +297,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
     let scopeId = this.$options.__scopeId;
 
     if (scopeId) {
-      if (!props.className) props.className = scopeId;else if (Array.isArray(props.className)) props.className.unshift(scopeId);else props.className = [scopeId, props.className];
+      if (!props.className) props.className = scopeId;else props.className = `${props.className} ${scopeId}`;
     }
   }
 
@@ -315,7 +315,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
       switch (key) {
         case 'className':
           if (props.className) {
-            if (v !== props.className) props.className = [v, props.className];
+            if (v !== props.className) props.className = `${props.className} ${v}`;
           } else props.className = v;
 
           break;

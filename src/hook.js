@@ -7,8 +7,6 @@ function ReactHook() {
   const _cloneElement = React.cloneElement;
 
   function createElement(Component, props, ...children) {
-    if (collect.elements) return collect.push(createElement, Component, props, children);
-
     const $component = props && props.$component;
     if ($component) {
       Component = $component;
@@ -23,11 +21,17 @@ function ReactHook() {
     if (Component.beforeConstructor) {
       newComponent = Component.beforeConstructor(props, ...children);
     }
+
+    const $slotFn = props && props.$slotFn;
+    if ($slotFn) return $slotFn(props || {}, children);
+
+    if (collect.elements) return collect.push(_createElement, newComponent || Component, props, children);
+
     return _createElement.call(this, newComponent || Component, props, ...children);
   }
 
   function cloneElement(element, props, ...children) {
-    if (collect.elements) return collect.push(cloneElement, element, props, children);
+    if (collect.elements) return collect.push(_cloneElement, element, props, children);
     return _cloneElement.call(this, element, props, ...children);
   }
 

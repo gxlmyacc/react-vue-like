@@ -227,13 +227,13 @@ class ReactVueLike extends React.Component {
     this.$refs[refName][key] = el;
   }
 
-  _resolveSlot(slotName, scope, children) {
-    let slot = this.$slots[slotName];
+  _resolveSlot(props, children) {
+    let slot = this.$slots[props.name || 'default'];
     let ret;
     if (Array.isArray(slot)) {
-      ret = slot.map(s => (isFunction(s) ? s(scope) : s));
+      ret = slot.map(s => (isFunction(s) ? s(props) : s));
       if (!ret.length) ret = null;
-    } else ret = isFunction(slot) ? slot(scope) : slot;
+    } else ret = isFunction(slot) ? slot(props) : slot;
     return ret || children || null;
   }
 
@@ -245,8 +245,7 @@ class ReactVueLike extends React.Component {
     let scopeId = this.$options.__scopeId;
     if (scopeId) {
       if (!props.className) props.className = scopeId;
-      else if (Array.isArray(props.className)) props.className.unshift(scopeId);
-      else props.className = [scopeId, props.className];
+      else props.className = `${scopeId} ${props.className}`;
     }
   }
 
@@ -266,7 +265,7 @@ class ReactVueLike extends React.Component {
       switch (key) {
         case 'className':
           if (props.className) {
-            if (v !== props.className) props.className = [v, props.className];
+            if (v !== props.className) props.className = `${v} ${props.className}`;
           } else props.className = v;
           break;
         case 'style':

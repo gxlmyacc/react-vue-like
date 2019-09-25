@@ -6,7 +6,6 @@ const {
   var2Expression,
   removeAttrAST,
   extractNodeCode,
-  directiveRegx,
   parseDirective
 } = require('../utils');
 
@@ -16,7 +15,7 @@ module.exports = function ({ types: t, template }) {
   function JSXElementVisitor(path) {
     const prefix = options.prefix;
     const attrNameKeys = options.attrNameKeys;
-    const attrName = directiveRegx('[a-z0-9\\-]+', prefix);
+    const attrName = options.directiveRegx;
 
     let bindings = [];
 

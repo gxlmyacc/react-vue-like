@@ -64,7 +64,7 @@ module.exports = function () {
   return {
     visitor: {
       // Program: {
-      //   enter(path) {
+      //   exit(path) {
       //     path.traverse({
       //       JSXElement: JSXElementVisitor
       //     });

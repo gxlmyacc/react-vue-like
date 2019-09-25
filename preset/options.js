@@ -3,6 +3,7 @@ const genGuard = function (condition) { return ('if(' + condition + ')return nul
 
 module.exports = {
   prefix: 'v-',
+  directiveRegx: null,
   compRegx: /^([A-Z])|([a-z][a-z0-9]+-[a-z0-9]+)/,
   forRegx: /\.(map|filter|reverse|sort|slice|flat|flatMap)$/,
   useCollect: true,

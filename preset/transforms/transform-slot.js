@@ -23,29 +23,13 @@ module.exports = function ({ types: t, template }) {
           JSXElement(compPath) {
             const tagName = compPath.node.openingElement.name.name;
             if (tagName !== 'slot') return;
-            let nameAttr;
-            let slotScopes = [];
-            compPath.node.openingElement.attributes.forEach(attr => {
-              if (t.isJSXSpreadAttribute(attr)) {
-                slotScopes.push(t.spreadElement(attr.argument));
-                return;
-              }
-              if (expr2var(attr.name) === 'name') nameAttr = attr;
-              else {
-                slotScopes.push(t.objectProperty(
-                  t.identifier(attr.name.name),
-                  attr.value
-                ));
-              }
-            });
-            let slotName = nameAttr ? nameAttr.name : 'default';
-            let newNode = template('this._resolveSlot($SLOTNAME$, $SCOPE$, $CHILDREN$)')({
-              $SLOTNAME$: t.stringLiteral(slotName),
-              $SCOPE$: t.objectExpression(slotScopes),
-              $CHILDREN$: childrenToArrayExpr(compPath.node.children)
-            }).expression;
-            if (t.isJSXElement(compPath.parent)) newNode = t.jsxExpressionContainer(newNode);
-            compPath.replaceWith(newNode);
+            if (compPath.node.openingElement.attributes.some(attr => attr.name && attr.name.name === '$slotFn')) return;
+            compPath.node.openingElement.attributes.push(t.jsxAttribute(
+              t.jSXIdentifier('$slotFn'),
+              t.jsxExpressionContainer(
+                template('this._resolveSlot')({}).expression
+              )
+            ));
             return path.skip();
           }
         });
@@ -69,7 +53,8 @@ module.exports = function ({ types: t, template }) {
         if (openingElement.attributes.some(attr => attr.name && attr.name.name === '$slots')) return;
         let slots = [];
         for (let slotIndex = path.node.children.length - 1; slotIndex > -1; slotIndex--) {
-          let slotNode = path.node.children[slotIndex];
+          let child = path.node.children[slotIndex];
+          let slotNode = child;
           if (!t.isJSXElement(slotNode)) continue;
           let openingElement = slotNode.openingElement;
           let slotAttrIndex = openingElement.attributes.findIndex(a => a.name && (a.name.namespace

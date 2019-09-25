@@ -1,7 +1,7 @@
 const { declare } = require('@babel/helper-plugin-utils');
 const syntaxJsx = require('@babel/plugin-syntax-jsx').default;
 const path = require('path');
-const { fileExists, isFunction } = require('./utils');
+const { fileExists, isFunction, directiveRegx } = require('./utils');
 const options = require('./options');
 const transformClass = require('./transforms/transform-class');
 const transformRequire = require('./transforms/transform-require');
@@ -49,7 +49,7 @@ module.exports = declare((api, opts = {}) => {
 
   Object.keys(options.attrName).forEach(key => options.attrName[key] = `${options.prefix}${options.attrName[key]}`);
 
-
+  options.directiveRegx = directiveRegx('[a-z0-9\\-]+', options.prefix);
   options.attrNameKeys = Object.keys(options.attrName).map(key => options.attrName[key]);
 
   options.inject.attrs = !options.useCollect;
