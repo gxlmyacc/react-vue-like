@@ -1,9 +1,9 @@
 
-const { appendAttrEvent, directiveRegx, parseDirective, bindModifiers, expr2var } = require('../utils');
+const { appendAttrEvent, directiveRegx, parseDirective, bindModifiers, expr2var, escapeRegx } = require('../utils');
 const options = require('../options');
 
 module.exports = function ({ types: t, template }) {
-  const attrName = directiveRegx(options.attrName.model.replace(/-/g, '\\-'));
+  const attrName = directiveRegx(escapeRegx(options.attrName.model));
   return {
     visitor: {
       Program: {

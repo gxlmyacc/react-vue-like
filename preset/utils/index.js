@@ -684,7 +684,7 @@ function isReactVueLike(classDeclarationPath) {
 }
 
 function directiveRegx(regx, prefix = '') {
-  return new RegExp(`^${prefix.replace(/-/g, '\\-')}(${regx})(?:[_|:]([a-zA-Z0-9-]+))?((?:\\$[a-zA-Z0-9-]+)*)$`);
+  return new RegExp(`^${escapeRegx(prefix)}(${regx})(?:[_|:]([a-zA-Z0-9-]+))?((?:\\$[a-zA-Z0-9-]+)*)$`);
 }
 
 function parseModifiers(modifiers) {
@@ -716,11 +716,18 @@ function isFunction(fn) {
   return typeof fn === 'function';
 }
 
+function escapeRegx(string) {
+  const matchOperatorsRegex = /[|\\{}()[\]^$+*?.-]/g;
+  if (typeof string !== 'string') throw new TypeError('[escapeRegx]Expected a string');
+  return string.replace(matchOperatorsRegex, '\\$&');
+}
+
 module.exports = {
   DirectiveName,
   getConstCache,
   fileExists,
   isFunction,
+  escapeRegx,
   isRequired,
   isReactComponent,
   addImport,

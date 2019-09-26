@@ -1,7 +1,7 @@
 
-import ReactVueLike from 'react-vue-like';
+import {  Store } from 'react-vue-like';
 
-const store = new ReactVueLike.Store({
+const store = new Store({
   state: {
     logined: false
   },
