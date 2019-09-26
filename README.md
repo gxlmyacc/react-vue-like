@@ -359,6 +359,10 @@ example:
   background-color: red;
 }
 
+.aa .bb:scope > .cc {
+  background-color: red;
+}
+
 ```
 
 ```js
@@ -387,6 +391,10 @@ will transform to like this:
 }
 
 .aa .bb.v-123dse43 .cc {
+  background-color: red;
+}
+
+.aa .bb.v-123dse43 > .cc {
   background-color: red;
 }
 
@@ -737,7 +745,53 @@ class ChildComponent extends ReactVueLike {
 ```
 
 ### `Vuex.Store` 
-see `ReactVueLike.Store`
+
+support `Vuex.Store` and `mapState`,`mapMutations`,`mapGetters`,`mapActions`,`createNamespacedHelpers`. see [Vuex](https://vuex.vuejs.org/guide/)
+
+store like Vuex.Store:
+```js
+import { Store } from 'react-vue-like';
+
+const store = new Store({
+  modules: {
+    child1: {
+      state: {
+        aa: true
+      }
+    },
+    child2: {
+      state: {
+        bb: true
+      }
+    }
+  },
+  state: {
+    user: {
+      name: 'name1'
+    },
+  },
+  getters: {
+    aa(state) {
+      return state.globalLoading;
+    }
+  }
+  mutations: {
+    'update-user'(state, v) {
+      state.user = v;
+    },
+    'update-user-info'(state, v) {
+      Object.keys(v).forEach(key => state.user[key] = v[key]);
+    }
+  },
+  actions: {
+    'update-user-info'({ commit }, v) {
+      commit('update-user', v);
+    }
+  },
+});
+
+export default store;
+```
 
 ## Other feature
 
@@ -1055,9 +1109,9 @@ class Test extends ReactVueLike {
 
 store like Vuex.Store:
 ```js
-import ReactVueLike from 'react-vue-like';
+import { Store } from 'react-vue-like';
 
-const store = new ReactVueLike.Store({
+const store = new Store({
   modules: {
     child1: {
       state: {

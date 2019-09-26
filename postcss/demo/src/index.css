@@ -3,6 +3,14 @@
   padding: 0px 0px 20px 0px;
 }
 
+.aa >>> > .bb {
+  padding: 0px 0px 20px 0px;
+}
+
+.aa:scope > .bb {
+  padding: 0px 0px 20px 0px;
+}
+
 .aa .bb::after {
   height: 11px;
 }

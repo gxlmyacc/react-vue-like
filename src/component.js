@@ -601,6 +601,7 @@ class ReactVueLike extends React.Component {
   }
 
   $nextTick(cb, ctx) {
+    if (!cb) return new Promise(resolve => this._ticks.push(action(resolve)));
     if (ctx) cb = cb.bind(ctx);
     this._ticks.push(action(cb));
   }
@@ -741,9 +742,10 @@ class ReactVueLike extends React.Component {
 
 }
 
-
 ReactVueLike.config.optionMergeStrategies = config.optionMergeStrategies;
 ReactVueLike.config.inheritMergeStrategies = config.inheritMergeStrategies;
 ReactVueLike.runAction = runInAction;
+ReactVueLike.set = ReactVueLike.prototype.set;
+ReactVueLike.delete = ReactVueLike.prototype.delete;
 
 export default ReactVueLike;

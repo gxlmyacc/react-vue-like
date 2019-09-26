@@ -80,7 +80,7 @@ function bindMethods(ctx, methods) {
 }
 
 function bindWatch(ctx, watch) {
-  if (!watch) return;
+  if (!watch) return [];
   return Object.keys(watch).map(function (key) {
     return ctx.$watch(key, watch[key]);
   });
@@ -169,7 +169,6 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
 
     this._isVueLike = true;
     this._ticks = [];
-    this._watchs = [];
     this._inherits = inherits ? _objectSpread({}, inherits) : null;
     this._el = null;
     this._mountedPending = [];
@@ -224,6 +223,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
     this._methods = _methods;
     this._computed = _computed;
     this._watch = _watch;
+    this._watched = [];
     this._provideFns = _provideFns;
     this._injects = _injects;
     (0, _utils.defComputed)(this, '$provides', function () {
@@ -456,7 +456,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
   }
 
   _resolveWatch() {
-    this._watchs = bindWatch(this, this._watch) || [];
+    this._watched = bindWatch(this, this._watch);
   }
 
   _resolveMethods() {
@@ -538,8 +538,8 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
 
     this._flushTicks();
 
-    this._watchs.forEach(function (v) {
-      return (0, _utils.isFunction)(v) && v();
+    this._watched.forEach(function (v) {
+      return v && v();
     });
 
     const $ref = this.props.$ref;
