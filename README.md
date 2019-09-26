@@ -32,8 +32,8 @@ write react component like vue, implementation based on mbox@4.
   * [Attrs Inheirt](#attrs-inheirt)
   * [Class Attribute Support And Enhance](#class-attribute-support-and-enhance)
   * [Prop And Event Modifiers](#prop-and-event-modifiers)
-  * [Provide/Inject](#provide/inject)
-  * [Vuex.Store](#vuex.Store)
+  * [Provide Inject](#provide-inject)
+  * [Vuex Store](#vuex-store)
   
 * [Other Feature](#other-feature)
 
@@ -696,7 +696,7 @@ class Test extends ReactVueLike {
 }
 ```
 
-### `Provide/Inject`
+### `Provide Inject`
 
 see [provide/inject](https://vuejs.org/v2/api/index.html#provide-inject)
 
@@ -744,7 +744,7 @@ class ChildComponent extends ReactVueLike {
 }
 ```
 
-### `Vuex.Store` 
+### `Vuex Store` 
 
 support `Vuex.Store` and `mapState`,`mapMutations`,`mapGetters`,`mapActions`,`createNamespacedHelpers`. see [Vuex](https://vuex.vuejs.org/guide/)
 
