@@ -325,8 +325,6 @@ function transformIfBinding(path, ifBinding) {
 
   removeAttrASTByIndex(node, index);
 
-  if (node.openingElement.name.name === 'template') node = childrenToArrayExpr(node.children);
-
   const targetAST = t.conditionalExpression(
     attrBinding.value.expression,
     node,
@@ -349,9 +347,6 @@ function transformElseBinding(path, ifBinding, elseBinding) {
   removeAttrASTByIndex(ifNode, ifIndex);
   removeAttrASTByIndex(elseNode, elseIndex);
 
-  if (ifNode.openingElement.name.name === 'template') ifNode = childrenToArrayExpr(ifNode.children);
-  if (elseNode.openingElement.name.name === 'template') elseNode = childrenToArrayExpr(elseNode.children);
-
   const targetAST = t.conditionalExpression(
     ifAttr.value.expression,
     ifNode,
@@ -366,7 +361,6 @@ function transformElseIfBindings(path, ifBinding, elseIfBindings, elseBinding) {
     index: ifIndex,
     node: ifNode
   } = ifBinding;
-  if (ifNode.openingElement.name.name === 'template') ifNode = childrenToArrayExpr(ifNode.children);
 
   removeAttrASTByIndex(ifNode, ifIndex);
   if (elseBinding) {
@@ -399,7 +393,6 @@ function getAlternteAST(elseIfBindings, elseBinding, index = 0) {
       attrBinding,
       node: elseIfNode
     } = elseIfBinding;
-    if (elseIfNode.openingElement.name.name === 'template') elseIfNode = childrenToArrayExpr(elseIfNode.children);
     return t.ifStatement(
       attrBinding.value.expression,
       t.returnStatement(elseIfNode),
@@ -410,7 +403,6 @@ function getAlternteAST(elseIfBindings, elseBinding, index = 0) {
     let {
       node: elseNode
     } = elseBinding;
-    if (elseNode.openingElement.name.name === 'template') elseNode = childrenToArrayExpr(elseNode.children);
     return t.returnStatement(elseNode);
   }
   return null;

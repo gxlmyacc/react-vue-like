@@ -814,6 +814,10 @@ support `__filename`, `__dirname`, `__packagename`, `__packageversion`, `__now`
 
 `ReactVueLike.action` - `action` method in `mobx`, just re-export.
 
+`ReactVueLike.set` - `set` method in `mobx`, just re-export.
+
+`ReactVueLike.delete` - `remove` method in `mobx`, just re-export.
+
 `ReactVueLike.config` - config something in ReactVueLike, example: `ReactVueLike.config({ enforceActions: true })`;
 
 `toJS, isObservable, isObservableProp, isObservableObject, isObservableArray, isObservableMap, isBoxedObservable,

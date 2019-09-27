@@ -20,14 +20,17 @@ function ReactHook() {
     let newComponent;
     if (Component.beforeConstructor) {
       newComponent = Component.beforeConstructor(props, ...children);
+      if (newComponent !== undefined) Component = newComponent;
     }
 
     const $slotFn = props && props.$slotFn;
     if ($slotFn) return $slotFn(props || {}, children);
 
-    if (collect.elements) return collect.push(_createElement, newComponent || Component, props, children);
+    if (Component === 'template') Component = React.Fragment;
 
-    return _createElement.call(this, newComponent || Component, props, ...children);
+    if (collect.elements) return collect.push(_createElement, Component, props, children);
+
+    return _createElement.call(this, Component, props, ...children);
   }
 
   function cloneElement(element, props, ...children) {
