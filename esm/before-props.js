@@ -64,10 +64,14 @@ function generateProps(aPropTypes, aProps) {
 
       function _getPropType(type, required) {
         let ret = _propTypes2.default.any;
-        let v = typeMaps.find(function (v) {
-          return v.type === type;
-        });
-        if (v) ret = v.value;else if (v instanceof type) _propTypes2.default.instanceOf(type);
+
+        if (type) {
+          let v = typeMaps.find(function (v) {
+            return v.type === type;
+          });
+          if (v) ret = v.value;else if (v instanceof type) _propTypes2.default.instanceOf(type);
+        }
+
         if (required) ret = ret.isRequired;
         return ret;
       }

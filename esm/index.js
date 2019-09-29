@@ -4,12 +4,19 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 var _exportNames = {
-  ReactVueLikeDirective: true
+  ReactVueLikeDirective: true,
+  Store: true
 };
 Object.defineProperty(exports, "ReactVueLikeDirective", {
   enumerable: true,
   get: function get() {
     return _directive.default;
+  }
+});
+Object.defineProperty(exports, "Store", {
+  enumerable: true,
+  get: function get() {
+    return _store.default;
   }
 });
 exports.default = void 0;
@@ -39,9 +46,21 @@ Object.keys(_utils).forEach(function (key) {
   });
 });
 
+var _storeHelpers = require("./store-helpers");
+
+Object.keys(_storeHelpers).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function get() {
+      return _storeHelpers[key];
+    }
+  });
+});
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-_component.default.Store = _store.default;
 _component.default.Mixin = _mixin.default;
 _component.default.observable = _mobx.observable;
 _component.default.flow = _mobx.flow;

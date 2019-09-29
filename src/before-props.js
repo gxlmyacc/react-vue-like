@@ -31,9 +31,11 @@ function generateProps(aPropTypes, aProps) {
       ];
       function _getPropType(type, required) {
         let ret = PropTypes.any;
-        let v = typeMaps.find(v => v.type === type);
-        if (v) ret = v.value;
-        else if (v instanceof type) PropTypes.instanceOf(type);
+        if (type) {
+          let v = typeMaps.find(v => v.type === type);
+          if (v) ret = v.value;
+          else if (v instanceof type) PropTypes.instanceOf(type);
+        }
         if (required) ret = ret.isRequired;
         return ret;
       }

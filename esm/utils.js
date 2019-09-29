@@ -206,7 +206,7 @@ function iterativeParent(ctx, callback, componentClass) {
   while (parentNode) {
     const vm = parentNode.nodeType === undefined && parentNode.stateNode;
 
-    if (vm && !vm._isVueLikeAbstract && (!componentClass || vm instanceof componentClass)) {
+    if (vm && (!componentClass || vm instanceof componentClass)) {
       if (callback(vm)) break;
     }
 

@@ -68,7 +68,7 @@ export function iterativeParent(ctx, callback, componentClass) {
     : ctx.stateNode ? ctx : null;
   while (parentNode) {
     const vm = parentNode.nodeType === undefined && parentNode.stateNode;
-    if (vm && !vm._isVueLikeAbstract && (!componentClass || vm instanceof componentClass)) {
+    if (vm && (!componentClass || vm instanceof componentClass)) {
       if (callback(vm)) break;
     }
     if (vm && vm._isVueLikeRoot) break;

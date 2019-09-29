@@ -88,7 +88,7 @@ function parseProps(target, props, propTypes) {
   const attrs = {};
   if (!propTypes) propTypes = {};
   Object.keys(props).forEach(key => {
-    if (propTypes[key]) propData[key] = props[key];
+    if (propTypes[key] !== undefined) return propData[key] = props[key];
     if (['ref', 'children'].includes(key) || /^[$_]/.test(key)) return;
 
     if (target.inheritAttrs || target.inheritAttrs === undefined) {
@@ -113,10 +113,15 @@ class ReactVueLike extends React.Component {
     if (isRoot) this._isVueLikeRoot = true;
     if (isAbstract) this._isVueLikeAbstract = true;
 
-    this._renderFn = collect.wrap(target.prototype.render, this._eachRenderElement.bind(this));
-    if (target.prototype.render) this.render = ReactVueLike.prototype.render;
-    this._renderErrorFn = collect.wrap(target.prototype.renderError, this._eachRenderElement.bind(this));
-    if (target.prototype.renderError) this.renderError = ReactVueLike.prototype.renderError;
+
+    if (Object.prototype.hasOwnProperty.call(target.prototype, 'render')) {
+      this._renderFn = collect.wrap(target.prototype.render, this._eachRenderElement.bind(this));
+      this.render = ReactVueLike.prototype.render;
+    }
+    if (Object.prototype.hasOwnProperty.call('renderError')) {
+      this._renderErrorFn = collect.wrap(target.prototype.renderError, this._eachRenderElement.bind(this));
+      this.renderError = ReactVueLike.prototype.renderError;
+    }
 
     const { propData, attrs } = parseProps(target, _props, propTypes);
 
@@ -131,6 +136,7 @@ class ReactVueLike extends React.Component {
     this.$children = [];
     this.$attrs = attrs;
     this.$slots = _props.$slots || {};
+    this.$ref = _props.$ref || null;
     this.$options = target;
 
     if (this.$slots.default === undefined) this.$slots.default = _props.children;
@@ -206,11 +212,11 @@ class ReactVueLike extends React.Component {
     // if (_props.el instanceof Element) this.$mount(_props.el);
   }
 
-  _resolvePropRef() {
+  _resolvePropRef(ref) {
     const $ref = this.props.$ref;
-    if (!this._isVueLikeAbstract && $ref) {
-      if (isObject($ref)) $ref.current = this;
-      else if (isFunction($ref)) $ref(this);
+    if ($ref) {
+      if (isObject($ref)) $ref.current = ref;
+      else if (isFunction($ref)) $ref(ref);
     }
   }
 
@@ -232,7 +238,7 @@ class ReactVueLike extends React.Component {
     let slot = this.$slots[props.name || 'default'];
     let ret;
     if (Array.isArray(slot)) {
-      ret = slot.map(s => (isFunction(s) ? s(props) : s));
+      ret = React.Children.map(slot, s => (isFunction(s) ? s(props) : s));
       if (!ret.length) ret = null;
     } else ret = isFunction(slot) ? slot(props) : slot;
     return ret || children || null;
@@ -241,7 +247,12 @@ class ReactVueLike extends React.Component {
   _eachRenderElement(component, props, children, isRoot) {
     if (!component) return;
 
-    if (isRoot && this.$options.inheritAttrs !== false) this._resolveRootAttrs(component, props, true);
+    if (isRoot) {
+      if (this.$options.inheritAttrs !== false) this._resolveRootAttrs(component, props, true);
+      if (this._isVueLikeAbstract && this.$ref && props.ref === undefined) {
+        props.ref = ref => this._resolvePropRef(ref);
+      }
+    }
 
     let scopeId = this.$options.__scopeId;
     if (scopeId) {
@@ -309,7 +320,7 @@ class ReactVueLike extends React.Component {
       this._resolveComputed();
       this._resolveInject();
       this._resolveWatch();
-      this._resolvePropRef();
+      if (!this._isVueLikeAbstract) this._resolvePropRef(this);
 
       this.$emit('hook:created');
 
@@ -395,7 +406,7 @@ class ReactVueLike extends React.Component {
 
   _resolveParent() {
     if (this._isVueLikeRoot) return;
-    iterativeParent(this, parent => this.$parent = parent, ReactVueLike);
+    iterativeParent(this, vm => !vm._isVueLikeAbstract && (this.$parent = vm), ReactVueLike);
     if (this.$parent) this.$parent.$children.push(this);
     else if (this.props.$parent) this.$parent = this.props.$parent;
   }
@@ -525,7 +536,7 @@ class ReactVueLike extends React.Component {
   }
 
   static provide() {
-
+    return {};
   }
 
   static inject = []
@@ -732,7 +743,7 @@ class ReactVueLike extends React.Component {
   }
 
   componentWillUnmount() {
-    this.$emit('hook:beforeDestory');
+    this.$emit('hook:beforeDestroy');
     this._resolveDestory();
   }
 

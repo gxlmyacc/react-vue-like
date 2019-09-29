@@ -127,7 +127,7 @@ function parseProps(target, props, propTypes) {
   const attrs = {};
   if (!propTypes) propTypes = {};
   Object.keys(props).forEach(function (key) {
-    if (propTypes[key]) propData[key] = props[key];
+    if (propTypes[key] !== undefined) return propData[key] = props[key];
     if (['ref', 'children'].includes(key) || /^[$_]/.test(key)) return;
 
     if (target.inheritAttrs || target.inheritAttrs === undefined) {
@@ -158,10 +158,16 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
           inherits = target.inherits;
     if (isRoot) this._isVueLikeRoot = true;
     if (isAbstract) this._isVueLikeAbstract = true;
-    this._renderFn = _collect.default.wrap(target.prototype.render, this._eachRenderElement.bind(this));
-    if (target.prototype.render) this.render = ReactVueLike.prototype.render;
-    this._renderErrorFn = _collect.default.wrap(target.prototype.renderError, this._eachRenderElement.bind(this));
-    if (target.prototype.renderError) this.renderError = ReactVueLike.prototype.renderError;
+
+    if (Object.prototype.hasOwnProperty.call(target.prototype, 'render')) {
+      this._renderFn = _collect.default.wrap(target.prototype.render, this._eachRenderElement.bind(this));
+      this.render = ReactVueLike.prototype.render;
+    }
+
+    if (Object.prototype.hasOwnProperty.call('renderError')) {
+      this._renderErrorFn = _collect.default.wrap(target.prototype.renderError, this._eachRenderElement.bind(this));
+      this.renderError = ReactVueLike.prototype.renderError;
+    }
 
     const _parseProps = parseProps(target, _props, propTypes),
           propData = _parseProps.propData,
@@ -178,6 +184,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
     this.$children = [];
     this.$attrs = attrs;
     this.$slots = _props.$slots || {};
+    this.$ref = _props.$ref || null;
     this.$options = target;
     if (this.$slots.default === undefined) this.$slots.default = _props.children;
     (0, _mobx2.extendObservable)(this, {
@@ -254,11 +261,11 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
     this.$emit('hook:beforeCreate', _props); // if (_props.el instanceof Element) this.$mount(_props.el);
   }
 
-  _resolvePropRef() {
+  _resolvePropRef(ref) {
     const $ref = this.props.$ref;
 
-    if (!this._isVueLikeAbstract && $ref) {
-      if ((0, _utils.isObject)($ref)) $ref.current = this;else if ((0, _utils.isFunction)($ref)) $ref(this);
+    if ($ref) {
+      if ((0, _utils.isObject)($ref)) $ref.current = ref;else if ((0, _utils.isFunction)($ref)) $ref(ref);
     }
   }
 
@@ -283,7 +290,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
     let ret;
 
     if (Array.isArray(slot)) {
-      ret = slot.map(function (s) {
+      ret = _react.default.Children.map(slot, function (s) {
         return (0, _utils.isFunction)(s) ? s(props) : s;
       });
       if (!ret.length) ret = null;
@@ -293,8 +300,20 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
   }
 
   _eachRenderElement(component, props, children, isRoot) {
+    var _this3 = this;
+
     if (!component) return;
-    if (isRoot && this.$options.inheritAttrs !== false) this._resolveRootAttrs(component, props, true);
+
+    if (isRoot) {
+      if (this.$options.inheritAttrs !== false) this._resolveRootAttrs(component, props, true);
+
+      if (this._isVueLikeAbstract && this.$ref && props.ref === undefined) {
+        props.ref = function (ref) {
+          return _this3._resolvePropRef(ref);
+        };
+      }
+    }
+
     let scopeId = this.$options.__scopeId;
 
     if (scopeId) {
@@ -303,14 +322,14 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
   }
 
   _resolveRootAttrs(component, props, isInternal) {
-    var _this3 = this;
+    var _this4 = this;
 
     if (_config.default.useCollect && !isInternal) return props;
     let inheritAttrs = Array.isArray(this.$options.inheritAttrs) ? this.$options.inheritAttrs : _config.default.inheritAttrs;
     const RETX_DOM = /^[a-z][a-z0-9]*$/;
     const isPrimitiveTag = typeof component === 'string' && RETX_DOM.test(component);
     inheritAttrs.forEach(function (key) {
-      let v = _this3.props[key];
+      let v = _this4.props[key];
       if ((0, _utils.isFalsy)(v)) return;
 
       switch (key) {
@@ -350,50 +369,50 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
   }
 
   _resolveWillMount(beforeMount, mounted) {
-    var _this4 = this;
+    var _this5 = this;
 
     let _pending = (0, _mobx2.action)(function () {
-      if (!_this4._isVueLikeRoot && _this4.$parent) {
-        Object.keys(_this4._optionMergeStrategies).forEach(function (key) {
-          let ret = _this4._optionMergeStrategies[key](_this4.$parent[key], _this4[key], _this4, key);
+      if (!_this5._isVueLikeRoot && _this5.$parent) {
+        Object.keys(_this5._optionMergeStrategies).forEach(function (key) {
+          let ret = _this5._optionMergeStrategies[key](_this5.$parent[key], _this5[key], _this5, key);
 
-          if (ret !== _this4[key]) _this4[key] = ret;
+          if (ret !== _this5[key]) _this5[key] = ret;
         });
       }
 
-      _this4.$root = _this4.$parent ? _this4.$parent.$root : _this4;
+      _this5.$root = _this5.$parent ? _this5.$parent.$root : _this5;
 
-      _this4._resolveInherits();
+      _this5._resolveInherits();
 
-      _this4._resolveMethods();
+      _this5._resolveMethods();
 
-      _this4._resolveData();
+      _this5._resolveData();
 
-      _this4._resolveComputed();
+      _this5._resolveComputed();
 
-      _this4._resolveInject();
+      _this5._resolveInject();
 
-      _this4._resolveWatch();
+      _this5._resolveWatch();
 
-      _this4._resolvePropRef();
+      if (!_this5._isVueLikeAbstract) _this5._resolvePropRef(_this5);
 
-      _this4.$emit('hook:created');
+      _this5.$emit('hook:created');
 
-      let pending = _this4._mountedPending;
-      _this4._mountedPending = [];
+      let pending = _this5._mountedPending;
+      _this5._mountedPending = [];
       pending.forEach(function (v) {
         return v();
       });
       beforeMount && beforeMount();
-      _this4._isMounted = true;
-      mounted && _this4.$nextTick(mounted);
+      _this5._isMounted = true;
+      mounted && _this5.$nextTick(mounted);
     });
 
     if (!this.$parent || this.$parent._isWillMount) _pending();else this.$parent._mountedPending.push(_pending);
   }
 
   _resolveInherits() {
-    var _this5 = this;
+    var _this6 = this;
 
     if (!this._isVueLikeRoot && this.$parent) {
       if (this.$parent._inherits) {
@@ -404,12 +423,12 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
 
     if (this._inherits) {
       (0, _mobx2.action)(function () {
-        Object.keys(_this5._inherits).forEach(function (key) {
-          let child = _this5[key];
-          let parent = _this5._inherits[key];
-          const merge = _this5._inheritMergeStrategies[key];
-          let v = merge ? merge(parent, child, _this5, key) : parent;
-          if (v !== undefined) _this5[key] = v;
+        Object.keys(_this6._inherits).forEach(function (key) {
+          let child = _this6[key];
+          let parent = _this6._inherits[key];
+          const merge = _this6._inheritMergeStrategies[key];
+          let v = merge ? merge(parent, child, _this6, key) : parent;
+          if (v !== undefined) _this6[key] = v;
         });
       })();
     }
@@ -421,21 +440,21 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
   }
 
   _resolveData() {
-    var _this6 = this;
+    var _this7 = this;
 
     const _data = {};
 
     this._datas.forEach(function (data) {
-      Object.assign(_data, data.call(_this6, _this6.props));
+      Object.assign(_data, data.call(_this7, _this7.props));
     });
 
     this.$data = _data;
     let deeps = {};
     let shadows = {};
     Object.keys(_data).forEach(function (key) {
-      if (key in _this6._propData) {
+      if (key in _this7._propData) {
         let e = new Error(`key '${key}' in data() cannot be duplicated with props`);
-        (0, _utils.handleError)(e, _this6, `constructor:${_this6.$options.name}`);
+        (0, _utils.handleError)(e, _this7, `constructor:${_this7.$options.name}`);
         throw e;
       }
 
@@ -460,30 +479,30 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
   }
 
   _resolveMethods() {
-    var _this7 = this;
+    var _this8 = this;
 
     bindMethods(this, this._methods);
     const pMethods = {};
     Object.getOwnPropertyNames(this.$options.prototype).filter(function (key) {
       return !ReactVueLike.prototype[key];
     }).map(function (key) {
-      return (0, _utils.isFunction)(_this7[key]) && (pMethods[key] = _this7[key]);
+      return (0, _utils.isFunction)(_this8[key]) && (pMethods[key] = _this8[key]);
     });
     bindMethods(this, pMethods);
   }
 
   _resolveParent() {
-    var _this8 = this;
+    var _this9 = this;
 
     if (this._isVueLikeRoot) return;
-    (0, _utils.iterativeParent)(this, function (parent) {
-      return _this8.$parent = parent;
+    (0, _utils.iterativeParent)(this, function (vm) {
+      return !vm._isVueLikeAbstract && (_this9.$parent = vm);
     }, ReactVueLike);
     if (this.$parent) this.$parent.$children.push(this);else if (this.props.$parent) this.$parent = this.props.$parent;
   }
 
   _resolveInject() {
-    var _this9 = this;
+    var _this10 = this;
 
     if (!this.$parent) return;
 
@@ -497,7 +516,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
 
             if (~idx) {
               let v = vm.$provides[key];
-              if (v !== undefined) _this9.$set(_this9, key, v);
+              if (v !== undefined) _this10.$set(_this10, key, v);
               injects.splice(idx, 1);
             }
 
@@ -507,7 +526,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
 
         if (process.env.NODE_ENV !== 'production') {
           injects.forEach(function (key) {
-            return (0, _utils.warn)(`inject '${key}' not found it's provide!`, _this9);
+            return (0, _utils.warn)(`inject '${key}' not found it's provide!`, _this10);
           });
         }
       }
@@ -534,7 +553,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
   }
 
   _resolveDestory() {
-    var _this10 = this;
+    var _this11 = this;
 
     this._flushTicks();
 
@@ -550,7 +569,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
 
     if (this.$parent) {
       const idx = this.$parent.$children.findIndex(function (c) {
-        return c === _this10;
+        return c === _this11;
       });
       if (~idx) this.$parent.$children.splice(idx, 1);
     }
@@ -637,7 +656,9 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
     return {};
   }
 
-  static provide() {}
+  static provide() {
+    return {};
+  }
 
   beforeCreate() {
     let props = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
@@ -695,6 +716,11 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
   }
 
   $nextTick(cb, ctx) {
+    var _this12 = this;
+
+    if (!cb) return new Promise(function (resolve) {
+      return _this12._ticks.push((0, _mobx2.action)(resolve));
+    });
     if (ctx) cb = cb.bind(ctx);
 
     this._ticks.push((0, _mobx2.action)(cb));
@@ -754,11 +780,11 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
   }
 
   $delete(target, expr) {
-    var _this11 = this;
+    var _this13 = this;
 
     if ((0, _utils.isObject)(expr)) {
       return Object.keys(expr).forEach(function (key) {
-        return _this11.$delete(target, expr[key]);
+        return _this13.$delete(target, expr[key]);
       });
     }
 
@@ -780,13 +806,13 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
   }
 
   $on(eventName, handler) {
-    var _this12 = this;
+    var _this14 = this;
 
     eventName = (0, _utils.camelize)(eventName);
     if (!this.$listeners[eventName]) this.$listeners[eventName] = [];
     this.$listeners[eventName].push(handler);
     return function () {
-      return _this12.$off(eventName, handler);
+      return _this14.$off(eventName, handler);
     };
   }
 
@@ -853,16 +879,16 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
   }
 
   componentDidMount() {
-    var _this13 = this;
+    var _this15 = this;
 
     this._resolveParent();
 
     this._isWillMount = true;
 
     this._resolveWillMount(function () {
-      return _this13.$emit('hook:beforeMount');
+      return _this15.$emit('hook:beforeMount');
     }, function () {
-      return _this13.$emit('hook:mounted');
+      return _this15.$emit('hook:mounted');
     });
   }
 
@@ -875,7 +901,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
   }
 
   componentWillUnmount() {
-    this.$emit('hook:beforeDestory');
+    this.$emit('hook:beforeDestroy');
 
     this._resolveDestory();
   }
@@ -889,5 +915,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
 ReactVueLike.config.optionMergeStrategies = _config.default.optionMergeStrategies;
 ReactVueLike.config.inheritMergeStrategies = _config.default.inheritMergeStrategies;
 ReactVueLike.runAction = _mobx2.runInAction;
+ReactVueLike.set = ReactVueLike.prototype.set;
+ReactVueLike.delete = ReactVueLike.prototype.delete;
 var _default = ReactVueLike;
 exports.default = _default;

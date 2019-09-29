@@ -37,12 +37,14 @@ function ReactHook() {
       var _Component;
 
       newComponent = (_Component = Component).beforeConstructor.apply(_Component, [props].concat(children));
+      if (newComponent !== undefined) Component = newComponent;
     }
 
     const $slotFn = props && props.$slotFn;
     if ($slotFn) return $slotFn(props || {}, children);
-    if (_collect.default.elements) return _collect.default.push(_createElement, newComponent || Component, props, children);
-    return _createElement.call.apply(_createElement, [this, newComponent || Component, props].concat(children));
+    if (Component === 'template') Component = _react.default.Fragment;
+    if (_collect.default.elements) return _collect.default.push(_createElement, Component, props, children);
+    return _createElement.call.apply(_createElement, [this, Component, props].concat(children));
   }
 
   function cloneElement(element, props) {
