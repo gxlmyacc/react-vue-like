@@ -213,7 +213,7 @@ class ReactVueLike extends React.Component {
   }
 
   _resolvePropRef(ref) {
-    const $ref = this.props.$ref;
+    const $ref = this.$ref;
     if ($ref) {
       if (isObject($ref)) $ref.current = ref;
       else if (isFunction($ref)) $ref(ref);
@@ -246,6 +246,14 @@ class ReactVueLike extends React.Component {
 
   _eachRenderElement(component, props, children, isRoot) {
     if (!component) return;
+
+    const comp = props._source || component;
+    if (comp && comp.prototype instanceof ReactVueLike) {
+      if (props.ref) {
+        props.$ref = props.ref;
+        delete props.ref;
+      }
+    }
 
     if (isRoot) {
       if (this.$options.inheritAttrs !== false) this._resolveRootAttrs(component, props, true);
@@ -450,7 +458,7 @@ class ReactVueLike extends React.Component {
     this._el = null;
   }
 
-  _resolveDestory() {
+  _resolveDestroy() {
     this._flushTicks();
 
     this._watched.forEach(v => v && v());
@@ -744,7 +752,7 @@ class ReactVueLike extends React.Component {
 
   componentWillUnmount() {
     this.$emit('hook:beforeDestroy');
-    this._resolveDestory();
+    this._resolveDestroy();
   }
 
   componentDidCatch(error, info) {

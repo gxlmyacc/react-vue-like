@@ -262,7 +262,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
   }
 
   _resolvePropRef(ref) {
-    const $ref = this.props.$ref;
+    const $ref = this.$ref;
 
     if ($ref) {
       if ((0, _utils.isObject)($ref)) $ref.current = ref;else if ((0, _utils.isFunction)($ref)) $ref(ref);
@@ -303,6 +303,14 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
     var _this3 = this;
 
     if (!component) return;
+    const comp = props._source || component;
+
+    if (comp && comp.prototype instanceof ReactVueLike) {
+      if (props.ref) {
+        props.$ref = props.ref;
+        delete props.ref;
+      }
+    }
 
     if (isRoot) {
       if (this.$options.inheritAttrs !== false) this._resolveRootAttrs(component, props, true);
@@ -552,7 +560,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
     this._el = null;
   }
 
-  _resolveDestory() {
+  _resolveDestroy() {
     var _this11 = this;
 
     this._flushTicks();
@@ -903,7 +911,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
   componentWillUnmount() {
     this.$emit('hook:beforeDestroy');
 
-    this._resolveDestory();
+    this._resolveDestroy();
   }
 
   componentDidCatch(error, info) {

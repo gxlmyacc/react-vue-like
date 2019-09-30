@@ -7,9 +7,9 @@ exports.default = before;
 
 var _component = _interopRequireDefault(require("./component"));
 
-var _directive = _interopRequireDefault(require("./directive"));
-
 var _mixin = _interopRequireDefault(require("./mixin"));
+
+var _directive = _interopRequireDefault(require("./directive"));
 
 var _beforeProps = _interopRequireDefault(require("./before-props"));
 
@@ -27,8 +27,6 @@ function isReactComponent(source) {
 
 function before(source, props, target, isMixin) {
   if (!isMixin) (0, _beforeClass.default)(props);
-  if (!source || !source.prototype) return source;
-  if (source.__ReactVueLikeHandled) return source;
   const isReactVueLikeClass = source.prototype instanceof _component.default;
   const isReactVueLikeMixin = isMixin || source.prototype instanceof _mixin.default;
   const isDirective = source === _directive.default;
@@ -42,19 +40,11 @@ function before(source, props, target, isMixin) {
     }
   }
 
-  if (!isReactVueLike) return source;
+  if (!source || !source.prototype || source.__ReactVueLikeHandled) return source;
+  if (!isReactVueLikeClasses) return source;
 
   try {
     if (!target) target = source;
-
-    if (props) {
-      if (props.ref) {
-        props.$ref = props.ref;
-        delete props.ref;
-      }
-    }
-
-    if (!isReactVueLikeClasses) return target;
 
     if (isReactVueLikeClass && target.mixins) {
       target.mixins.forEach(function (m, i) {
