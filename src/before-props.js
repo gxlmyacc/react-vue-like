@@ -2,6 +2,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+class Element { }
+class Node { }
+
+if (!React.Element) React.Element = Element;
+if (!React.Node) React.Node = Node;
+
+
 function generateProps(aPropTypes, aProps) {
   const ret = { propTypes: {}, defaultProps: {} };
   if (!aPropTypes) return ret;
@@ -27,7 +34,9 @@ function generateProps(aPropTypes, aProps) {
         { type: String, value: PropTypes.string },
         { type: Number, value: PropTypes.number },
         { type: Symbol, value: PropTypes.symbol },
-        { type: React.Component, value: PropTypes.element },
+        { type: React.Component, value: PropTypes.elementType },
+        { type: React.Element, value: PropTypes.element },
+        { type: React.Node, value: PropTypes.node },
       ];
       function _getPropType(type, required) {
         let ret = PropTypes.any;
@@ -35,6 +44,7 @@ function generateProps(aPropTypes, aProps) {
           let v = typeMaps.find(v => v.type === type);
           if (v) ret = v.value;
           else if (v instanceof type) PropTypes.instanceOf(type);
+          else ret = type;
         }
         if (required) ret = ret.isRequired;
         return ret;
