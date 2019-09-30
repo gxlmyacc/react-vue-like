@@ -336,7 +336,7 @@ class Test extends ReactVueLike {
 
   updated() { }
 
-  beforeDestory() { }
+  beforeDestroy() { }
 
   render() {
     return (<div>haha</div>);

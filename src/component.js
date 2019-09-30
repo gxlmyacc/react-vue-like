@@ -10,7 +10,7 @@ import {
 import config from './config';
 import collect from './collect';
 
-function generateComputed(obj, propData, data, target) {
+function generateComputed(obj, propData, data, methods, target) {
   const ret = {};
   Object.keys(obj).forEach(key => {
     if (key in propData) {
@@ -387,7 +387,7 @@ class ReactVueLike extends React.Component {
   }
 
   _resolveComputed() {
-    let _computed = generateComputed(this._computed, this._propData, this.$data, this.$options);
+    let _computed = generateComputed(this._computed, this._propData, this.$data, this._methods, this.$options);
     extendObservable(this, _computed);
   }
 

@@ -11,6 +11,13 @@ var _propTypes2 = _interopRequireDefault(require("prop-types"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+class Element {}
+
+class Node {}
+
+if (!_react.default.Element) _react.default.Element = Element;
+if (!_react.default.Node) _react.default.Node = Node;
+
 function generateProps(aPropTypes, aProps) {
   const ret = {
     propTypes: {},
@@ -59,7 +66,13 @@ function generateProps(aPropTypes, aProps) {
         value: _propTypes2.default.symbol
       }, {
         type: _react.default.Component,
+        value: _propTypes2.default.elementType
+      }, {
+        type: _react.default.Element,
         value: _propTypes2.default.element
+      }, {
+        type: _react.default.Node,
+        value: _propTypes2.default.node
       }];
 
       function _getPropType(type, required) {
@@ -69,7 +82,7 @@ function generateProps(aPropTypes, aProps) {
           let v = typeMaps.find(function (v) {
             return v.type === type;
           });
-          if (v) ret = v.value;else if (v instanceof type) _propTypes2.default.instanceOf(type);
+          if (v) ret = v.value;else if (v instanceof type) _propTypes2.default.instanceOf(type);else ret = type;
         }
 
         if (required) ret = ret.isRequired;

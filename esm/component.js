@@ -47,7 +47,7 @@ function _iterableToArrayLimit(arr, i) { if (!(Symbol.iterator in Object(arr) ||
 
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
-function generateComputed(obj, propData, data, target) {
+function generateComputed(obj, propData, data, methods, target) {
   var _this = this;
 
   const ret = {};
@@ -469,7 +469,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
   }
 
   _resolveComputed() {
-    let _computed = generateComputed(this._computed, this._propData, this.$data, this.$options);
+    let _computed = generateComputed(this._computed, this._propData, this.$data, this._methods, this.$options);
 
     (0, _mobx2.extendObservable)(this, _computed);
   }
