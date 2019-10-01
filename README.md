@@ -33,7 +33,7 @@ write react component like vue, implementation based on mbox@4.
   * [Class Attribute Support And Enhance](#class-attribute-support-and-enhance)
   * [Prop And Event Modifiers](#prop-and-event-modifiers)
   * [Provide Inject](#provide-inject)
-  * [Vuex Store](#vuex-store)
+  * [Vuex Store](#vuex-store) <span style="color:red;">(note: Store was moved to [react-vuex-like](https://github.com/gxlmyacc/react-vuex-like)</span>)
   
 * [Other Feature](#other-feature)
 
@@ -748,9 +748,11 @@ class ChildComponent extends ReactVueLike {
 
 support `Vuex.Store` and `mapState`,`mapMutations`,`mapGetters`,`mapActions`,`createNamespacedHelpers`. see [Vuex](https://vuex.vuejs.org/guide/)
 
+<span style="color:red;">Note: Store was moved to [react-vuex-like](https://github.com/gxlmyacc/react-vuex-like).</span>
+
 store like Vuex.Store:
 ```js
-import { Store } from 'react-vue-like';
+import { Store } from 'react-vuex-like';
 
 const store = new Store({
   modules: {

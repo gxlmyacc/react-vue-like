@@ -1,5 +1,5 @@
 
-import {  Store } from 'react-vue-like';
+import {  Store } from 'react-vuex-like';
 
 const store = new Store({
   state: {
