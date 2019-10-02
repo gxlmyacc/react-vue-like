@@ -44,6 +44,26 @@ class UpdatePwdModal extends ReactVueLike {
         this.endModal();
       });
     },
+    doOk1() {
+      this.$nextTick(() => this.aa++);
+    },
+    doOk2() {
+      this.$nextTick(() => --this.aa);
+    },
+    doOk3() {
+      this.$nextTick(() => this.aa += 1);
+    },
+    doOk4() {
+      this.$nextTick(() => {
+        let cc = null;
+
+        cc = this.dd;
+        cc.dd = 1;
+      });
+    },
+    doOk5(cc) {
+      this.$nextTick(cc => cc.dd = 1);
+    },
   }
 
 }

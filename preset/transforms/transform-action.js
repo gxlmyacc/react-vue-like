@@ -34,29 +34,58 @@ module.exports = function ({ types: t, template }) {
     }
   }
 
+  function isClassMember(path) {
+    if (!t.isMemberExpression(path.node)) return;
+    if (t.isThisExpression(path.node.object)) return true;
+    const object = path.get('object');
+    let binding = object.scope.bindings[expr2var(object.node)];
+    if (!binding) return;
+    switch (binding.path.type) {
+      case 'VariableDeclarator': return isClassMember(binding.path.get('init'));
+      case 'Identifier':
+        if (binding.kind === 'param') return true;
+        return false;
+      default: //
+    }
+    if (binding.constantViolations.length) return binding.constantViolations.some(c => {
+      if (c.type === 'AssignmentExpression') return isClassMember(c.get('right'));
+    });
+  }
+
+  function hasAssgin(exprPath) {
+    let ret = false;
+    exprPath.traverse({
+      AssignmentExpression(path) {
+        if (path.getFunctionParent() !== exprPath) return;
+        if (!isClassMember(path.get('left'))) return;
+        ret = true;
+        path.stop();
+      },
+      CallExpression(path) {
+        if (path.getFunctionParent() !== exprPath) return;
+        if (!t.isMemberExpression(path.node.callee)
+          || expr2var(path.node.callee) !== 'Object.assign') return;
+        if (!isClassMember(path.get('arguments.0'))) return;
+        ret = true;
+        path.stop();
+      },
+      UpdateExpression(path) {
+        if (path.getFunctionParent() !== exprPath) return;
+        if (!isClassMember(path.get('argument'))) return;
+        ret = true;
+        path.stop();
+      }
+    });
+    return ret;
+  }
+
   let handled = [];
   function FunctionExprVisitor(exprPath) {
     let expression = exprPath.node;
     if (handled.includes(expression)) return;
     handled.push(expression);
 
-    let hasAssgin = false;
-    exprPath.traverse({
-      AssignmentExpression(path) {
-        if (path.getFunctionParent() !== exprPath) return;
-        if (!t.isMemberExpression(path.node.left)) return;
-        hasAssgin = true;
-        path.stop();
-      },
-      CallExpression(path) {
-        if (!t.isMemberExpression(path.node.callee)
-          || expr2var(path.node.callee) !== 'Object.assign'
-          || !t.isMemberExpression(path.node.arguments[0])) return;
-        hasAssgin = true;
-        path.stop();
-      }
-    });
-    if (!hasAssgin) return;
+    if (!hasAssgin(exprPath)) return;
 
     if (expression.async) {
       asyncToGen(exprPath);

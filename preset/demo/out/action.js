@@ -61,29 +61,33 @@ _defineProperty(UpdatePwdModal, "methods", {
                       return _context3.abrupt("return");
 
                     case 2:
+                      Object.assign(this.data, {
+                        dd
+                      });
+
                       if (!(this.mode === 'apply')) {
-                        _context3.next = 6;
+                        _context3.next = 7;
                         break;
                       }
 
-                      _context3.next = 5;
+                      _context3.next = 6;
                       return this.$api.privilege.applyPrivilege({
                         position: this.formData.position,
                         privileges: this.formData.privileges.join(',')
                       });
 
-                    case 5:
+                    case 6:
                       return _context3.abrupt("return", this.endModal(true));
 
-                    case 6:
-                      _context3.next = 8;
+                    case 7:
+                      _context3.next = 9;
                       return this.$api.privilege.editAccountPrivilege({
                         editedAccountId: this.account.accountId,
                         position: this.formData.position,
                         privileges: this.formData.privileges.join(',')
                       });
 
-                    case 8:
+                    case 9:
                       if (this.account === this.$store.state.account) {
                         this.$store.commit('update-account-info', {
                           position: this.formData.position,
@@ -96,7 +100,7 @@ _defineProperty(UpdatePwdModal, "methods", {
 
                       this.endModal();
 
-                    case 10:
+                    case 11:
                     case "end":
                       return _context3.stop();
                   }
@@ -110,6 +114,46 @@ _defineProperty(UpdatePwdModal, "methods", {
         }, _callee2);
       })()
     );
+  },
+
+  doOk1() {
+    var _this2 = this;
+
+    this.$nextTick(this._resolveEvent(function () {
+      return _this2.aa++;
+    }));
+  },
+
+  doOk2() {
+    var _this3 = this;
+
+    this.$nextTick(this._resolveEvent(function () {
+      return --_this3.aa;
+    }));
+  },
+
+  doOk3() {
+    var _this4 = this;
+
+    this.$nextTick(this._resolveEvent(function () {
+      return _this4.aa += 1;
+    }));
+  },
+
+  doOk4() {
+    var _this5 = this;
+
+    this.$nextTick(function () {
+      let cc = null;
+      cc = _this5.dd;
+      cc.dd = 1;
+    });
+  },
+
+  doOk5(cc) {
+    this.$nextTick(this._resolveEvent(function (cc) {
+      return cc.dd = 1;
+    }));
   }
 
 });
