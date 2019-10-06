@@ -247,14 +247,6 @@ class ReactVueLike extends React.Component {
   _eachRenderElement(component, props, children, isRoot) {
     if (!component) return;
 
-    const comp = props._source || component;
-    if (comp && comp.prototype instanceof ReactVueLike) {
-      if (props.ref) {
-        props.$ref = props.ref;
-        delete props.ref;
-      }
-    }
-
     if (isRoot) {
       if (this.$options.inheritAttrs !== false) this._resolveRootAttrs(component, props, true);
       if (this._isVueLikeAbstract && this.$ref && props.ref === undefined) {

@@ -19,24 +19,32 @@ var _beforeClass = _interopRequireDefault(require("./before-class"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function isReactComponent(source) {
-  if (typeof source !== 'string') return true;
-  if (source.includes('.')) return true;
-  return false;
+function isVueLikeComponent(source) {
+  return source && source.prototype instanceof _component.default;
+}
+
+function isMixinComponent(source) {
+  return source && source.prototype instanceof _mixin.default;
 }
 
 function before(source, props, target, isMixin) {
   if (!isMixin) (0, _beforeClass.default)(props);
-  const isReactVueLikeClass = source.prototype instanceof _component.default;
-  const isReactVueLikeMixin = isMixin || source.prototype instanceof _mixin.default;
+  const isReactVueLikeClass = isVueLikeComponent(source);
+  const isReactVueLikeMixin = isMixin || isMixinComponent(source);
   const isDirective = source === _directive.default;
   const isReactVueLikeClasses = isReactVueLikeClass || isReactVueLikeMixin;
-  const isReactVueLike = isReactVueLikeClasses || isDirective;
 
-  if (!isReactVueLike || isDirective && isReactComponent(props._source)) {
-    if (props && props.$slots) {
-      Object.assign(props, props.$slots);
-      delete props.$slots;
+  if (!isReactVueLikeClasses || isDirective && !isVueLikeComponent(props._source)) {
+    if (props) {
+      if (props.ref) {
+        props.$ref = props.ref;
+        delete props.ref;
+      }
+
+      if (props.$slots) {
+        Object.assign(props, props.$slots);
+        delete props.$slots;
+      }
     }
   }
 

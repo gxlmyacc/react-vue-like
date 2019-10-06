@@ -303,14 +303,6 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
     var _this3 = this;
 
     if (!component) return;
-    const comp = props._source || component;
-
-    if (comp && comp.prototype instanceof ReactVueLike) {
-      if (props.ref) {
-        props.$ref = props.ref;
-        delete props.ref;
-      }
-    }
 
     if (isRoot) {
       if (this.$options.inheritAttrs !== false) this._resolveRootAttrs(component, props, true);
