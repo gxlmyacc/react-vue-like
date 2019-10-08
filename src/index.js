@@ -1,4 +1,4 @@
-import { observable, flow, action } from './mobx';
+import { observable, flow, action, set, remove } from './mobx';
 import ReactVueLike from './component';
 import Directive from './directive';
 import Mixin from './mixin';
@@ -12,6 +12,8 @@ ReactVueLike.observable = observable;
 ReactVueLike.flow = flow;
 ReactVueLike.action = action;
 ReactVueLike._k = checkKeyCodes;
+ReactVueLike.set = set;
+ReactVueLike.delete = remove;
 
 export {
   Directive as ReactVueLikeDirective

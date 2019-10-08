@@ -21,15 +21,19 @@ export default function before(source, props, target, isMixin) {
   const isDirective = source === Directive;
   const isReactVueLikeClasses = isReactVueLikeClass || isReactVueLikeMixin;
 
+
   if (!isReactVueLikeClasses || (isDirective && !isVueLikeComponent(props._source))) {
+    if (props) {
+      if (props.$slots) {
+        Object.assign(props, props.$slots);
+        delete props.$slots;
+      }
+    }
+  } else {
     if (props) {
       if (props.ref) {
         props.$ref = props.ref;
         delete props.ref;
-      }
-      if (props.$slots) {
-        Object.assign(props, props.$slots);
-        delete props.$slots;
       }
     }
   }
