@@ -6,7 +6,7 @@ class App extends ReactVueLike {
 
   render() {
     return (<div class="root">
-      <input add="" v-model={this.formData.text} />
+      <input type="checkbox" add="" v-model={this.formData.text} />
       <input v-model$lazy={this.formData.text} />
       <input v-model$number$lazy={this.formData.text} />
       <input v-model$trim={this.formData.text1} onChange={a => console.log(a)} />

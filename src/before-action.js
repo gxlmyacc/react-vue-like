@@ -6,7 +6,7 @@ const reserved = [
   'data',
   'provide',
   'render',
-  'renderError'
+  'renderError',
 ];
 
 function _handleAction(target, key, flows) {

@@ -54,8 +54,17 @@ const LIFECYCLE_HOOKS = [
   'destroyed',
   'errorCaptured'
 ];
+const GLOBAL_TYPES = (function () {
+  let ret = [React.Component];
+  ['EventTarget', 'Event', 'Error', 'Promise',
+    'RegExp', 'Location', 'IDBFactory', 'History', 'Screen',
+    'Navigator', 'Storage']
+    .forEach(key => global[key] && ret.push(global[key]));
+  return ret;
+})();
 
 const RGEX_EVENT = /on([A-Z]\w+)/;
+const RETX_SPECIAL_KEYS = /^[$_]/;
 // const RGEX_SYNC = /^(\w+)\$sync$/;
 
 function initListeners(ctxs, props) {
@@ -89,7 +98,7 @@ function parseProps(target, props, propTypes) {
   if (!propTypes) propTypes = {};
   Object.keys(props).forEach(key => {
     if (propTypes[key] !== undefined) return propData[key] = props[key];
-    if (['ref', 'children'].includes(key) || /^[$_]/.test(key)) return;
+    if (['ref', 'children'].includes(key) || RETX_SPECIAL_KEYS.test(key)) return;
 
     if (target.inheritAttrs || target.inheritAttrs === undefined) {
       if (Array.isArray(target.inheritAttrs) && ~target.inheritAttrs.indexOf(key)) return;
@@ -248,6 +257,8 @@ class ReactVueLike extends React.Component {
     if (!component) return;
 
     if (isRoot) {
+      this.$emit('hookBeforeRenderRoot', component, props, children);
+
       if (this.$options.inheritAttrs !== false) this._resolveRootAttrs(component, props, true);
       if (this._isVueLikeAbstract && this.$ref && props.ref === undefined) {
         props.ref = ref => this._resolvePropRef(ref);
@@ -371,15 +382,31 @@ class ReactVueLike extends React.Component {
 
     this.$data = _data;
 
+    let isPrimitiveObj = v => {
+      if (v) {
+        if (React.isValidElement(v)) return true;
+        if (Object.getPrototypeOf(v) !== Object && GLOBAL_TYPES.some(t => v instanceof t)) return true;
+      }
+    };
+
+    let keys = Object.keys(_data);
+    let _shadows = this.$options.__shadows;
+    if (!_shadows) {
+      this.$options.__shadows = _shadows = keys
+        .filter(key => {
+          if (key in this._propData) {
+            let e = new Error(`key '${key}' in data() cannot be duplicated with props`);
+            handleError(e, this, `constructor:${this.$options.name}`);
+            throw e;
+          }
+          return RETX_SPECIAL_KEYS.test(key) || isPrimitiveObj(_data[key]);
+        });
+    }
+
     let deeps = {};
     let shadows = {};
-    Object.keys(_data).forEach(key => {
-      if (key in this._propData) {
-        let e = new Error(`key '${key}' in data() cannot be duplicated with props`);
-        handleError(e, this, `constructor:${this.$options.name}`);
-        throw e;
-      }
-      if (key.startsWith('_')) shadows[key] = _data[key];
+    keys.forEach(key => {
+      if (~_shadows.indexOf(key)) shadows[key] = _data[key];
       else deeps[key] = _data[key];
     });
     extendObservable(this, deeps, {}, { deep: true });
@@ -586,7 +613,7 @@ class ReactVueLike extends React.Component {
     else if (elementOrSelector instanceof Element) el = elementOrSelector;
     else {
       el = document.createElement('div');
-      sc  = true;
+      sc = true;
     }
     // throw new Error(`$mount error: elementOrSelector ${elementOrSelector} is not support type!`);
     let instance = this;

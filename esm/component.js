@@ -87,7 +87,17 @@ function bindWatch(ctx, watch) {
 }
 
 const LIFECYCLE_HOOKS = ['beforeCreate', 'created', 'beforeMount', 'mounted', 'beforeUpdate', 'updated', 'beforeDestroy', 'destroyed', 'errorCaptured'];
-const RGEX_EVENT = /on([A-Z]\w+)/; // const RGEX_SYNC = /^(\w+)\$sync$/;
+
+const GLOBAL_TYPES = function () {
+  let ret = [_react.default.Component];
+  ['EventTarget', 'Event', 'Error', 'Promise', 'RegExp', 'Location', 'IDBFactory', 'History', 'Screen', 'Navigator', 'Storage'].forEach(function (key) {
+    return global[key] && ret.push(global[key]);
+  });
+  return ret;
+}();
+
+const RGEX_EVENT = /on([A-Z]\w+)/;
+const RETX_SPECIAL_KEYS = /^[$_]/; // const RGEX_SYNC = /^(\w+)\$sync$/;
 
 function initListeners(ctxs, props) {
   let listeners = {};
@@ -128,7 +138,7 @@ function parseProps(target, props, propTypes) {
   if (!propTypes) propTypes = {};
   Object.keys(props).forEach(function (key) {
     if (propTypes[key] !== undefined) return propData[key] = props[key];
-    if (['ref', 'children'].includes(key) || /^[$_]/.test(key)) return;
+    if (['ref', 'children'].includes(key) || RETX_SPECIAL_KEYS.test(key)) return;
 
     if (target.inheritAttrs || target.inheritAttrs === undefined) {
       if (Array.isArray(target.inheritAttrs) && ~target.inheritAttrs.indexOf(key)) return;
@@ -305,6 +315,7 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
     if (!component) return;
 
     if (isRoot) {
+      this.$emit('hookBeforeRenderRoot', component, props, children);
       if (this.$options.inheritAttrs !== false) this._resolveRootAttrs(component, props, true);
 
       if (this._isVueLikeAbstract && this.$ref && props.ref === undefined) {
@@ -449,16 +460,35 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
     });
 
     this.$data = _data;
+
+    let isPrimitiveObj = function isPrimitiveObj(v) {
+      if (v) {
+        if (_react.default.isValidElement(v)) return true;
+        if (Object.getPrototypeOf(v) !== Object && GLOBAL_TYPES.some(function (t) {
+          return v instanceof t;
+        })) return true;
+      }
+    };
+
+    let keys = Object.keys(_data);
+    let _shadows = this.$options.__shadows;
+
+    if (!_shadows) {
+      this.$options.__shadows = _shadows = keys.filter(function (key) {
+        if (key in _this7._propData) {
+          let e = new Error(`key '${key}' in data() cannot be duplicated with props`);
+          (0, _utils.handleError)(e, _this7, `constructor:${_this7.$options.name}`);
+          throw e;
+        }
+
+        return RETX_SPECIAL_KEYS.test(key) || isPrimitiveObj(_data[key]);
+      });
+    }
+
     let deeps = {};
     let shadows = {};
-    Object.keys(_data).forEach(function (key) {
-      if (key in _this7._propData) {
-        let e = new Error(`key '${key}' in data() cannot be duplicated with props`);
-        (0, _utils.handleError)(e, _this7, `constructor:${_this7.$options.name}`);
-        throw e;
-      }
-
-      if (key.startsWith('_')) shadows[key] = _data[key];else deeps[key] = _data[key];
+    keys.forEach(function (key) {
+      if (~_shadows.indexOf(key)) shadows[key] = _data[key];else deeps[key] = _data[key];
     });
     (0, _mobx2.extendObservable)(this, deeps, {}, {
       deep: true

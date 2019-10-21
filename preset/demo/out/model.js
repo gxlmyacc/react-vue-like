@@ -18,31 +18,29 @@ class App extends _reactVueLike.default {
     return _react.default.createElement("div", {
       className: "root"
     }, _react.default.createElement("input", {
+      type: "checkbox",
       add: "",
-      value: _this.formData.text,
-      onChange: this._resolveEvent(function (e) {
+      checked: _this.formData.text,
+      onChange: function onChange(e) {
         _this.formData.text = e && e.target ? e.target.value : e;
-      })
+      }
     }), _react.default.createElement("input", {
       value: _this.formData.text,
-      onBlur: this._resolveEvent(function (e) {
+      onBlur: function onBlur(e) {
         _this.formData.text = e && e.target ? e.target.value : e;
-      })
+      }
     }), _react.default.createElement("input", {
       value: _this.formData.text,
-      onBlur: this._resolveEvent(function (e) {
+      onBlur: function onBlur(e) {
         _this.formData.text = Number(e && e.target ? e.target.value : e);
-      })
+      }
     }), _react.default.createElement("input", {
       value: _this.formData.text1,
       onChange: function onChange(e) {
-        _this._resolveEvent(function (e) {
-          _this.formData.text1 = ((e && e.target ? e.target.value : e) || '').trim();
-        })(e);
-
-        (function (a) {
+        _this.formData.text1 = ((e && e.target ? e.target.value : e) || '').trim();
+        return function (a) {
           return console.log(a);
-        })(e);
+        }(e);
       }
     }));
   }

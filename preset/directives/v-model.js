@@ -14,7 +14,16 @@ module.exports = function ({ types: t, template }) {
               if (!attr.name || !t.isJSXExpressionContainer(attr.value)) return;
               const parsed = parseDirective(expr2var(attr.name), attrName);
               if (!parsed) return;
-              let name = parsed.arg || 'value';
+
+              const openingElement = path.parent;
+              let defalutProp = 'value';
+              if (expr2var(openingElement.name) === 'input') {
+                const attr = openingElement.attributes.find(attr => attr.name && expr2var(attr.name) === 'type');
+                let type = attr && expr2var(attr.value);
+                if (type && ['checkbox', 'radio'].includes(type)) defalutProp = 'checked';
+              }
+
+              let name = parsed.arg || defalutProp;
               if (t.isJSXNamespacedName(attr.name)) {
                 attr.name = t.jsxIdentifier(name);
               } else attr.name.name = name;
