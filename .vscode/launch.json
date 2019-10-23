@@ -67,6 +67,18 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "babel-preset-demo-filter",
+      "program": "${workspaceFolder}/node_modules/@babel/cli/bin/babel.js",
+      "args": [
+        "preset/demo/src/filter.js",
+        "-d",
+        "preset/demo/out"
+      ],
+      "cwd":"${workspaceFolder}"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "babel-preset-demo-ref",
       "program": "${workspaceFolder}/node_modules/@babel/cli/bin/babel.js",
       "args": [

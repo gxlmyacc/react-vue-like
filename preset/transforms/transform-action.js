@@ -93,7 +93,8 @@ module.exports = function ({ types: t, template }) {
       return;
     }
 
-    exprPath.replaceWith(template('this._resolveEvent($HANDER$)')({
+    exprPath.replaceWith(template('$THIS$._resolveEvent($HANDER$)')({
+      $THIS$: t.thisExpression(),
       $HANDER$: expression,
     }).expression);
   }
