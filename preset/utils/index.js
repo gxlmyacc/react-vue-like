@@ -137,6 +137,7 @@ function expr2var(expr) {
   if (!expr) return;
   switch (expr.type) {
     case 'MemberExpression':
+    case 'JSXMemberExpression':
       return memberExpr2Str(expr);
     case 'ThisExpression':
       return 'this';
@@ -163,9 +164,13 @@ function expr2str(expr) {
   // if (expr.extra) return expr.extra.raw;
   switch (expr.type) {
     case 'MemberExpression':
+    case 'JSXMemberExpression':
       return memberExpr2Str(expr);
     case 'Identifier':
+    case 'JSXIdentifier':
       return expr.name;
+    case 'JSXNamespacedName':
+      return `${expr.namespace.name}:${expr.name.name}`;
     case 'ThisExpression':
       return 'this';
     case 'NumericLiteral':
@@ -234,15 +239,11 @@ function memberExpr2Str(expr) {
   if (!object) return String(expr.value);
   switch (expr.object.type) {
     case 'MemberExpression':
+    case 'JSXMemberExpression':
       objStr = memberExpr2Str(expr.object);
       break;
-    case 'Identifier':
-      objStr = expr.object.name;
-      break;
-    case 'ThisExpression':
-      objStr = 'this';
-      break;
-    default: /* empty */
+    default:
+      objStr = expr2str(expr.object);
   }
   return objStr + (objStr ? '.' : '') + expr.property.name;
 }
