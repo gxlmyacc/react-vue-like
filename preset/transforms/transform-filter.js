@@ -11,7 +11,7 @@ module.exports = function ({ types: t, template }) {
   }
 
   // eslint-disable-next-line
-  const filterTemplate = (callee, args) => template(`this._resolveFilter(() => this.$filters.${callee}.call(null, $ARGS$), '${callee}')`)({ $ARGS$: args });
+  const filterTemplate = (callee, args) => template(`this._resolveFilter(() => this.$filters.${callee}.apply(null, $ARGS$), '${callee}')`)({ $ARGS$: args });
 
   function JSXExpressionContainerVisitor(path) {
     if (path.parent.type !== 'JSXElement') return;
