@@ -161,6 +161,7 @@ function expr2var(expr) {
 }
 
 function expr2str(expr) {
+  if (!expr) return '';
   // if (expr.extra) return expr.extra.raw;
   switch (expr.type) {
     case 'MemberExpression':
