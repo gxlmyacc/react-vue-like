@@ -57,6 +57,9 @@ module.exports = function ({ types: t, template }) {
           if (scopeAttrs && ctx.scopeId) {
             path.traverse({
               JSXElement(path) {
+                let tagName = expr2var(path.node.openingElement.name);
+                if (!tagName || tagName === 'template') return;
+
                 const classAttr = path.node.openingElement.attributes.find(attr => attr.name && expr2var(attr.name) === 'className');
                 if (classAttr) {
                   if (t.isStringLiteral(classAttr.value)) {
