@@ -47,7 +47,7 @@ module.exports = {
     file: true,
     scopeRegx: /(\.(?:le|sc|sa|c)ss)\?scoped(.*)$/,
     scope: true,
-    scopeAttrs: false,
+    scopeAttrs: true,
   },
   transform: {
     class: true,

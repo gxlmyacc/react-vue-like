@@ -323,13 +323,12 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
           return _this3._resolvePropRef(ref);
         };
       }
-    }
+    } // let scopeId = this.$options.__scopeId;
+    // if (scopeId) {
+    //   if (!props.className) props.className = scopeId;
+    //   else props.className = `${scopeId} ${props.className}`;
+    // }
 
-    let scopeId = this.$options.__scopeId;
-
-    if (scopeId) {
-      if (!props.className) props.className = scopeId;else props.className = `${scopeId} ${props.className}`;
-    }
   }
 
   _resolveRootAttrs(component, props, isInternal) {

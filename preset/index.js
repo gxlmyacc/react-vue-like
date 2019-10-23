@@ -53,7 +53,7 @@ module.exports = declare((api, opts = {}) => {
   options.attrNameKeys = Object.keys(options.attrName).map(key => options.attrName[key]);
 
   options.inject.attrs = !options.useCollect;
-  options.inject.scopeAttrs = !options.useCollect;
+  // options.inject.scopeAttrs = !options.useCollect;
 
   options.pkg = pkg;
 

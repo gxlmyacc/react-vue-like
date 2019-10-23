@@ -41,12 +41,8 @@ class App extends _reactVueLike.default {
           return _this._resolveRef("item1", el, $index);
         },
         key: v.key
-      }, v.value), _react.default.createElement("span", {
-        ref: function ref(el) {
-          return _this._resolveRef("item2", el, String(v.key));
-        },
-        key: v.key
-      }, v.value), _react.default.createElement("span", {
+      }, v.value), // <span ref:key="item2" key={v.key}>{v.value}</span>,
+      _react.default.createElement("span", {
         ref: function ref(el) {
           return _this._resolveRef("item2", el, String(v.key));
         },

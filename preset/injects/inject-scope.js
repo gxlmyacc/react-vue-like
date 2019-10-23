@@ -1,6 +1,6 @@
 const hash = require('hash-sum');
 const options = require('../options');
-const { isReactVueLike, expr2var, findClassVarName } = require('../utils');
+const { isReactVueLike, expr2var, /* findClassVarName */ } = require('../utils');
 
 function createScopeId(filename) {
   if (options.pkg) filename = `${options.pkg.name}!${filename}`;
@@ -9,7 +9,7 @@ function createScopeId(filename) {
 
 module.exports = function ({ types: t, template }) {
   const scopeAttrs = options.inject.scopeAttrs;
-  const useCollect = options.useCollect;
+  // const useCollect = options.useCollect;
   return {
     visitor: {
       Program: {
@@ -33,13 +33,13 @@ module.exports = function ({ types: t, template }) {
             if (!this.scopeId) return path.stop();
             if (!isReactVueLike(path)) return path.skip();
 
-            if (useCollect) {
-              const varName = findClassVarName(path);
-              let parentPath = t.isProgram(path.parentPath.node) ? path : path.parentPath;
-              parentPath.insertAfter(template(`${varName}.__scopeId = $SCOPEID$;`)({
-                $SCOPEID$: t.stringLiteral(this.scopeId)
-              }));
-            }
+            // if (useCollect) {
+            //   const varName = findClassVarName(path);
+            //   let parentPath = t.isProgram(path.parentPath.node) ? path : path.parentPath;
+            //   parentPath.insertAfter(template(`${varName}.__scopeId = $SCOPEID$;`)({
+            //     $SCOPEID$: t.stringLiteral(this.scopeId)
+            //   }));
+            // }
           }
 
           path.traverse({
