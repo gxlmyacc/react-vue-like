@@ -672,12 +672,14 @@ see:
   [v-bind](https://vuejs.org/v2/api/index.html#v-bind)
   [v-no](https://vuejs.org/v2/api/index.html#v-on)
 ```js
+import Child from './child';
+
 class Test extends ReactVueLike {
  
   render() {
     return (<div>
-      {/* equals <div aa={this.aa} onUpdateAa={v=>this.aa=v}></div> */}
-      <div aa$sync={this.aa}></div>
+      {/* equals <div aa={this.aa} onChangeAa={v=>this.aa=v}></div> */}
+      <Child aa$sync={this.aa}></Child>
       <div onClick$stop={this.test}></div>
       <div onClick$prevent={this.test}></div>
       <div onClick$capture={this.test}></div>
@@ -690,6 +692,22 @@ class Test extends ReactVueLike {
       <div onClick$passive={this.test}></div>
       <div onClick$enter={this.test}></div>
       <div onClick$13={this.test}></div>
+    </div>);
+  }
+
+}
+```
+
+```js
+class Child extends ReactVueLike {
+ 
+  changeAa() {
+    this.$emit('change:aa', 1);
+  }
+
+  render() {
+    return (<div>
+      <button onClick={this.changeAa}></button>
     </div>);
   }
 

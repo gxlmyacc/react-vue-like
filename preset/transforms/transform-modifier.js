@@ -24,7 +24,7 @@ module.exports = function ({ types: t, template }) {
     const modifiers = parsed.modifiers;
     if (!isEvent) {
       if (modifiers.sync) {
-        appendAttrEvent(path, `onUpdate${camelCase(parsed.name, { pascalCase: true })}`, t.arrowFunctionExpression(
+        appendAttrEvent(path, `onChange${camelCase(parsed.name, { pascalCase: true })}`, t.arrowFunctionExpression(
           [t.identifier('v')],
           t.blockStatement([
             template(`$1=${bindModifiers('v', modifiers)}`)({ $1: value })

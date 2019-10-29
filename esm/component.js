@@ -96,7 +96,7 @@ const GLOBAL_TYPES = function () {
   return ret;
 }();
 
-const RGEX_EVENT = /on([A-Z]\w+)/;
+const RGEX_EVENT = /^on([A-Z]\w+)/;
 const RETX_SPECIAL_KEYS = /^[$_]/; // const RGEX_SYNC = /^(\w+)\$sync$/;
 
 function initListeners(ctxs, props) {
@@ -169,15 +169,28 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
     if (isRoot) this._isVueLikeRoot = true;
     if (isAbstract) this._isVueLikeAbstract = true;
 
-    if (Object.prototype.hasOwnProperty.call(target.prototype, 'render')) {
+    if (hasOwnProperty.call(target.prototype, 'render')) {
       this._renderFn = _collect.default.wrap(target.prototype.render, this._eachRenderElement.bind(this));
       this.render = ReactVueLike.prototype.render;
     }
 
-    if (Object.prototype.hasOwnProperty.call('renderError')) {
+    if (hasOwnProperty.call('renderError')) {
       this._renderErrorFn = _collect.default.wrap(target.prototype.renderError, this._eachRenderElement.bind(this));
       this.renderError = ReactVueLike.prototype.renderError;
     }
+
+    if (hasOwnProperty.call('activated')) {
+      this._activatedFn = target.prototype.activated;
+      this.activated = ReactVueLike.prototype.activated;
+    }
+
+    if (hasOwnProperty.call('deactivated')) {
+      this._deactivatedFn = target.prototype.deactivated;
+      this.deactivated = ReactVueLike.prototype.deactivated;
+    }
+
+    this._shouldComponentUpdateFn = this.shouldComponentUpdate;
+    this.shouldComponentUpdate = this._shouldComponentUpdate;
 
     const _parseProps = parseProps(target, _props, propTypes),
           propData = _parseProps.propData,
@@ -189,6 +202,8 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
     this._el = null;
     this._mountedPending = [];
     this._isWillMount = false;
+    this._isActive = true;
+    this._isDirty = false;
     this.$parent = null;
     this.$root = null;
     this.$children = [];
@@ -653,6 +668,16 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
     }
   }
 
+  _shouldComponentUpdate(nextProps, nextState) {
+    if (this._isActive) {
+      this._isDirty = false;
+      return this._shouldComponentUpdateFn(nextProps, nextState);
+    }
+
+    this._isDirty = true;
+    return false;
+  }
+
   static use(plugin) {
     let options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
     let install = (0, _utils.isFunction)(plugin) ? plugin : plugin.install ? plugin.install.bind(plugin) : null;
@@ -704,6 +729,22 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
   beforeUpdate() {}
 
   updated() {}
+
+  activated() {
+    if (this._isActive) return;
+    this._isActive = true;
+
+    const ret = this._activatedFn && this._activatedFn();
+
+    if (this._isDirty) this.$forceUpdate();
+    return ret;
+  }
+
+  deactivated() {
+    if (!this._isActive) return;
+    this._isActive = false;
+    return this._deactivatedFn && this._deactivatedFn();
+  }
 
   beforeDestory() {}
 

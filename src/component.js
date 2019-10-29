@@ -63,7 +63,7 @@ const GLOBAL_TYPES = (function () {
   return ret;
 })();
 
-const RGEX_EVENT = /on([A-Z]\w+)/;
+const RGEX_EVENT = /^on([A-Z]\w+)/;
 const RETX_SPECIAL_KEYS = /^[$_]/;
 // const RGEX_SYNC = /^(\w+)\$sync$/;
 
@@ -71,6 +71,10 @@ function initListeners(ctxs, props) {
   let listeners = {};
   const addListener = (key, handler) => {
     if (!listeners[key]) listeners[key] = [];
+    if (!isFunction(handler)) {
+      console.warn(`[initListeners]${key} is not function!`);
+      return;
+    }
     listeners[key].push(action(key, handler));
   };
   ctxs.forEach(ctx => {
@@ -96,7 +100,7 @@ function parseProps(target, props, propTypes) {
   const propData = {};
   const attrs = {};
   if (!propTypes) propTypes = {};
-  Object.keys(props).forEach(key => {
+  Object.getOwnPropertyNames(props).forEach(key => {
     if (propTypes[key] !== undefined) return propData[key] = props[key];
     if (['ref', 'children'].includes(key) || RETX_SPECIAL_KEYS.test(key)) return;
 
@@ -123,14 +127,24 @@ class ReactVueLike extends React.Component {
     if (isAbstract) this._isVueLikeAbstract = true;
 
 
-    if (Object.prototype.hasOwnProperty.call(target.prototype, 'render')) {
+    if (hasOwnProperty.call(target.prototype, 'render')) {
       this._renderFn = collect.wrap(target.prototype.render, this._eachRenderElement.bind(this));
       this.render = ReactVueLike.prototype.render;
     }
-    if (Object.prototype.hasOwnProperty.call('renderError')) {
+    if (hasOwnProperty.call('renderError')) {
       this._renderErrorFn = collect.wrap(target.prototype.renderError, this._eachRenderElement.bind(this));
       this.renderError = ReactVueLike.prototype.renderError;
     }
+    if (hasOwnProperty.call('activated')) {
+      this._activatedFn = target.prototype.activated;
+      this.activated = ReactVueLike.prototype.activated;
+    }
+    if (hasOwnProperty.call('deactivated')) {
+      this._deactivatedFn = target.prototype.deactivated;
+      this.deactivated = ReactVueLike.prototype.deactivated;
+    }
+    this._shouldComponentUpdateFn = this.shouldComponentUpdate;
+    this.shouldComponentUpdate = this._shouldComponentUpdate;
 
     const { propData, attrs } = parseProps(target, _props, propTypes);
 
@@ -140,6 +154,8 @@ class ReactVueLike extends React.Component {
     this._el = null;
     this._mountedPending = [];
     this._isWillMount = false;
+    this._isActive = true;
+    this._isDirty = false;
     this.$parent = null;
     this.$root = null;
     this.$children = [];
@@ -516,6 +532,15 @@ class ReactVueLike extends React.Component {
     }
   }
 
+  _shouldComponentUpdate(nextProps, nextState) {
+    if (this._isActive) {
+      this._isDirty = false;
+      return this._shouldComponentUpdateFn(nextProps, nextState);
+    }
+    this._isDirty = true;
+    return false;
+  }
+
   static use(plugin, options = {}, ...args) {
     let install = isFunction(plugin)
       ? plugin
@@ -595,6 +620,20 @@ class ReactVueLike extends React.Component {
 
   updated() {
 
+  }
+
+  activated() {
+    if (this._isActive) return;
+    this._isActive = true;
+    const ret = this._activatedFn && this._activatedFn();
+    if (this._isDirty) this.$forceUpdate();
+    return ret;
+  }
+
+  deactivated() {
+    if (!this._isActive) return;
+    this._isActive = false;
+    return this._deactivatedFn && this._deactivatedFn();
   }
 
   beforeDestory() {
