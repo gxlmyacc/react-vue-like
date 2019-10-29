@@ -104,6 +104,12 @@ function initListeners(ctxs, props) {
 
   const addListener = function addListener(key, handler) {
     if (!listeners[key]) listeners[key] = [];
+
+    if (!(0, _utils.isFunction)(handler)) {
+      console.warn(`[initListeners]${key} is not function!`);
+      return;
+    }
+
     listeners[key].push((0, _mobx2.action)(key, handler));
   };
 
@@ -136,7 +142,7 @@ function parseProps(target, props, propTypes) {
   const propData = {};
   const attrs = {};
   if (!propTypes) propTypes = {};
-  Object.keys(props).forEach(function (key) {
+  Object.getOwnPropertyNames(props).forEach(function (key) {
     if (propTypes[key] !== undefined) return propData[key] = props[key];
     if (['ref', 'children'].includes(key) || RETX_SPECIAL_KEYS.test(key)) return;
 
