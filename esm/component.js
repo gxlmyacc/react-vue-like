@@ -86,7 +86,7 @@ function bindWatch(ctx, watch) {
   });
 }
 
-const LIFECYCLE_HOOKS = ['beforeCreate', 'created', 'beforeMount', 'mounted', 'beforeUpdate', 'updated', 'beforeDestroy', 'destroyed', 'errorCaptured'];
+const LIFECYCLE_HOOKS = ['beforeCreate', 'created', 'beforeMount', 'mounted', 'beforeUpdate', 'updated', 'activated', 'deactivated', 'beforeDestroy', 'destroyed', 'errorCaptured'];
 
 const GLOBAL_TYPES = function () {
   let ret = [_react.default.Component];
@@ -183,16 +183,6 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
     if (hasOwnProperty.call('renderError')) {
       this._renderErrorFn = _collect.default.wrap(target.prototype.renderError, this._eachRenderElement.bind(this));
       this.renderError = ReactVueLike.prototype.renderError;
-    }
-
-    if (hasOwnProperty.call('activated')) {
-      this._activatedFn = target.prototype.activated;
-      this.activated = ReactVueLike.prototype.activated;
-    }
-
-    if (hasOwnProperty.call('deactivated')) {
-      this._deactivatedFn = target.prototype.deactivated;
-      this.deactivated = ReactVueLike.prototype.deactivated;
     }
 
     this._shouldComponentUpdateFn = this.shouldComponentUpdate;
@@ -736,21 +726,9 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
 
   updated() {}
 
-  activated() {
-    if (this._isActive) return;
-    this._isActive = true;
+  activated() {}
 
-    const ret = this._activatedFn && this._activatedFn();
-
-    if (this._isDirty) this.$forceUpdate();
-    return ret;
-  }
-
-  deactivated() {
-    if (!this._isActive) return;
-    this._isActive = false;
-    return this._deactivatedFn && this._deactivatedFn();
-  }
+  deactivated() {}
 
   beforeDestory() {}
 
@@ -974,6 +952,19 @@ let ReactVueLike = (0, _mobxReact.observer)(_class = (_temp = _class2 = class Re
     this.$emit('hook:updated');
 
     this._flushTicks();
+  }
+
+  componentDidActivate() {
+    if (this._isActive) return;
+    this._isActive = true;
+    this.$emit('hook:activated');
+    if (this._isDirty) this.$forceUpdate();
+  }
+
+  componentWillUnactivate() {
+    if (!this._isActive) return;
+    this._isActive = false;
+    this.$emit('hook:deactivated');
   }
 
   componentWillUnmount() {

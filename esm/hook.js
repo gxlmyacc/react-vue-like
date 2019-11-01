@@ -18,16 +18,15 @@ function ReactHook() {
   const _cloneElement = _react.default.cloneElement;
 
   function createElement(Component, props) {
-    for (var _len = arguments.length, children = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
-      children[_key - 2] = arguments[_key];
-    }
-
-    if (_collect.default.elements) return _collect.default.push(createElement, Component, props, children);
     const $component = props && props.$component;
 
     if ($component) {
       Component = $component;
       delete props.$component;
+    }
+
+    for (var _len = arguments.length, children = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+      children[_key - 2] = arguments[_key];
     }
 
     if (!Component) return _createElement.call.apply(_createElement, [this, Component, props].concat(children));
@@ -44,6 +43,7 @@ function ReactHook() {
     const $slotFn = props && props.$slotFn;
     if ($slotFn) return $slotFn(props || {}, children);
     if (Component === 'template') Component = _react.default.Fragment;
+    if (_collect.default.elements) return _collect.default.push(_createElement, Component, props, children);
     return _createElement.call.apply(_createElement, [this, Component, props].concat(children));
   }
 

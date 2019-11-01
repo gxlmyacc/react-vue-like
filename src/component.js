@@ -50,6 +50,8 @@ const LIFECYCLE_HOOKS = [
   'mounted',
   'beforeUpdate',
   'updated',
+  'activated',
+  'deactivated',
   'beforeDestroy',
   'destroyed',
   'errorCaptured'
@@ -134,14 +136,6 @@ class ReactVueLike extends React.Component {
     if (hasOwnProperty.call('renderError')) {
       this._renderErrorFn = collect.wrap(target.prototype.renderError, this._eachRenderElement.bind(this));
       this.renderError = ReactVueLike.prototype.renderError;
-    }
-    if (hasOwnProperty.call('activated')) {
-      this._activatedFn = target.prototype.activated;
-      this.activated = ReactVueLike.prototype.activated;
-    }
-    if (hasOwnProperty.call('deactivated')) {
-      this._deactivatedFn = target.prototype.deactivated;
-      this.deactivated = ReactVueLike.prototype.deactivated;
     }
     this._shouldComponentUpdateFn = this.shouldComponentUpdate;
     this.shouldComponentUpdate = this._shouldComponentUpdate;
@@ -623,17 +617,11 @@ class ReactVueLike extends React.Component {
   }
 
   activated() {
-    if (this._isActive) return;
-    this._isActive = true;
-    const ret = this._activatedFn && this._activatedFn();
-    if (this._isDirty) this.$forceUpdate();
-    return ret;
+
   }
 
   deactivated() {
-    if (!this._isActive) return;
-    this._isActive = false;
-    return this._deactivatedFn && this._deactivatedFn();
+
   }
 
   beforeDestory() {
@@ -806,6 +794,19 @@ class ReactVueLike extends React.Component {
     this.$emit('hook:updated');
 
     this._flushTicks();
+  }
+
+  componentDidActivate() {
+    if (this._isActive) return;
+    this._isActive = true;
+    this.$emit('hook:activated');
+    if (this._isDirty) this.$forceUpdate();
+  }
+
+  componentWillUnactivate() {
+    if (!this._isActive) return;
+    this._isActive = false;
+    this.$emit('hook:deactivated');
   }
 
   componentWillUnmount() {
