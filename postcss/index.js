@@ -8,7 +8,16 @@ module.exports = postcss.plugin('react-vue-like-add-id', function (opts) {
   // };
   opts = opts || {};
   return function (root) {
-    if (!opts.scoped || !opts.id) return;
+    let scoped; let id;
+    if (typeof opts === 'function') {
+      let _opts = opts(root);
+      scoped = _opts.scoped;
+      id = _opts.id;
+    } else {
+      scoped = opts.scoped;
+      id = opts.id;
+    }
+    if (!scoped || !id) return;
     root.each(function rewriteSelector(node) {
       if (!node.selector) {
         if (node.type === 'atrule' && node.name === 'media') {
@@ -17,7 +26,7 @@ module.exports = postcss.plugin('react-vue-like-add-id', function (opts) {
         return;
       }
       if (node.selector.includes(':scope')) {
-        node.selector = node.selector.replace(':scope', '.' + opts.id);
+        node.selector = node.selector.replace(':scope', '.' + id);
       } else {
         node.selector = selectorParser(function (selectors) {
           selectors.each(function (selector) {
@@ -41,7 +50,7 @@ module.exports = postcss.plugin('react-vue-like-add-id', function (opts) {
                   else if (lastNode.type !== 'pseudo' && lastNode.spaces.before === '') afterSpace = ' ';
                 }
                 selector.nodes.splice(idx + 1, 0, selectorParser.className({
-                  value: opts.id,
+                  value: id,
                   spaces: {
                     after: afterSpace
                   }

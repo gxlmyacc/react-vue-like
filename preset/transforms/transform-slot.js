@@ -49,7 +49,8 @@ module.exports = function ({ types: t, template }) {
         const openingElement = path.node.openingElement;
         let tagName = openingElement.name.name;
         if (tagName === DirectiveName) {
-          tagName = expr2var(openingElement.attributes.find(attr => attr.name && attr.name.name === '_source'));
+          let tag = openingElement.attributes.find(attr => attr.name && attr.name.name === '_source');
+          tagName = tag && expr2var(tag.value);
         }
         if (!compRegx.test(tagName)) return;
         if (openingElement.attributes.some(attr => attr.name && attr.name.name === '$slots')) return;

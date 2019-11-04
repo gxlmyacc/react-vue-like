@@ -136,6 +136,8 @@ function extractNodeCode(path, node) {
 function expr2var(expr) {
   if (!expr) return;
   switch (expr.type) {
+    case 'JSXExpressionContainer':
+      return expr2var(expr.expression);
     case 'MemberExpression':
     case 'JSXMemberExpression':
       return memberExpr2Str(expr);
@@ -164,6 +166,8 @@ function expr2str(expr) {
   if (!expr) return '';
   // if (expr.extra) return expr.extra.raw;
   switch (expr.type) {
+    case 'JSXExpressionContainer':
+      return expr2str(expr.expression);
     case 'MemberExpression':
     case 'JSXMemberExpression':
       return memberExpr2Str(expr);

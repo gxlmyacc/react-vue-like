@@ -1,6 +1,6 @@
 const hash = require('hash-sum');
 const options = require('../options');
-const { isReactVueLike, expr2var, /* findClassVarName */ } = require('../utils');
+const { isReactVueLike, expr2var, isFunction, /* findClassVarName */ } = require('../utils');
 
 function createScopeId(filename) {
   if (options.pkg) filename = `${options.pkg.name}!${filename}`;
@@ -9,6 +9,7 @@ function createScopeId(filename) {
 
 module.exports = function ({ types: t, template }) {
   const scopeAttrs = options.inject.scopeAttrs;
+  const scopeFn = isFunction(options.inject.scope) ? options.inject.scope : (p1, p2) => p1 + p2;
   // const useCollect = options.useCollect;
   return {
     visitor: {
@@ -48,7 +49,11 @@ module.exports = function ({ types: t, template }) {
               const matched = source.match(this.regx);
               if (!matched) return;
               this.scopeId = createScopeId(filename);
-              path.node.source.value = source.replace(this.regx, `$1?react-vue-like&scoped=true&id=${this.scopeId}`);
+              let file = source.replace(this.regx, (match, p1) => scopeFn(p1, `?react-vue-like&scoped=true&id=${this.scopeId}`, {
+                filename,
+                scopeId: this.scopeId
+              }));
+              if (file) path.node.source.value = file;
             },
             ClassDeclaration: ClassVisitor,
             ClassExpression: ClassVisitor

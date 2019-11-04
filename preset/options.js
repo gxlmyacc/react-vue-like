@@ -45,7 +45,7 @@ module.exports = {
   inject: {
     attrs: false,
     file: true,
-    scopeRegx: /(\.(?:le|sc|sa|c)ss)\?scoped(.*)$/,
+    scopeRegx: /(\.(le|sc|sa|c)ss)\?scoped(.*)$/,
     scope: true,
     scopeAttrs: true,
   },

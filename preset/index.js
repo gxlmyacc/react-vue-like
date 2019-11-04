@@ -36,26 +36,31 @@ function pluginHook(plugin) {
   };
 }
 
+let loaded = false;
+
 module.exports = declare((api, opts = {}) => {
   api.assertVersion(7);
   if (!opts) opts = {};
-  const { attrName, transform, directive, inject, ...others } = opts;
+  if (!loaded) {
+    loaded = true;
+    const { attrName, transform, directive, inject, ...others } = opts;
 
-  if (attrName) Object.assign(options.attrName, attrName);
-  if (transform) Object.assign(options.transform, transform);
-  if (directive) Object.assign(options.directive, directive);
-  if (inject) Object.assign(options.inject, inject);
-  Object.assign(options, others);
+    if (attrName) Object.assign(options.attrName, attrName);
+    if (transform) Object.assign(options.transform, transform);
+    if (directive) Object.assign(options.directive, directive);
+    if (inject) Object.assign(options.inject, inject);
+    Object.assign(options, others);
 
-  Object.keys(options.attrName).forEach(key => options.attrName[key] = `${options.prefix}${options.attrName[key]}`);
+    Object.keys(options.attrName).forEach(key => options.attrName[key] = `${options.prefix}${options.attrName[key]}`);
 
-  options.directiveRegx = directiveRegx('[a-z0-9\\-]+', options.prefix);
-  options.attrNameKeys = Object.keys(options.attrName).map(key => options.attrName[key]);
+    options.directiveRegx = directiveRegx('[a-z0-9\\-]+', options.prefix);
+    options.attrNameKeys = Object.keys(options.attrName).map(key => options.attrName[key]);
 
-  options.inject.attrs = !options.useCollect;
-  // options.inject.scopeAttrs = !options.useCollect;
+    options.inject.attrs = !options.useCollect;
+    // options.inject.scopeAttrs = !options.useCollect;
 
-  options.pkg = pkg;
+    options.pkg = pkg;
+  }
 
   let plugins = [
   ];
