@@ -9,7 +9,7 @@ const transformModifier = require('./transforms/transform-modifier');
 const transformComponent = require('./transforms/transform-component');
 const transformAction = require('./transforms/transform-action');
 const transformFilter = require('./transforms/transform-filter');
-const transformConst = require('./transforms/transform-const');
+const transformDefine = require('./transforms/transform-define');
 const transformRef = require('./transforms/transform-ref');
 const transformSlot = require('./transforms/transform-slot');
 const vIf = require('./directives/v-if');
@@ -71,7 +71,7 @@ module.exports = declare((api, opts = {}) => {
   if (options.transform.component) plugins.push(transformComponent);
   if (options.transform.action) plugins.push(transformAction);
   if (options.transform.filter) plugins.push(transformFilter);
-  if (options.transform.const) plugins.push(transformConst);
+  if (options.transform.define) plugins.push(transformDefine);
   if (options.transform.ref) plugins.push(transformRef);
   if (options.transform.slot) plugins.push(transformSlot);
 

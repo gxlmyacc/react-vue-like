@@ -58,7 +58,7 @@ module.exports = {
     component: true,
     action: true,
     filter: true,
-    const: true,
+    define: true,
     ref: true,
     slot: true,
   },

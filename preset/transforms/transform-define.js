@@ -6,8 +6,8 @@ const {
 const options = require('../options');
 
 module.exports = function ({ types: t }) {
-  let consts = options.transform.const;
-  if (consts && typeof consts !== 'object') consts = {};
+  let defines = options.transform.define;
+  if (defines && typeof consts !== 'object') defines = {};
 
   function IdentifierVisitor(path) {
     const parent = path.parent;
@@ -23,8 +23,8 @@ module.exports = function ({ types: t }) {
       path.replaceWith(t.stringLiteral(this.dirname));
     } else if (identifier === '__now') {
       path.replaceWith(t.stringLiteral(this.now));
-    } else if (consts[identifier]) {
-      path.replaceWith(var2Expression(consts[identifier]));
+    } else if (defines[identifier]) {
+      path.replaceWith(var2Expression(defines[identifier]));
     } else if (this.pkg) {
       if (identifier === '__packagename') {
         path.replaceWith(t.stringLiteral(this.pkg.name));
