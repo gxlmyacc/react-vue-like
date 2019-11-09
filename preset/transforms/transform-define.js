@@ -8,11 +8,13 @@ const options = require('../options');
 module.exports = function ({ types: t }) {
   let defines = options.transform.define;
   if (defines && typeof consts !== 'object') defines = {};
+  let defineNames = Object.getOwnPropertyNames(defines);
 
   function IdentifierVisitor(path) {
     const parent = path.parent;
     if (!parent) return;
-    if (['FunctionDeclaration', 'MemberExpression', 'VariableDeclarator'].includes(parent.type)) return;
+    if (['FunctionDeclaration', 'MemberExpression', 'VariableDeclarator',
+      'ClassMethod', 'ObjectMethod'].includes(parent.type)) return;
     if (parent.type === 'ObjectProperty' && parent.key === path.node) {
       return;
     }
@@ -23,7 +25,7 @@ module.exports = function ({ types: t }) {
       path.replaceWith(t.stringLiteral(this.dirname));
     } else if (identifier === '__now') {
       path.replaceWith(t.stringLiteral(this.now));
-    } else if (defines[identifier]) {
+    } else if (defineNames.includes(identifier)) {
       path.replaceWith(var2Expression(defines[identifier]));
     } else if (this.pkg) {
       if (identifier === '__packagename') {

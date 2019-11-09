@@ -4,6 +4,11 @@ import './index.scss?scoped';
 
 class App extends ReactVueLike {
 
+  constructor(props) {
+    super(props);
+
+  }
+
   static data() {
     return {
     };
