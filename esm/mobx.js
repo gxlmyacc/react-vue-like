@@ -178,7 +178,7 @@ var _config = _interopRequireDefault(require("./config"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const _toString = Object.prototype.toString;
+var _toString = Object.prototype.toString;
 
 function isGenerator(fn) {
   return fn && _toString.call(fn.prototype) === '[object Generator]';
@@ -189,7 +189,7 @@ function isAsync(fn) {
 }
 
 function newConfigure() {
-  let options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
   _config.default.enforceActions = options.enforceActions !== undefined && options.enforceActions !== 'never';
   return (0, _mobx.configure)(Object.assign({
     isolateGlobalState: true
@@ -201,7 +201,7 @@ function newIsActon(fn) {
 }
 
 function newFlow(target, name, descriptor) {
-  let value;
+  var value;
 
   if (arguments.length === 1) {
     value = (0, _mobx.flow)(target);
@@ -217,10 +217,10 @@ function newFlow(target, name, descriptor) {
 }
 
 function newAction(target, name, descriptor) {
-  let value;
+  var value;
 
   if (!descriptor || !descriptor.value) {
-    let _fn = name || target;
+    var _fn = name || target;
 
     if (newIsActon(_fn)) value = _fn;else {
       value = isGenerator(_fn) ? (0, _mobx.flow)(_fn) : _mobx.action.apply(void 0, arguments);

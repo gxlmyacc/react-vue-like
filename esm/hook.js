@@ -14,11 +14,11 @@ var _collect = _interopRequireDefault(require("./collect"));
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function ReactHook() {
-  const _createElement = _react.default.createElement;
-  const _cloneElement = _react.default.cloneElement;
+  var _createElement = _react.default.createElement;
+  var _cloneElement = _react.default.cloneElement;
 
   function createElement(Component, props) {
-    const $component = props && props.$component;
+    var $component = props && props.$component;
 
     if ($component) {
       Component = $component;
@@ -31,7 +31,7 @@ function ReactHook() {
 
     if (!Component) return _createElement.call.apply(_createElement, [this, Component, props].concat(children));
     Component = (0, _before.default)(Component, props);
-    let newComponent;
+    var newComponent;
 
     if (Component.beforeConstructor) {
       var _Component;
@@ -40,7 +40,7 @@ function ReactHook() {
       if (newComponent !== undefined) Component = newComponent;
     }
 
-    const $slotFn = props && props.$slotFn;
+    var $slotFn = props && props.$slotFn;
     if ($slotFn) return $slotFn(props || {}, children);
     if (Component === 'template') Component = _react.default.Fragment;
     if (_collect.default.elements) return _collect.default.push(_createElement, Component, props, children);

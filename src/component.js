@@ -150,6 +150,7 @@ class ReactVueLike extends React.Component {
     this._isWillMount = false;
     this._isActive = true;
     this._isDirty = false;
+    this._isRendering = false;
     this.$parent = null;
     this.$root = null;
     this.$children = [];
@@ -754,12 +755,14 @@ class ReactVueLike extends React.Component {
   render() {
     if (!this._isMounted) return null;
     let node;
+    this._isRendering = true;
     try {
       node = (this._renderFn && this._renderFn()) || null;
     } catch (ex) {
       handleError(ex, this, 'render');
       node = this.renderError && this.renderError(ex);
     }
+    this._isRendering = false;
     return node;
   }
 

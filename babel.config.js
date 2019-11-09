@@ -8,7 +8,7 @@ module.exports = {
         modules: 'commonjs',
         useBuiltIns: 'entry',
         corejs: 2,
-        targets: { browsers: ['Chrome >= 49'] }
+        targets: { browsers: ['Chrome >= 31'] }
       }
     ],
     '@babel/preset-react',

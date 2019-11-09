@@ -29,10 +29,10 @@ function isMixinComponent(source) {
 
 function before(source, props, target, isMixin) {
   if (!isMixin) (0, _beforeClass.default)(props);
-  const isReactVueLikeClass = isVueLikeComponent(source);
-  const isReactVueLikeMixin = isMixin || isMixinComponent(source);
-  const isDirective = source === _directive.default;
-  const isReactVueLikeClasses = isReactVueLikeClass || isReactVueLikeMixin;
+  var isReactVueLikeClass = isVueLikeComponent(source);
+  var isReactVueLikeMixin = isMixin || isMixinComponent(source);
+  var isDirective = source === _directive.default;
+  var isReactVueLikeClasses = isReactVueLikeClass || isReactVueLikeMixin;
 
   if (!isReactVueLikeClasses || isDirective && !isVueLikeComponent(props._source)) {
     if (props) {

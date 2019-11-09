@@ -86,7 +86,7 @@ function var2Expression(v, parent) {
       if (v instanceof Date) return template('new Date(TIME)')({ TIME: t.numericLiteral(v.getTime()) });
       if (v instanceof Function) return template(v.toString())();
       return obj2Expression(v, parent);
-    default: //
+    default: return t.identifier('undefined');
   }
 }
 

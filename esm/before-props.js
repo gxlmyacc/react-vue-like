@@ -11,22 +11,28 @@ var _propTypes2 = _interopRequireDefault(require("prop-types"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-class Element {}
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-class Node {}
+var Element = function Element() {
+  _classCallCheck(this, Element);
+};
+
+var Node = function Node() {
+  _classCallCheck(this, Node);
+};
 
 if (!_react.default.Element) _react.default.Element = Element;
 if (!_react.default.Node) _react.default.Node = Node;
 
 function generateProps(aPropTypes, aProps) {
-  const ret = {
+  var ret = {
     propTypes: {},
     defaultProps: {}
   };
   if (!aPropTypes) return ret;
 
   if (Array.isArray(aPropTypes)) {
-    const _propTypes = {};
+    var _propTypes = {};
     aPropTypes.forEach(function (key) {
       return _propTypes[key] = {
         type: null
@@ -36,11 +42,11 @@ function generateProps(aPropTypes, aProps) {
   }
 
   Object.keys(aPropTypes).forEach(function (key) {
-    let propType = aPropTypes[key];
+    var propType = aPropTypes[key];
     if (propType.default !== undefined) ret.defaultProps[key] = propType.default;
 
     function getPropType(propType) {
-      const typeMaps = [{
+      var typeMaps = [{
         type: String,
         value: _propTypes2.default.string
       }, {
@@ -76,10 +82,10 @@ function generateProps(aPropTypes, aProps) {
       }];
 
       function _getPropType(type, required) {
-        let ret = _propTypes2.default.any;
+        var ret = _propTypes2.default.any;
 
         if (type) {
-          let v = typeMaps.find(function (v) {
+          var v = typeMaps.find(function (v) {
             return v.type === type;
           });
           if (v) ret = v.value;else if (v instanceof type) _propTypes2.default.instanceOf(type);else ret = type;
@@ -90,14 +96,14 @@ function generateProps(aPropTypes, aProps) {
       }
 
       if (Object.isFunction(propType)) return _getPropType(propType);
-      const type = propType.type,
-            required = propType.required,
-            validator = propType.validator;
-      let retType;
+      var type = propType.type,
+          required = propType.required,
+          validator = propType.validator;
+      var retType;
 
       if (validator) {
         return function (props, propName, componentName) {
-          if (!validator(props[propName])) return new Error(`Invalid prop '${propName}' supplied to '${componentName}'. Validation failed.`);
+          if (!validator(props[propName])) return new Error("Invalid prop '".concat(propName, "' supplied to '").concat(componentName, "'. Validation failed."));
         };
       }
 
@@ -116,12 +122,12 @@ function generateProps(aPropTypes, aProps) {
 
 function beforeProps(source, target) {
   if (!target) target = source;
-  const props = source.props;
+  var props = source.props;
   if (!props) return source; // eslint-disable-next-line
 
-  const _generateProps = generateProps(props || {}),
-        propTypes = _generateProps.propTypes,
-        defaultProps = _generateProps.defaultProps;
+  var _generateProps = generateProps(props || {}),
+      propTypes = _generateProps.propTypes,
+      defaultProps = _generateProps.defaultProps;
 
   if (defaultProps) {
     if (!target.defaultProps) target.defaultProps = {};

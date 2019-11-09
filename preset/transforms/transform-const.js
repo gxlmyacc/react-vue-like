@@ -1,9 +1,14 @@
 
 const {
-  getConstCache
+  getConstCache,
+  var2Expression
 } = require('../utils');
+const options = require('../options');
 
 module.exports = function ({ types: t }) {
+  let consts = options.transform.const;
+  if (consts && typeof consts !== 'object') consts = {};
+
   function IdentifierVisitor(path) {
     const parent = path.parent;
     if (!parent) return;
@@ -11,16 +16,19 @@ module.exports = function ({ types: t }) {
     if (parent.type === 'ObjectProperty' && parent.key === path.node) {
       return;
     }
-    if (path.node.name === '__filename') {
+    const identifier = path.node.name;
+    if (identifier === '__filename') {
       path.replaceWith(t.stringLiteral(this.filename));
-    } else if (path.node.name === '__dirname') {
+    } else if (identifier === '__dirname') {
       path.replaceWith(t.stringLiteral(this.dirname));
-    } else if (path.node.name === '__now') {
+    } else if (identifier === '__now') {
       path.replaceWith(t.stringLiteral(this.now));
+    } else if (consts[identifier]) {
+      path.replaceWith(var2Expression(consts[identifier]));
     } else if (this.pkg) {
-      if (path.node.name === '__packagename') {
+      if (identifier === '__packagename') {
         path.replaceWith(t.stringLiteral(this.pkg.name));
-      } else if (path.node.name === '__packageversion') {
+      } else if (identifier === '__packageversion') {
         path.replaceWith(t.stringLiteral(this.pkg.version));
       }
     }

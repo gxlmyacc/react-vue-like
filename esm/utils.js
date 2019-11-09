@@ -139,14 +139,16 @@ var _mobxReact = require("mobx-react");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const isProduction = process.env.NODE_ENV === 'production';
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+var isProduction = process.env.NODE_ENV === 'production';
 exports.isProduction = isProduction;
 
 // isArray support ObservableArray
-const arrayType = _mobx.observable.array([11, 22]);
+var arrayType = _mobx.observable.array([11, 22]);
 
 if (!Array.isArray(arrayType)) {
-  const _isArray = Array.isArray;
+  var _isArray = Array.isArray;
 
   Array.isArray = function (v) {
     return _isArray(v) || v instanceof Array;
@@ -157,9 +159,9 @@ function defComputed(obj, key, get, set) {
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,
-    get,
+    get: get,
     set: set || function (v) {
-      throw new Error(`props: ${key} is readonly!`);
+      throw new Error("props: ".concat(key, " is readonly!"));
     }
   });
 }
@@ -170,10 +172,10 @@ function isFunction(fn) {
 
 function parseExpr(ctx, expr) {
   if (!expr) return {};
-  const exps = expr.split('.');
-  let parent = ctx;
-  let obj;
-  let key;
+  var exps = expr.split('.');
+  var parent = ctx;
+  var obj;
+  var key;
   exps.some(function (exp, i) {
     if (i === exps.length - 1) {
       obj = parent;
@@ -181,18 +183,18 @@ function parseExpr(ctx, expr) {
       return true;
     }
 
-    let v = parent[exp];
+    var v = parent[exp];
     if (v === undefined) return true;
     parent = v;
   });
   return {
-    obj,
-    key
+    obj: obj,
+    key: key
   };
 }
 
 function camelize(str) {
-  let ret = str.replace(/[-|:](\w)/g, function (_, c) {
+  var ret = str.replace(/[-|:](\w)/g, function (_, c) {
     return c ? c.toUpperCase() : '';
   });
   if (/^[A-Z]/.test(ret)) ret = ret.charAt(0).toLowerCase() + ret.substr(1);
@@ -201,10 +203,10 @@ function camelize(str) {
 
 function iterativeParent(ctx, callback, componentClass) {
   if (ctx._isVueLikeRoot) return;
-  let parentNode = ctx._reactInternalFiber ? ctx._reactInternalFiber.return : ctx.stateNode ? ctx : null;
+  var parentNode = ctx._reactInternalFiber ? ctx._reactInternalFiber.return : ctx.stateNode ? ctx : null;
 
   while (parentNode) {
-    const vm = parentNode.nodeType === undefined && parentNode.stateNode;
+    var vm = parentNode.nodeType === undefined && parentNode.stateNode;
 
     if (vm && (!componentClass || vm instanceof componentClass)) {
       if (callback(vm)) break;
@@ -217,12 +219,12 @@ function iterativeParent(ctx, callback, componentClass) {
 
 function findComponentEl(vm) {
   if (!vm) return null;
-  let node = vm._owner || vm._reactInternalFiber;
+  var node = vm._owner || vm._reactInternalFiber;
 
   while (node) {
-    let el = node.stateNode;
+    var el = node.stateNode;
     if (el instanceof Element) return el;
-    let child = node.child;
+    var child = node.child;
     if (!child) break;
     node = child.stateNode ? child : child._reactInternalFiber;
   }
@@ -231,11 +233,11 @@ function findComponentEl(vm) {
 }
 
 function isPrimitive(value) {
-  return typeof value === 'string' || typeof value === 'number' || typeof value === 'symbol' || typeof value === 'boolean';
+  return typeof value === 'string' || typeof value === 'number' || _typeof(value) === 'symbol' || typeof value === 'boolean';
 }
 
 function isObject(obj) {
-  return obj !== null && typeof obj === 'object';
+  return obj !== null && _typeof(obj) === 'object';
 }
 
 function isFalsy(value) {
@@ -243,7 +245,7 @@ function isFalsy(value) {
 }
 
 function warn(msg, vm) {
-  let trace = vm ? generateComponentTrace(vm) : '';
+  var trace = vm ? generateComponentTrace(vm) : '';
 
   if (_config.default.warnHandler) {
     _config.default.warnHandler.call(null, msg, vm, trace);
@@ -281,15 +283,15 @@ function globalHandleError(err, vm, info) {
 
 function handleError(err, vm, info) {
   if (vm) {
-    let cur = vm;
+    var cur = vm;
 
     do {
-      let hooks = cur.$listeners['hook:errorCaptured'];
+      var hooks = cur.$listeners['hook:errorCaptured'];
 
       if (hooks) {
-        for (let i = 0; i < hooks.length; i++) {
+        for (var i = 0; i < hooks.length; i++) {
           try {
-            let capture = hooks[i].call(cur, err, vm, info) === false;
+            var capture = hooks[i].call(cur, err, vm, info) === false;
 
             if (capture) {
               return;
@@ -305,7 +307,7 @@ function handleError(err, vm, info) {
   globalHandleError(err, vm, info);
 }
 
-let classifyRE = /(?:^|[-_])(\w)/g;
+var classifyRE = /(?:^|[-_])(\w)/g;
 
 function classify(str) {
   return str.replace(classifyRE, function (c) {
@@ -315,12 +317,12 @@ function classify(str) {
 
 function formatComponentName(vm, includeFile) {
   if (vm.$root === vm) return '<Root>';
-  let name = getComponentName(vm);
+  var name = getComponentName(vm);
   return name ? '<' + classify(name) + '>' : '<Anonymous>';
 }
 
 function repeat(str, n) {
-  let res = '';
+  var res = '';
 
   while (n) {
     if (n % 2 === 1) {
@@ -339,12 +341,12 @@ function repeat(str, n) {
 
 function generateComponentTrace(vm) {
   if (vm._isVue && vm.$parent) {
-    let tree = [];
-    let currentRecursiveSequence = 0;
+    var tree = [];
+    var currentRecursiveSequence = 0;
 
     while (vm) {
       if (tree.length > 0) {
-        let last = tree[tree.length - 1];
+        var last = tree[tree.length - 1];
 
         if (last.constructor === vm.constructor) {
           currentRecursiveSequence++;
@@ -369,12 +371,12 @@ function generateComponentTrace(vm) {
 }
 
 function getComponentName(vm) {
-  const type = vm && vm.$options;
+  var type = vm && vm.$options;
   return type ? type.displayName || type.name : '<Anonymous>';
 }
 
 function checkKeyCodes(eventKeyCode, key, scope, eventKey) {
-  let keyCodes = _config.default.keyCodes[key];
+  var keyCodes = _config.default.keyCodes[key];
   if (!keyCodes) return true;
 
   if (Array.isArray(keyCodes)) {

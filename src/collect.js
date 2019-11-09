@@ -10,6 +10,10 @@ const REACT_ELEMENT_TYPE = hasSymbol
 
 class Collect {
 
+  get isRendering() {
+    return Boolean(this.elements);
+  }
+
   start() {
     this.elements = [];
   }
