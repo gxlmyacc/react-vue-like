@@ -7,7 +7,7 @@ import {
   onBecomeObserved, onBecomeUnobserved
 } from 'mobx';
 import config from './config';
-
+import collect from './collect';
 
 const _toString = Object.prototype.toString;
 export function isGenerator(fn) {
@@ -22,8 +22,16 @@ function newConfigure(options = {}) {
   return configure(Object.assign({ isolateGlobalState: true }, options));
 }
 
-function newIsActon(fn) {
+function newIsAction(fn) {
   return isAction(fn) || fn.isMobxFlow;
+}
+
+function wrapActionFn(actionFn, fn) {
+  const res = function res() {
+    return collect.isRendering ? fn.apply(this, arguments) : actionFn.apply(this, arguments);
+  };
+  res.isMobxAction = true;
+  return res;
 }
 
 function newFlow(target, name, descriptor) {
@@ -44,13 +52,15 @@ function newAction(target, name, descriptor) {
   let value;
   if (!descriptor || !descriptor.value) {
     let _fn = name || target;
-    if (newIsActon(_fn)) value = _fn;
+    if (newIsAction(_fn)) value = _fn;
     else {
-      value = isGenerator(_fn) ? flow(_fn) : action(...arguments);
-      value._source = name || target;
+      value = isGenerator(_fn) ? flow(_fn) : wrapActionFn(action.apply(this, arguments), _fn);
+      value._source = _fn;
     }
-  } else if (!newIsActon(descriptor.value)) {
-    value = isGenerator(descriptor.value) ? flow(descriptor.value) : action(name, descriptor.value);
+  } else if (!newIsAction(descriptor.value)) {
+    value = isGenerator(descriptor.value)
+      ? flow(descriptor.value)
+      : wrapActionFn(action(name, descriptor.value), descriptor.value);
     value._source = descriptor.value;
     descriptor.value = value;
   }
@@ -67,6 +77,6 @@ export {
   newFlow as flow,
   newAction as action,
   newConfigure as configure,
-  newIsActon as isAction
+  newIsAction as isAction
 };
 

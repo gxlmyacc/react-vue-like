@@ -10,20 +10,11 @@ const reserved = [
 ];
 
 function _handleAction(target, key, flows) {
-  // if (/^render\w*$/.test(key) && !flows.includes(key)) return;
   let v = target[key];
   if (!isFunction(v)) return;
   let isFlow = flows.includes(key);
   let n = isFlow ? flow(v) : action(key, v);
-  if (v !== n) {
-    let actionWrap = function actionWrap() {
-      if (!this._isRendering) return n.apply(this, arguments);
-      this[key] = v;
-      return v.apply(this, arguments);
-    };
-    actionWrap.isMobxAction = true;
-    target[key] = isFlow ? n : actionWrap;
-  }
+  if (v !== n) target[key] = n;
 }
 
 export default function beforeAction(target) {

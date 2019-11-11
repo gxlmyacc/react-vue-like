@@ -8,7 +8,7 @@ exports.isAsync = isAsync;
 exports.flow = newFlow;
 exports.action = newAction;
 exports.configure = newConfigure;
-exports.isAction = newIsActon;
+exports.isAction = newIsAction;
 Object.defineProperty(exports, "toJS", {
   enumerable: true,
   get: function get() {
@@ -176,6 +176,8 @@ var _mobx = require("mobx");
 
 var _config = _interopRequireDefault(require("./config"));
 
+var _collect = _interopRequireDefault(require("./collect"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var _toString = Object.prototype.toString;
@@ -196,8 +198,17 @@ function newConfigure() {
   }, options));
 }
 
-function newIsActon(fn) {
+function newIsAction(fn) {
   return (0, _mobx.isAction)(fn) || fn.isMobxFlow;
+}
+
+function wrapActionFn(actionFn, fn) {
+  var res = function res() {
+    return _collect.default.isRendering ? fn.apply(this, arguments) : actionFn.apply(this, arguments);
+  };
+
+  res.isMobxAction = true;
+  return res;
 }
 
 function newFlow(target, name, descriptor) {
@@ -222,12 +233,12 @@ function newAction(target, name, descriptor) {
   if (!descriptor || !descriptor.value) {
     var _fn = name || target;
 
-    if (newIsActon(_fn)) value = _fn;else {
-      value = isGenerator(_fn) ? (0, _mobx.flow)(_fn) : _mobx.action.apply(void 0, arguments);
-      value._source = name || target;
+    if (newIsAction(_fn)) value = _fn;else {
+      value = isGenerator(_fn) ? (0, _mobx.flow)(_fn) : wrapActionFn(_mobx.action.apply(this, arguments), _fn);
+      value._source = _fn;
     }
-  } else if (!newIsActon(descriptor.value)) {
-    value = isGenerator(descriptor.value) ? (0, _mobx.flow)(descriptor.value) : (0, _mobx.action)(name, descriptor.value);
+  } else if (!newIsAction(descriptor.value)) {
+    value = isGenerator(descriptor.value) ? (0, _mobx.flow)(descriptor.value) : wrapActionFn((0, _mobx.action)(name, descriptor.value), descriptor.value);
     value._source = descriptor.value;
     descriptor.value = value;
   }

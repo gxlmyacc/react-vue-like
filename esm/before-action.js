@@ -19,14 +19,13 @@ function _handleAction(target, key, flows) {
   var n = isFlow ? (0, _mobx.flow)(v) : (0, _mobx.action)(key, v);
 
   if (v !== n) {
-    var actionWrap = function actionWrap() {
-      if (!this._isRendering) return n.apply(this, arguments);
-      this[key] = v;
-      return v.apply(this, arguments);
-    };
-
-    actionWrap.isMobxAction = true;
-    target[key] = isFlow ? n : actionWrap;
+    // let actionWrap = function actionWrap() {
+    //   if (!this._isRendering) return n.apply(this, arguments);
+    //   this[key] = v;
+    //   return v.apply(this, arguments);
+    // };
+    // actionWrap.isMobxAction = true;
+    target[key] = n; // isFlow ? n : actionWrap;
   }
 }
 
