@@ -270,14 +270,18 @@ function getAttrASTAndIndexByName(node, attrName) {
   const { type, attributes } = node.openingElement;
   if (type !== 'JSXOpeningElement') return null;
 
+  const isRegx = attrName instanceof RegExp;
   const index = attributes.findIndex(
-    attr => attr.name && expr2var(attr.name) === attrName
+    attr => attr.name && (isRegx
+      ? attrName.test(expr2var(attr.name))
+      : expr2var(attr.name) === attrName
+    )
   );
   if (index < 0) return null;
 
-  const attrBinding = attributes[index];
+  const attr = attributes[index];
   return {
-    attrBinding,
+    attr,
     index,
     node
   };
@@ -327,12 +331,12 @@ function removeAttributeVisitor(path, attr) {
 }
 
 function transformIfBinding(path, ifBinding) {
-  let { attrBinding, index, node } = ifBinding;
+  let { attr, index, node } = ifBinding;
 
   removeAttrASTByIndex(node, index);
 
   const targetAST = t.conditionalExpression(
-    attrBinding.value.expression,
+    attr.value.expression,
     node,
     t.nullLiteral()
   );
@@ -341,7 +345,7 @@ function transformIfBinding(path, ifBinding) {
 
 function transformElseBinding(path, ifBinding, elseBinding) {
   let {
-    attrBinding: ifAttr,
+    attr: ifAttr,
     index: ifIndex,
     node: ifNode
   } = ifBinding;
@@ -363,7 +367,7 @@ function transformElseBinding(path, ifBinding, elseBinding) {
 
 function transformElseIfBindings(path, ifBinding, elseIfBindings, elseBinding) {
   let {
-    attrBinding: ifAttr,
+    attr: ifAttr,
     index: ifIndex,
     node: ifNode
   } = ifBinding;
@@ -396,11 +400,11 @@ function getAlternteAST(elseIfBindings, elseBinding, index = 0) {
   if (index + 1 < elseIfBindings.length) {
     const elseIfBinding = elseIfBindings[index];
     let {
-      attrBinding,
+      attr,
       node: elseIfNode
     } = elseIfBinding;
     return t.ifStatement(
-      attrBinding.value.expression,
+      attr.value.expression,
       t.returnStatement(elseIfNode),
       getAlternteAST(elseIfBindings, elseBinding, index + 1)
     );
@@ -720,6 +724,33 @@ function escapeRegx(string) {
   return string.replace(matchOperatorsRegex, '\\$&');
 }
 
+function importSpecifier(path, specifierName, libraryName = 'react-vue-like') {
+  let declaration = null;
+  path.traverse({
+    ImportDeclaration(path) {
+      if (path.node.source.value === libraryName) declaration = path.node;
+      path.stop();
+    },
+  });
+  if (declaration) {
+    if (!declaration.specifiers.find(v => v.local.name === specifierName)) {
+      declaration.specifiers.push(
+        t.importSpecifier(t.identifier(specifierName), t.identifier(specifierName))
+      );
+    }
+  } else {
+    path.unshiftContainer(
+      'body',
+      t.importDeclaration(
+        [
+          t.importSpecifier(t.identifier(specifierName), t.identifier(specifierName))
+        ],
+        t.stringLiteral(libraryName),
+      )
+    );
+  }
+}
+
 module.exports = {
   DirectiveName,
   getConstCache,
@@ -764,5 +795,6 @@ module.exports = {
   parseDirective,
   parseModifiers,
   bindModifiers,
+  importSpecifier,
   log
 };

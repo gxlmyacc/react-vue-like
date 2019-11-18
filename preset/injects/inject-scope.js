@@ -28,8 +28,8 @@ module.exports = function ({ types: t, template }) {
           };
 
           function ClassVisitor(path) {
-            if (this.handled.includes(path)) return;
-            this.handled.push(path);
+            if (this.handled.includes(path.node)) return;
+            this.handled.push(path.node);
 
             if (!this.scopeId) return path.stop();
             if (!isReactVueLike(path)) return path.skip();

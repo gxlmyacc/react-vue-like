@@ -41,6 +41,7 @@ module.exports = {
     elseIf: 'else-if',
     model: 'model',
     html: 'html',
+    observer: 'observer',
   },
   inject: {
     attrs: false,
@@ -66,6 +67,8 @@ module.exports = {
     if: true,
     show: true,
     model: true,
-    custom: true
+    html: true,
+    observer: true,
+    custom: true,
   }
 };

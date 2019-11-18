@@ -16,6 +16,7 @@ const vIf = require('./directives/v-if');
 const vShow = require('./directives/v-show');
 const vModel = require('./directives/v-model');
 const vHtml = require('./directives/v-html');
+const vObserver = require('./directives/v-observer');
 const vCustomDirective = require('./directives/v-custom-directive');
 
 const injectFile = require('./injects/inject-file');
@@ -79,6 +80,7 @@ module.exports = declare((api, opts = {}) => {
   if (options.directive.show) plugins.push(vShow);
   if (options.directive.model) plugins.push(vModel);
   if (options.directive.html) plugins.push(vHtml);
+  if (options.directive.observer) plugins.push(vObserver);
   if (options.directive.custom) plugins.push(vCustomDirective);
 
   if (options.inject.file) plugins.push(injectFile);

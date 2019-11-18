@@ -6,7 +6,8 @@ const {
   var2Expression,
   removeAttrAST,
   extractNodeCode,
-  parseDirective
+  parseDirective,
+  importSpecifier
 } = require('../utils');
 
 const options = require('../options');
@@ -79,25 +80,7 @@ module.exports = function ({ types: t, template }) {
             JSXElement: JSXElementVisitor,
           }, ctx);
 
-          if (ctx.hasDirectvie) {
-            if (ctx.declaration) {
-              if (!ctx.declaration.specifiers.find(v => v.local.name === DirectiveName)) {
-                ctx.declaration.specifiers.push(
-                  t.importSpecifier(t.identifier(DirectiveName), t.identifier(DirectiveName))
-                );
-              }
-            } else {
-              path.unshiftContainer(
-                'body',
-                t.importDeclaration(
-                  [
-                    t.importSpecifier(t.identifier(DirectiveName), t.identifier(DirectiveName))
-                  ],
-                  t.stringLiteral('react-vue-like'),
-                )
-              );
-            }
-          }
+          if (ctx.hasDirectvie) importSpecifier(path, DirectiveName);
         },
       },
     }

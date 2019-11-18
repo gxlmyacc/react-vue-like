@@ -11,8 +11,8 @@ module.exports = function ({ types: t, template }) {
       opts: { filename }
     },
   }) {
-    if (this.handled.includes(path)) return;
-    this.handled.push(path);
+    if (this.handled.includes(path.node)) return;
+    this.handled.push(path.node);
 
     if (!isReactVueLike(path)) return;
     const cache = getConstCache(filename);

@@ -115,6 +115,18 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "babel-preset-demo-observer",
+      "program": "${workspaceFolder}/node_modules/@babel/cli/bin/babel.js",
+      "args": [
+        "preset/demo/src/observer.js",
+        "-d",
+        "preset/demo/out"
+      ],
+      "cwd":"${workspaceFolder}"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "babel-preset-demo-vif",
       "program": "${workspaceFolder}/node_modules/@babel/cli/bin/babel.js",
       "args": [

@@ -21,7 +21,6 @@ export default function before(source, props, target, isMixin) {
   const isDirective = source === Directive;
   const isReactVueLikeClasses = isReactVueLikeClass || isReactVueLikeMixin;
 
-
   if (!isReactVueLikeClasses || (isDirective && !isVueLikeComponent(props._source))) {
     if (props) {
       if (props.$slots) {

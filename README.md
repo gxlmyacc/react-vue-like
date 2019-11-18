@@ -24,6 +24,7 @@ write react component like vue, implementation based on mbox@4.
   * [Scoped Style](#scoped-style)
   * [Slot](#slot)
   * [Vue Internal Directives](#vue-internal-directives)
+  * [VueLike Internal Directives](#vuelike-internal-directives)
   * [Event Mechanism](#event-mechanism)
   * [Attribute Transform](#attribute-transform)
   * [Ref](#ref)
@@ -504,6 +505,29 @@ class Test extends ReactVueLike {
 
       {/* equals: dangerouslySetInnerHTML={{ __html: "<a href='#'>dd</a>" }} */}
       <span v-html="<a href='#'>dd</a>"></span>
+    </div>);
+  }
+
+}
+```
+### `Vuelike Internal Directives`
+
+`v-observer`
+see [Mobx Observer](https://github.com/mobxjs/mobx-react#observer) 
+
+example:
+```js
+import React from 'react';
+import ReactVueLike from 'react-vue-like';
+
+class Test extends ReactVueLike {
+
+  render() {
+    return (<div>
+      {/* will transform <Observer>{() => <span v-observer>ddd</span>}</Observer> */}
+      <span v-observer>ddd</span>
+      {/* will transform <Observer render={() => <span v-observer>ddd</span>}</Observer>} /> */}
+      <span v-observer$render>ddd</span>
     </div>);
   }
 
