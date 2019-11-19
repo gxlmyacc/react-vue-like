@@ -1,6 +1,7 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import { isFunction } from './utils';
 
 class Element { }
 class Node { }
@@ -50,7 +51,7 @@ function generateProps(aPropTypes, aProps) {
         return ret;
       }
 
-      if (Object.isFunction(propType)) return _getPropType(propType);
+      if (isFunction(propType)) return _getPropType(propType);
 
       const { type, required, validator } = propType;
 

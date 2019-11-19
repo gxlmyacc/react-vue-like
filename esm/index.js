@@ -46,6 +46,7 @@ _component.default.action = _mobx.action;
 _component.default._k = _utils.checkKeyCodes;
 _component.default.set = _mobx.set;
 _component.default.delete = _mobx.remove;
+_component.default.isObservable = _mobx.isObservable;
 (0, _hook.default)();
 var _default = _component.default;
 exports.default = _default;

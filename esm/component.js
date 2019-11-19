@@ -493,8 +493,8 @@ function (_React$Component) {
       }
     }
   }, {
-    key: "_resolveEvent",
-    value: function _resolveEvent(handler) {
+    key: "_resolveAction",
+    value: function _resolveAction(handler) {
       if (!handler) return handler;
       return (0, _mobx2.action)(handler);
     }
@@ -857,11 +857,22 @@ function (_React$Component) {
   }, {
     key: "$set",
     value: function $set(target, expr, value) {
+      if (!(0, _mobx2.isObservable)(target)) {
+        if ((0, _utils.isObject)(expr)) return Object.assign(target, expr);
+
+        var _parseExpr3 = (0, _utils.parseExpr)(target, expr),
+            _obj = _parseExpr3.obj,
+            _key = _parseExpr3.key;
+
+        if (_obj && _key) _obj.key = value;
+        return;
+      }
+
       if ((0, _utils.isObject)(expr)) return (0, _mobx2.set)(target, expr);
 
-      var _parseExpr3 = (0, _utils.parseExpr)(target, expr),
-          obj = _parseExpr3.obj,
-          key = _parseExpr3.key;
+      var _parseExpr4 = (0, _utils.parseExpr)(target, expr),
+          obj = _parseExpr4.obj,
+          key = _parseExpr4.key;
 
       if (obj && key) (0, _mobx2.set)(obj, key, value);
     }
@@ -876,9 +887,9 @@ function (_React$Component) {
         });
       }
 
-      var _parseExpr4 = (0, _utils.parseExpr)(target, expr),
-          obj = _parseExpr4.obj,
-          key = _parseExpr4.key;
+      var _parseExpr5 = (0, _utils.parseExpr)(target, expr),
+          obj = _parseExpr5.obj,
+          key = _parseExpr5.key;
 
       if (obj && key) (0, _mobx2.remove)(obj, key);
     }
@@ -887,8 +898,8 @@ function (_React$Component) {
     value: function $emit(eventName) {
       eventName = (0, _utils.camelize)(eventName);
 
-      for (var _len = arguments.length, payload = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-        payload[_key - 1] = arguments[_key];
+      for (var _len = arguments.length, payload = new Array(_len > 1 ? _len - 1 : 0), _key2 = 1; _key2 < _len; _key2++) {
+        payload[_key2 - 1] = arguments[_key2];
       }
 
       return this._callListener(eventName, this.$listeners[eventName], payload);
@@ -931,8 +942,8 @@ function (_React$Component) {
       var off = this.$on(eventName, function () {
         off();
 
-        for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-          args[_key2] = arguments[_key2];
+        for (var _len2 = arguments.length, args = new Array(_len2), _key3 = 0; _key3 < _len2; _key3++) {
+          args[_key3] = arguments[_key3];
         }
 
         return handler.call.apply(handler, [this].concat(args));
@@ -1032,8 +1043,8 @@ function (_React$Component) {
       var install = (0, _utils.isFunction)(plugin) ? plugin : plugin.install ? plugin.install.bind(plugin) : null;
       if (!install) throw Error('ReactVueLike.use error: plugin need has \'install\' method!');
 
-      for (var _len3 = arguments.length, args = new Array(_len3 > 2 ? _len3 - 2 : 0), _key3 = 2; _key3 < _len3; _key3++) {
-        args[_key3 - 2] = arguments[_key3];
+      for (var _len3 = arguments.length, args = new Array(_len3 > 2 ? _len3 - 2 : 0), _key4 = 2; _key4 < _len3; _key4++) {
+        args[_key4 - 2] = arguments[_key4];
       }
 
       return install.apply(void 0, [ReactVueLike, options].concat(args));

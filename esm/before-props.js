@@ -9,6 +9,8 @@ var _react = _interopRequireDefault(require("react"));
 
 var _propTypes2 = _interopRequireDefault(require("prop-types"));
 
+var _utils = require("./utils");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -95,7 +97,7 @@ function generateProps(aPropTypes, aProps) {
         return ret;
       }
 
-      if (Object.isFunction(propType)) return _getPropType(propType);
+      if ((0, _utils.isFunction)(propType)) return _getPropType(propType);
       var type = propType.type,
           required = propType.required,
           validator = propType.validator;

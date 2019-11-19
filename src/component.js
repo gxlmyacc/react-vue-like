@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { observer } from 'mobx-react';
 import { configure } from 'mobx';
-import { extendObservable, observe, when, set, remove, action, runInAction } from './mobx';
+import { isObservable, extendObservable, observe, when, set, remove, action, runInAction } from './mobx';
 import {
   isPrimitive, isFalsy, isObject, warn, isProduction,
   parseExpr, camelize, isFunction, iterativeParent, handleError, defComputed
@@ -707,6 +707,12 @@ class ReactVueLike extends React.Component {
   }
 
   $set(target, expr, value) {
+    if (!isObservable(target)) {
+      if (isObject(expr)) return Object.assign(target, expr);
+      let { obj, key } = parseExpr(target, expr);
+      if (obj && key) obj.key = value;
+      return;
+    }
     if (isObject(expr)) return set(target, expr);
     let { obj, key } = parseExpr(target, expr);
     if (obj && key) set(obj, key, value);
