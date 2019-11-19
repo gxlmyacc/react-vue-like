@@ -1,11 +1,10 @@
 
 const {
   importSpecifier, parseDirective, directiveRegx, escapeRegx,
-  getAttrASTAndIndexByName, removeAttrASTByIndex, expr2var
+  getAttrASTAndIndexByName, removeAttrASTByIndex, expr2var,
+  ObserverName
 } = require('../utils');
 const options = require('../options');
-
-const ObserverName = 'Observer';
 
 module.exports = function ({ types: t, template }) {
   const attrName = directiveRegx(escapeRegx(options.attrName.observer));
@@ -19,6 +18,8 @@ module.exports = function ({ types: t, template }) {
 
     removeAttrASTByIndex(path.node, binding.index);
 
+    const slot = getAttrASTAndIndexByName(path.node, 'slot');
+
     this.hasObserver = true;
 
     const expr = t.jSXExpressionContainer(
@@ -29,12 +30,17 @@ module.exports = function ({ types: t, template }) {
 
     const useRender = Boolean(parsed.modifiers.render);
 
+    const observerAttrs = [];
+    if (useRender) observerAttrs.push(t.jsxAttribute(t.jSXIdentifier('render'), expr));
+    if (slot) {
+      observerAttrs.push(t.jsxAttribute(t.jSXIdentifier('slot'), slot.attr.value));
+      removeAttrASTByIndex(path.node, slot.index);
+    }
+
     path.replaceWith(t.jSXElement(
       t.jSXOpeningElement(
         t.jSXIdentifier(ObserverName),
-        useRender
-          ? [t.jsxAttribute(t.jSXIdentifier('render'), expr)]
-          : [],
+        observerAttrs,
         useRender
       ),
       useRender ? null : t.jsxClosingElement(t.jSXIdentifier(ObserverName)),

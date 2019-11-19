@@ -21,7 +21,7 @@ class App extends _reactVueLike.default {
       className: "root"
     }, _react.default.createElement("div", {
       aa: _this.aa,
-      onUpdateAa: this._resolveEvent(function (v) {
+      onUpdateAa: this._resolveAction(function (v) {
         _this.aa = v;
       })
     }), _react.default.createElement("div", {

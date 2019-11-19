@@ -1,11 +1,16 @@
 const hash = require('hash-sum');
 const options = require('../options');
-const { isReactVueLike, expr2var, isFunction, /* findClassVarName */ } = require('../utils');
+const {
+  isReactVueLike, expr2var, isFunction, ObserverName, DirectiveName,
+  /* findClassVarName */
+} = require('../utils');
 
 function createScopeId(filename) {
   if (options.pkg) filename = `${options.pkg.name}!${filename}`;
   return `v-${hash(filename.replace(/\\/g, '/'))}`;
 }
+
+const excluedTags = ['template', 'slot', ObserverName, DirectiveName];
 
 module.exports = function ({ types: t, template }) {
   const scopeAttrs = options.inject.scopeAttrs;
@@ -63,7 +68,7 @@ module.exports = function ({ types: t, template }) {
             path.traverse({
               JSXElement(path) {
                 let tagName = expr2var(path.node.openingElement.name);
-                if (!tagName || tagName === 'template') return;
+                if (!tagName || excluedTags.includes(tagName)) return;
 
                 const classAttr = path.node.openingElement.attributes.find(attr => attr.name && expr2var(attr.name) === 'className');
                 if (classAttr) {

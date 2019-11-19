@@ -98,7 +98,7 @@ _defineProperty(MainSider, "methods", {
     let findMenuList = function findMenuList(routes, parent) {
       let ret = [];
 
-      let findMenu = _this2._resolveEvent(function (r, parent) {
+      let findMenu = _this2._resolveAction(function (r, parent) {
         if (!r.meta.title) return;
         let menu = {
           parentKey: parent ? parent.key : undefined,

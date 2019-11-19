@@ -380,7 +380,7 @@ class ReactVueLike extends React.Component {
     }
   }
 
-  _resolveEvent(handler) {
+  _resolveAction(handler) {
     if (!handler) return handler;
     return action(handler);
   }

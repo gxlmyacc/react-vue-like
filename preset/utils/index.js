@@ -7,6 +7,7 @@ const path = require('path');
 const types = require('./types');
 
 const DirectiveName = 'ReactVueLikeDirective';
+const ObserverName = 'Observer';
 
 if (!Date.prototype.format) {
   Date.prototype.format = function (fmt) {
@@ -753,6 +754,8 @@ function importSpecifier(path, specifierName, libraryName = 'react-vue-like') {
 
 module.exports = {
   DirectiveName,
+  ObserverName,
+
   getConstCache,
   fileExists,
   isFunction,

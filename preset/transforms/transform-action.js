@@ -38,7 +38,13 @@ module.exports = function ({ types: t, template }) {
     if (!t.isMemberExpression(path.node)) return;
     if (t.isThisExpression(path.node.object)) return true;
     const object = path.get('object');
-    let binding = object.scope.bindings[expr2var(object.node)];
+    let name = expr2var(object.node);
+    let binding = object.scope.bindings[name];
+    let funcParent = path.getFunctionParent();
+    while (!binding && funcParent) {
+      binding = funcParent.scope.bindings[name];
+      funcParent = binding ? null : funcParent.getFunctionParent();
+    }
     if (!binding) return;
     switch (binding.path.type) {
       case 'VariableDeclarator': return isClassMember(binding.path.get('init'));
@@ -93,7 +99,7 @@ module.exports = function ({ types: t, template }) {
       return;
     }
 
-    exprPath.replaceWith(template('$THIS$._resolveEvent($HANDER$)')({
+    exprPath.replaceWith(template('$THIS$._resolveAction($HANDER$)')({
       $THIS$: t.thisExpression(),
       $HANDER$: expression,
     }).expression);
