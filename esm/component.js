@@ -218,7 +218,6 @@ function (_React$Component) {
 
     _this2._isVueLike = true;
     _this2._ticks = [];
-    _this2._inherits = inherits ? _objectSpread({}, inherits) : null;
     _this2._el = null;
     _this2._mountedPending = [];
     _this2._isWillMount = false;
@@ -234,7 +233,8 @@ function (_React$Component) {
     _this2.$options = target;
     if (_this2.$slots.default === undefined) _this2.$slots.default = _props.children;
     (0, _mobx2.extendObservable)(_assertThisInitialized(_this2), {
-      _isMounted: false
+      _isMounted: false,
+      _inherits: _objectSpread({}, inherits || {})
     });
     (0, _mobx2.extendObservable)(_assertThisInitialized(_this2), {
       $refs: {}
@@ -487,7 +487,14 @@ function (_React$Component) {
             var parent = _this6._inherits[key];
             var merge = _this6._inheritMergeStrategies[key];
             var v = merge ? merge(parent, child, _this6, key) : parent;
-            if (v !== undefined) _this6[key] = v;
+
+            if (v !== undefined) {
+              (0, _utils.defComputed)(_this6, key, function () {
+                return _this6._inherits[key];
+              }, function (v) {
+                return _this6._inherits[key] = v;
+              });
+            }
           });
         })();
       }
@@ -815,6 +822,7 @@ function (_React$Component) {
       var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
       if (!expOrFn || !callback) return;
       callback = (0, _mobx2.action)(callback.bind(this));
+      if (options.deep && options.deep !== undefined) console.warn('$watch not support deep option!');
 
       if (typeof expOrFn === 'string') {
         var _parseExpr = (0, _utils.parseExpr)(this, expOrFn),
@@ -829,7 +837,10 @@ function (_React$Component) {
       } else if ((0, _utils.isFunction)(expOrFn)) {
         var oldValue;
         return (0, _mobx2.when)(function () {
-          return oldValue !== expOrFn();
+          var newValue = expOrFn();
+          var ret = oldValue !== newValue;
+          oldValue = newValue;
+          return ret;
         }, callback);
       }
     }
@@ -868,13 +879,24 @@ function (_React$Component) {
         return;
       }
 
-      if ((0, _utils.isObject)(expr)) return (0, _mobx2.set)(target, expr);
+      if ((0, _utils.isObject)(expr)) {
+        var _expr = {};
+        Object.keys(expr).forEach(function (key) {
+          value = expr[value];
+          if (value && !(0, _mobx2.isObservable)(value) && (0, _utils.isObject)(value)) value = (0, _mobx.observable)(value);
+          _expr[key] = value;
+        });
+        return (0, _mobx2.set)(target, _expr);
+      }
 
       var _parseExpr4 = (0, _utils.parseExpr)(target, expr),
           obj = _parseExpr4.obj,
           key = _parseExpr4.key;
 
-      if (obj && key) (0, _mobx2.set)(obj, key, value);
+      if (obj && key) {
+        if (value && !(0, _mobx2.isObservable)(value) && (0, _utils.isObject)(value)) value = (0, _mobx.observable)(value);
+        (0, _mobx2.set)(obj, key, value);
+      }
     }
   }, {
     key: "$delete",
@@ -1080,7 +1102,7 @@ function (_React$Component) {
   }]);
 
   return ReactVueLike;
-}(_react.default.Component), _defineProperty(_class2, "isRoot", false), _defineProperty(_class2, "isAbstract", false), _defineProperty(_class2, "inheritAttrs", true), _defineProperty(_class2, "inheritMergeStrategies", {}), _defineProperty(_class2, "inherits", {}), _defineProperty(_class2, "props", {}), _defineProperty(_class2, "components", {}), _defineProperty(_class2, "mixins", []), _defineProperty(_class2, "directives", {}), _defineProperty(_class2, "filters", {}), _defineProperty(_class2, "inject", []), _defineProperty(_class2, "computed", {}), _defineProperty(_class2, "watch", {}), _defineProperty(_class2, "methods", {}), _temp)) || _class;
+}(_react.default.Component), _defineProperty(_class2, "isRoot", false), _defineProperty(_class2, "isAbstract", false), _defineProperty(_class2, "inheritAttrs", true), _defineProperty(_class2, "inheritMergeStrategies", {}), _defineProperty(_class2, "props", {}), _defineProperty(_class2, "components", {}), _defineProperty(_class2, "mixins", []), _defineProperty(_class2, "directives", {}), _defineProperty(_class2, "filters", {}), _defineProperty(_class2, "inject", []), _defineProperty(_class2, "computed", {}), _defineProperty(_class2, "watch", {}), _defineProperty(_class2, "methods", {}), _temp)) || _class;
 
 ReactVueLike.config.optionMergeStrategies = _config2.default.optionMergeStrategies;
 ReactVueLike.config.inheritMergeStrategies = _config2.default.inheritMergeStrategies;

@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { observer } from 'mobx-react';
-import { configure } from 'mobx';
+import { configure, observable } from 'mobx';
 import { isObservable, extendObservable, observe, when, set, remove, action, runInAction } from './mobx';
 import {
   isPrimitive, isFalsy, isObject, warn, isProduction,
@@ -144,7 +144,6 @@ class ReactVueLike extends React.Component {
 
     this._isVueLike = true;
     this._ticks = [];
-    this._inherits = inherits ? { ...inherits } : null;
     this._el = null;
     this._mountedPending = [];
     this._isWillMount = false;
@@ -161,7 +160,7 @@ class ReactVueLike extends React.Component {
 
     if (this.$slots.default === undefined) this.$slots.default = _props.children;
 
-    extendObservable(this, { _isMounted: false });
+    extendObservable(this, { _isMounted: false, _inherits: { ...(inherits || {}) } });
     extendObservable(this, { $refs: {} }, {}, { deep: false });
 
     defComputed(this, '$el', () => this._el || (this._el = ReactDOM.findDOMNode(this)), v => {
@@ -374,7 +373,14 @@ class ReactVueLike extends React.Component {
           let parent = this._inherits[key];
           const merge = this._inheritMergeStrategies[key];
           let v = merge ? merge(parent, child, this, key) : parent;
-          if (v !== undefined) this[key] = v;
+          if (v !== undefined) {
+            defComputed(
+              this,
+              key,
+              () => this._inherits[key],
+              v => this._inherits[key] = v
+            );
+          }
         });
       })();
     }
@@ -566,8 +572,6 @@ class ReactVueLike extends React.Component {
 
   static inheritMergeStrategies = {}
 
-  static inherits = {}
-
   static props = {}
 
   static components = {}
@@ -675,6 +679,7 @@ class ReactVueLike extends React.Component {
   $watch(expOrFn, callback, options = {}) {
     if (!expOrFn || !callback) return;
     callback = action(callback.bind(this));
+    if (options.deep && options.deep !== undefined) console.warn('$watch not support deep option!');
     if (typeof expOrFn === 'string') {
       let { obj, key } = parseExpr(this, expOrFn);
       if (obj && key)  {
@@ -687,7 +692,12 @@ class ReactVueLike extends React.Component {
       }
     } else if (isFunction(expOrFn)) {
       let oldValue;
-      return when(() => oldValue !== expOrFn(), callback);
+      return when(() => {
+        let newValue = expOrFn();
+        let ret = oldValue !== newValue;
+        oldValue = newValue;
+        return ret;
+      }, callback);
     }
   }
 
@@ -713,9 +723,20 @@ class ReactVueLike extends React.Component {
       if (obj && key) obj.key = value;
       return;
     }
-    if (isObject(expr)) return set(target, expr);
+    if (isObject(expr)) {
+      const _expr = {};
+      Object.keys(expr).forEach(key => {
+        value = expr[value];
+        if (value && !isObservable(value) && isObject(value))  value = observable(value);
+        _expr[key] = value;
+      });
+      return set(target, _expr);
+    }
     let { obj, key } = parseExpr(target, expr);
-    if (obj && key) set(obj, key, value);
+    if (obj && key) {
+      if (value && !isObservable(value) && isObject(value))  value = observable(value);
+      set(obj, key, value);
+    }
   }
 
   $delete(target, expr) {
