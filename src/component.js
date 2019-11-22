@@ -368,6 +368,7 @@ class ReactVueLike extends React.Component {
     }
     if (this._inherits) {
       action(() => {
+        let res = {};
         Object.keys(this._inherits).forEach(key => {
           let child = this[key];
           let parent = this._inherits[key];
@@ -375,13 +376,14 @@ class ReactVueLike extends React.Component {
           let v = merge ? merge(parent, child, this, key) : parent;
           if (v !== undefined) {
             defComputed(
-              this,
+              res,
               key,
               () => this._inherits[key],
               v => this._inherits[key] = v
             );
           }
         });
+        extendObservable(this, res, {}, { deep: false });
       })();
     }
   }

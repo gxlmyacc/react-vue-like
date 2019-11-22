@@ -482,6 +482,7 @@ function (_React$Component) {
 
       if (this._inherits) {
         (0, _mobx2.action)(function () {
+          var res = {};
           Object.keys(_this6._inherits).forEach(function (key) {
             var child = _this6[key];
             var parent = _this6._inherits[key];
@@ -489,12 +490,15 @@ function (_React$Component) {
             var v = merge ? merge(parent, child, _this6, key) : parent;
 
             if (v !== undefined) {
-              (0, _utils.defComputed)(_this6, key, function () {
+              (0, _utils.defComputed)(res, key, function () {
                 return _this6._inherits[key];
               }, function (v) {
                 return _this6._inherits[key] = v;
               });
             }
+          });
+          (0, _mobx2.extendObservable)(_this6, res, {}, {
+            deep: false
           });
         })();
       }
