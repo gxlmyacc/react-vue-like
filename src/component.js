@@ -220,7 +220,9 @@ class ReactVueLike extends React.Component {
         if (!parent) return;
         if (child) {
           let v = merge(parent, child, this, key);
-          if (v !== undefined && v !== child) this._inherits[key] = v;
+          if (v !== undefined && v !== child) {
+            this._inherits[key] = isObservable(v) ? v : observable.ref(v);
+          }
         } else this._inherits[key] = parent;
       });
     })();
@@ -728,8 +730,8 @@ class ReactVueLike extends React.Component {
     if (isObject(expr)) {
       const _expr = {};
       Object.keys(expr).forEach(key => {
-        value = expr[value];
-        if (value && !isObservable(value) && isObject(value))  value = observable(value);
+        value = expr[key];
+        if (value && !isObservable(value) && isObject(value)) value = observable(value);
         _expr[key] = value;
       });
       return set(target, _expr);

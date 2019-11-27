@@ -299,7 +299,10 @@ function (_React$Component) {
 
         if (child) {
           var v = merge(parent, child, _assertThisInitialized(_this2), key);
-          if (v !== undefined && v !== child) _this2._inherits[key] = v;
+
+          if (v !== undefined && v !== child) {
+            _this2._inherits[key] = (0, _mobx2.isObservable)(v) ? v : _mobx.observable.ref(v);
+          }
         } else _this2._inherits[key] = parent;
       });
     })();
@@ -886,7 +889,7 @@ function (_React$Component) {
       if ((0, _utils.isObject)(expr)) {
         var _expr = {};
         Object.keys(expr).forEach(function (key) {
-          value = expr[value];
+          value = expr[key];
           if (value && !(0, _mobx2.isObservable)(value) && (0, _utils.isObject)(value)) value = (0, _mobx.observable)(value);
           _expr[key] = value;
         });

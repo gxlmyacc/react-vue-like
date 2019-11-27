@@ -5,12 +5,6 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
-require("core-js/modules/es7.symbol.async-iterator");
-
-require("core-js/modules/es6.symbol");
-
-require("core-js/modules/es6.object.set-prototype-of");
-
 var _react = _interopRequireDefault(require("react"));
 
 var _reactVueLike = _interopRequireDefault(require("react-vue-like"));
@@ -50,7 +44,7 @@ function (_ReactVueLike) {
     key: "render",
     value: function render() {
       return _react.default.createElement("div", {
-        class: "root"
+        className: "root"
       }, _react.default.createElement("span", {
         className: "app-window-icon",
         onClick: this.windowMax,
@@ -68,16 +62,18 @@ function (_ReactVueLike) {
   }], [{
     key: "data",
     value: function data() {
+      var namespace = "react-vue-like".match(/\/?([0-9a-z-]+)$/)[1];
       return {
         __dirname: "/preset/demo/src",
         dirname: a.__dirname,
         filename: "/preset/demo/src/app.js",
-        now: "2019-09-11 12:16:53",
+        now: "2019-11-27 18:40:22",
         vif: true,
         vshow: true,
         formData: {
           text: 'aaa'
         },
+        namespace: namespace,
         languages: ['JavaScript', 'TypeScript', 'Python', 'Rust', 'Scala']
       };
     }
