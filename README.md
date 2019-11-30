@@ -364,6 +364,10 @@ example:
   background-color: red;
 }
 
+:global .aa .bb {
+  background-color: red;
+}
+
 ```
 
 ```js
@@ -396,6 +400,10 @@ will transform to like this:
 }
 
 .aa .bb.v-123dse43 > .cc {
+  background-color: red;
+}
+
+.aa .bb {
   background-color: red;
 }
 

@@ -87,13 +87,13 @@ function () {
     }
   }, {
     key: "render",
-    value: function render(elements, each) {
+    value: function render(ctx, elements, each) {
       elements && elements.forEach(function (node) {
         var _el$fn;
 
         var el = node.__collect;
         delete node.__collect;
-        each && each(el.component, el.props, el.children, Boolean(el.isRoot));
+        each && each.call(ctx, el.component, el.props, el.children, Boolean(el.isRoot));
 
         var ret = (_el$fn = el.fn).call.apply(_el$fn, [_react.default, el.component, el.props].concat(_toConsumableArray(el.children)));
 
@@ -114,7 +114,7 @@ function () {
             elements = _collect$end.elements;
 
         pre && pre(root);
-        collect.render(elements, each);
+        collect.render(this, elements, each);
         after && after(result);
         return result;
       };

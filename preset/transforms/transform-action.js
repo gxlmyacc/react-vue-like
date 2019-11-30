@@ -37,6 +37,7 @@ module.exports = function ({ types: t, template }) {
   function isClassMember(path) {
     if (!t.isMemberExpression(path.node)) return;
     if (t.isThisExpression(path.node.object)) return true;
+    if (t.isMemberExpression(path.node.object)) return isClassMember(path.get('object'));
     const object = path.get('object');
     let name = expr2var(object.node);
     let binding = object.scope.bindings[name];
@@ -99,7 +100,7 @@ module.exports = function ({ types: t, template }) {
       return;
     }
 
-    exprPath.replaceWith(template('$THIS$._resolveAction($HANDER$)')({
+    exprPath.replaceWith(template('$THIS$._a($HANDER$)')({
       $THIS$: t.thisExpression(),
       $HANDER$: expression,
     }).expression);

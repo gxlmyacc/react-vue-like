@@ -58,7 +58,7 @@ module.exports = function ({ types: t, template }) {
                 }
               }
 
-              path.node.value = t.jsxExpressionContainer(template('el => $1._resolveRef($2, el, $3)')({
+              path.node.value = t.jsxExpressionContainer(template('el => $1._r($2, el, $3)')({
                 $1: t.thisExpression(),
                 $2: ref,
                 $3: key || t.identifier('undefined')

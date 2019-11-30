@@ -5,6 +5,7 @@ const reserved = [
   'constructor',
   'data',
   'provide',
+  'shouldComponentUpdate',
   'render',
   'renderError',
 ];

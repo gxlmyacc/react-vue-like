@@ -47,12 +47,12 @@ class Collect {
     return node;
   }
 
-  render(elements, each) {
+  render(ctx, elements, each) {
     elements && elements.forEach(node => {
       const el = node.__collect;
       delete node.__collect;
 
-      each && each(el.component, el.props, el.children, Boolean(el.isRoot));
+      each && each.call(ctx, el.component, el.props, el.children, Boolean(el.isRoot));
 
       let ret = el.fn.call(React, el.component, el.props, ...el.children);
       if (ret) Object.defineProperties(node, Object.getOwnPropertyDescriptors(ret));
@@ -70,7 +70,7 @@ class Collect {
 
       pre && pre(root);
 
-      collect.render(elements, each);
+      collect.render(this, elements, each);
 
       after && after(result);
 

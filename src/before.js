@@ -3,6 +3,7 @@ import Mixin from './mixin';
 import Directive from './directive';
 import beforeProps from './before-props';
 import beforeAction from './before-action';
+import beforeRender from './before-render';
 import beforeClass from './before-class';
 
 function isVueLikeComponent(source) {
@@ -51,6 +52,7 @@ export default function before(source, props, target, isMixin) {
     if (source.props) target = beforeProps(source, target);
 
     beforeAction(source);
+    beforeRender(source);
 
     return target;
   } finally {

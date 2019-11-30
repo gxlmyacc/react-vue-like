@@ -15,7 +15,7 @@ module.exports = function ({ types: t, template }) {
               openingElement.attributes.push(t.jsxAttribute(
                 t.jsxIdentifier('$component'),
                 t.jsxExpressionContainer(
-                  template('$THIS$._resolveComp($NAME$)')({
+                  template('$THIS$._c($NAME$)')({
                     $THIS$: t.thisExpression(),
                     $NAME$: t.stringLiteral(componentName)
                   }).expression

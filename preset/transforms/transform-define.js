@@ -13,10 +13,10 @@ module.exports = function ({ types: t }) {
   function IdentifierVisitor(path) {
     const parent = path.parent;
     if (!parent) return;
-    if (['FunctionDeclaration', 'VariableDeclarator',
-      'ClassMethod', 'ObjectMethod'].includes(parent.type)) return;
+    if (['FunctionDeclaration', 'ClassMethod', 'ObjectMethod'].includes(parent.type)) return;
     if (parent.type === 'ObjectProperty' && parent.key === path.node) return;
     if (parent.type === 'MemberExpression' && parent.object !== path.node) return;
+    if (parent.type === 'VariableDeclarator' && parent.id === path.node) return;
 
     const identifier = path.node.name;
     if (identifier === '__filename') {

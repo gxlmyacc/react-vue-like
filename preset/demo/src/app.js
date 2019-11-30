@@ -4,6 +4,7 @@ import ReactVueLike from 'react-vue-like';
 class App extends ReactVueLike {
 
   static data() {
+    const namespace1 = __packagename;
     const namespace = __packagename.match(/\/?([0-9a-z-]+)$/)[1];
     return {
       __dirname,
@@ -16,6 +17,7 @@ class App extends ReactVueLike {
         text: 'aaa'
       },
       namespace,
+      namespace1,
       languages: ['JavaScript', 'TypeScript', 'Python', 'Rust', 'Scala']
     };
   }

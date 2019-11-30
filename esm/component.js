@@ -19,8 +19,6 @@ var _utils = require("./utils");
 
 var _config2 = _interopRequireDefault(require("./config"));
 
-var _collect = _interopRequireDefault(require("./collect"));
-
 var _class, _class2, _temp;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -198,17 +196,6 @@ function (_React$Component) {
         inherits = target.inherits;
     if (isRoot) _this2._isVueLikeRoot = true;
     if (isAbstract) _this2._isVueLikeAbstract = true;
-
-    if (hasOwnProperty.call(target.prototype, 'render')) {
-      _this2._renderFn = _collect.default.wrap(target.prototype.render, _this2._eachRenderElement.bind(_assertThisInitialized(_this2)));
-      _this2.render = ReactVueLike.prototype.render;
-    }
-
-    if (hasOwnProperty.call('renderError')) {
-      _this2._renderErrorFn = _collect.default.wrap(target.prototype.renderError, _this2._eachRenderElement.bind(_assertThisInitialized(_this2)));
-      _this2.renderError = ReactVueLike.prototype.renderError;
-    }
-
     _this2._shouldComponentUpdateFn = _this2.shouldComponentUpdate;
     _this2.shouldComponentUpdate = _this2._shouldComponentUpdate;
 
@@ -621,13 +608,9 @@ function (_React$Component) {
 
               return !injects.length;
             });
-          }, ReactVueLike);
-
-          if (process.env.NODE_ENV !== 'production') {
-            injects.forEach(function (key) {
-              return (0, _utils.warn)("inject '".concat(key, "' not found it's provide!"), _this10);
-            });
-          }
+          }, ReactVueLike); // if (process.env.NODE_ENV !== 'production') {
+          //   injects.forEach(key => warn(`inject '${key}' not found it's provide!`, this));
+          // }
         }
       } catch (e) {
         (0, _utils.handleError)(e, this, 'resolveInject');
@@ -1111,6 +1094,12 @@ function (_React$Component) {
   return ReactVueLike;
 }(_react.default.Component), _defineProperty(_class2, "isRoot", false), _defineProperty(_class2, "isAbstract", false), _defineProperty(_class2, "inheritAttrs", true), _defineProperty(_class2, "inheritMergeStrategies", {}), _defineProperty(_class2, "props", {}), _defineProperty(_class2, "components", {}), _defineProperty(_class2, "mixins", []), _defineProperty(_class2, "directives", {}), _defineProperty(_class2, "filters", {}), _defineProperty(_class2, "inject", []), _defineProperty(_class2, "computed", {}), _defineProperty(_class2, "watch", {}), _defineProperty(_class2, "methods", {}), _temp)) || _class;
 
+(0, _utils.appendProperty)(ReactVueLike.prototype, '_c', ReactVueLike.prototype._resolveComp);
+(0, _utils.appendProperty)(ReactVueLike.prototype, '_a', ReactVueLike.prototype._resolveAction);
+(0, _utils.appendProperty)(ReactVueLike.prototype, '_r', ReactVueLike.prototype._resolveRef);
+(0, _utils.appendProperty)(ReactVueLike.prototype, '_f', ReactVueLike.prototype._resolveFilter);
+(0, _utils.appendProperty)(ReactVueLike.prototype, '_o', ReactVueLike.prototype._resolveRootAttrs);
+(0, _utils.appendProperty)(ReactVueLike.prototype, '_s', ReactVueLike.prototype._resolveSlot);
 ReactVueLike.config.optionMergeStrategies = _config2.default.optionMergeStrategies;
 ReactVueLike.config.inheritMergeStrategies = _config2.default.inheritMergeStrategies;
 ReactVueLike.runAction = _mobx2.runInAction;

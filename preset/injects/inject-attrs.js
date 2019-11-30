@@ -33,7 +33,7 @@ module.exports = function ({ types: t, template }) {
     element.openingElement.attributes.splice(0,
       element.openingElement.attributes.length,
       t.jSXSpreadAttribute(
-        template('$THIS$._resolveRootAttrs($TAG$, $PROPS$)')({
+        template('$THIS$._o($TAG$, $PROPS$)')({
           $THIS$: t.thisExpression(),
           $TAG$: t.stringLiteral(expr2var(element.openingElement.name)),
           $PROPS$: t.objectExpression(attrs),

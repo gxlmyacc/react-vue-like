@@ -62,18 +62,20 @@ function (_ReactVueLike) {
   }], [{
     key: "data",
     value: function data() {
+      var namespace1 = "react-vue-like";
       var namespace = "react-vue-like".match(/\/?([0-9a-z-]+)$/)[1];
       return {
         __dirname: "/preset/demo/src",
         dirname: a.__dirname,
         filename: "/preset/demo/src/app.js",
-        now: "2019-11-27 18:40:22",
+        now: "2019-11-28 14:10:42",
         vif: true,
         vshow: true,
         formData: {
           text: 'aaa'
         },
         namespace: namespace,
+        namespace1: namespace1,
         languages: ['JavaScript', 'TypeScript', 'Python', 'Rust', 'Scala']
       };
     }

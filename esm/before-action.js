@@ -9,7 +9,7 @@ var _mobx = require("./mobx");
 
 var _utils = require("./utils");
 
-var reserved = ['constructor', 'data', 'provide', 'render', 'renderError'];
+var reserved = ['constructor', 'data', 'provide', 'shouldComponentUpdate', 'render', 'renderError'];
 
 function _handleAction(target, key, flows) {
   var v = target[key];

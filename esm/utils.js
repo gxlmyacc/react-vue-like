@@ -15,6 +15,7 @@ exports.isFalsy = isFalsy;
 exports.warn = warn;
 exports.handleError = handleError;
 exports.checkKeyCodes = checkKeyCodes;
+exports.appendProperty = appendProperty;
 Object.defineProperty(exports, "toJS", {
   enumerable: true,
   get: function get() {
@@ -385,4 +386,12 @@ function checkKeyCodes(eventKeyCode, key, scope, eventKey) {
 
   if (isFunction(keyCodes)) return keyCodes(eventKeyCode, key, scope, eventKey);
   return keyCodes !== eventKeyCode;
+}
+
+function appendProperty(target, key, value) {
+  Object.defineProperty(target, key, {
+    value: value,
+    configurable: true,
+    writable: true
+  });
 }

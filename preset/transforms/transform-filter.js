@@ -13,7 +13,7 @@ module.exports = function ({ types: t, template }) {
   // eslint-disable-next-line
   const filterTemplate = (callee, args) => {
     let method = t.isArrayExpression(args) ? 'apply' : 'call';
-    return template(`$THIS$._resolveFilter(() => $THIS$.$filters.${callee}.${method}(null, $ARGS$), '${callee}')`)({
+    return template(`$THIS$._f(() => $THIS$.$filters.${callee}.${method}(null, $ARGS$), '${callee}')`)({
       $THIS$: t.thisExpression(),
       $ARGS$: args
     });

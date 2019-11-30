@@ -235,3 +235,11 @@ export function checkKeyCodes(
   if (isFunction(keyCodes)) return keyCodes(eventKeyCode, key, scope, eventKey);
   return keyCodes !== eventKeyCode;
 }
+
+export function appendProperty(target, key, value) {
+  Object.defineProperty(target, key, {
+    value,
+    configurable: true,
+    writable: true,
+  });
+}

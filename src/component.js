@@ -4,11 +4,10 @@ import { observer } from 'mobx-react';
 import { configure, observable } from 'mobx';
 import { isObservable, extendObservable, observe, when, set, remove, action, runInAction } from './mobx';
 import {
-  isPrimitive, isFalsy, isObject, warn, isProduction,
+  isPrimitive, isFalsy, isObject, warn, isProduction, appendProperty,
   parseExpr, camelize, isFunction, iterativeParent, handleError, defComputed
 } from './utils';
 import config from './config';
-import collect from './collect';
 
 function generateComputed(obj, propData, data, methods, target) {
   const ret = {};
@@ -128,15 +127,6 @@ class ReactVueLike extends React.Component {
     if (isRoot) this._isVueLikeRoot = true;
     if (isAbstract) this._isVueLikeAbstract = true;
 
-
-    if (hasOwnProperty.call(target.prototype, 'render')) {
-      this._renderFn = collect.wrap(target.prototype.render, this._eachRenderElement.bind(this));
-      this.render = ReactVueLike.prototype.render;
-    }
-    if (hasOwnProperty.call('renderError')) {
-      this._renderErrorFn = collect.wrap(target.prototype.renderError, this._eachRenderElement.bind(this));
-      this.renderError = ReactVueLike.prototype.renderError;
-    }
     this._shouldComponentUpdateFn = this.shouldComponentUpdate;
     this.shouldComponentUpdate = this._shouldComponentUpdate;
 
@@ -473,9 +463,9 @@ class ReactVueLike extends React.Component {
           }
           return !injects.length;
         }), ReactVueLike);
-        if (process.env.NODE_ENV !== 'production') {
-          injects.forEach(key => warn(`inject '${key}' not found it's provide!`, this));
-        }
+        // if (process.env.NODE_ENV !== 'production') {
+        //   injects.forEach(key => warn(`inject '${key}' not found it's provide!`, this));
+        // }
       }
     } catch (e) {
       handleError(e, this, 'resolveInject');
@@ -853,6 +843,13 @@ class ReactVueLike extends React.Component {
   }
 
 }
+
+appendProperty(ReactVueLike.prototype, '_c', ReactVueLike.prototype._resolveComp);
+appendProperty(ReactVueLike.prototype, '_a', ReactVueLike.prototype._resolveAction);
+appendProperty(ReactVueLike.prototype, '_r', ReactVueLike.prototype._resolveRef);
+appendProperty(ReactVueLike.prototype, '_f', ReactVueLike.prototype._resolveFilter);
+appendProperty(ReactVueLike.prototype, '_o', ReactVueLike.prototype._resolveRootAttrs);
+appendProperty(ReactVueLike.prototype, '_s', ReactVueLike.prototype._resolveSlot);
 
 ReactVueLike.config.optionMergeStrategies = config.optionMergeStrategies;
 ReactVueLike.config.inheritMergeStrategies = config.inheritMergeStrategies;

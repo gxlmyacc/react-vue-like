@@ -15,6 +15,8 @@ var _beforeProps = _interopRequireDefault(require("./before-props"));
 
 var _beforeAction = _interopRequireDefault(require("./before-action"));
 
+var _beforeRender = _interopRequireDefault(require("./before-render"));
+
 var _beforeClass = _interopRequireDefault(require("./before-class"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -65,6 +67,7 @@ function before(source, props, target, isMixin) {
 
     if (source.props) target = (0, _beforeProps.default)(source, target);
     (0, _beforeAction.default)(source);
+    (0, _beforeRender.default)(source);
     return target;
   } finally {
     Object.defineProperty(target, '__ReactVueLikeHandled', {

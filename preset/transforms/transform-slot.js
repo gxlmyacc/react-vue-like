@@ -27,7 +27,7 @@ module.exports = function ({ types: t, template }) {
             compPath.node.openingElement.attributes.push(t.jsxAttribute(
               t.jSXIdentifier('$slotFn'),
               t.jsxExpressionContainer(
-                template('$THIS$._resolveSlot')({
+                template('$THIS$._s')({
                   $THIS$: t.thisExpression(),
                 }).expression
               )
