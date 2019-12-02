@@ -580,10 +580,10 @@ function (_React$Component) {
       var _this9 = this;
 
       if (this._isVueLikeRoot) return;
-      (0, _utils.iterativeParent)(this, function (vm) {
+      if (this.props.$parent) this.$parent = this.props.$parent;else (0, _utils.iterativeParent)(this, function (vm) {
         return !vm._isVueLikeAbstract && (_this9.$parent = vm);
       }, ReactVueLike);
-      if (this.$parent) this.$parent.$children.push(this);else if (this.props.$parent) this.$parent = this.props.$parent;
+      if (this.$parent) this.$parent.$children.push(this);
     }
   }, {
     key: "_resolveInject",

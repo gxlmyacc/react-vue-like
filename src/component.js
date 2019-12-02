@@ -444,9 +444,9 @@ class ReactVueLike extends React.Component {
 
   _resolveParent() {
     if (this._isVueLikeRoot) return;
-    iterativeParent(this, vm => !vm._isVueLikeAbstract && (this.$parent = vm), ReactVueLike);
+    if (this.props.$parent) this.$parent = this.props.$parent;
+    else iterativeParent(this, vm => !vm._isVueLikeAbstract && (this.$parent = vm), ReactVueLike);
     if (this.$parent) this.$parent.$children.push(this);
-    else if (this.props.$parent) this.$parent = this.props.$parent;
   }
 
   _resolveInject() {
