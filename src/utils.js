@@ -61,11 +61,13 @@ export function camelize(str) {
   return ret;
 }
 
-export function iterativeParent(ctx, callback, componentClass) {
+export function iterativeParent(ctx, callback, componentClass, fromSelf) {
   if (ctx._isVueLikeRoot) return;
-  let parentNode = ctx._reactInternalFiber
-    ? ctx._reactInternalFiber.return
-    : ctx.stateNode ? ctx : null;
+  let parentNode = fromSelf
+    ? ctx.stateNode ? ctx : ctx
+    : ctx._reactInternalFiber
+      ? ctx._reactInternalFiber.return
+      : ctx.stateNode ? ctx : null;
   while (parentNode) {
     const vm = parentNode.nodeType === undefined && parentNode.stateNode;
     if (vm && (!componentClass || vm instanceof componentClass)) {

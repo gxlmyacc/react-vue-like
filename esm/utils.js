@@ -202,9 +202,9 @@ function camelize(str) {
   return ret;
 }
 
-function iterativeParent(ctx, callback, componentClass) {
+function iterativeParent(ctx, callback, componentClass, fromSelf) {
   if (ctx._isVueLikeRoot) return;
-  var parentNode = ctx._reactInternalFiber ? ctx._reactInternalFiber.return : ctx.stateNode ? ctx : null;
+  var parentNode = fromSelf ? ctx.stateNode ? ctx : ctx : ctx._reactInternalFiber ? ctx._reactInternalFiber.return : ctx.stateNode ? ctx : null;
 
   while (parentNode) {
     var vm = parentNode.nodeType === undefined && parentNode.stateNode;

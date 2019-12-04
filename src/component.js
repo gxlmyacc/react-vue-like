@@ -122,7 +122,7 @@ class ReactVueLike extends React.Component {
 
     const target = new.target;
     // eslint-disable-next-line
-    const { propTypes, mixins, isRoot, isAbstract, inherits } = target;
+    const { propTypes, mixins, isRoot, isAbstract, inherits = {} } = target;
 
     if (isRoot) this._isVueLikeRoot = true;
     if (isAbstract) this._isVueLikeAbstract = true;
@@ -141,6 +141,7 @@ class ReactVueLike extends React.Component {
     this._isDirty = false;
     this._isRendering = false;
     this.$parent = null;
+    this.$context = null;
     this.$root = null;
     this.$children = [];
     this.$attrs = attrs;
@@ -150,8 +151,11 @@ class ReactVueLike extends React.Component {
 
     if (this.$slots.default === undefined) this.$slots.default = _props.children;
 
-    extendObservable(this, { _isMounted: false, _inherits: { ...(inherits || {}) } });
-    extendObservable(this, { $refs: {} }, {}, { deep: false });
+    extendObservable(this, {
+      _isMounted: false,
+      _inherits: observable.object({ ...inherits }, {}, { deep: false }),
+      $refs: {}
+    }, {}, { deep: false });
 
     defComputed(this, '$el', () => this._el || (this._el = ReactDOM.findDOMNode(this)), v => {
       throw new Error('ReactVueLike error: $el is readonly!');
@@ -211,7 +215,7 @@ class ReactVueLike extends React.Component {
         if (child) {
           let v = merge(parent, child, this, key);
           if (v !== undefined && v !== child) {
-            this._inherits[key] = isObservable(v) ? v : observable.ref(v);
+            this._inherits[key] = v; // isObservable(v) ? v : observable.ref(v);
           }
         } else this._inherits[key] = parent;
       });
@@ -319,13 +323,13 @@ class ReactVueLike extends React.Component {
 
   _resolveWillMount(beforeMount, mounted) {
     let _pending = action(() => {
-      if (!this._isVueLikeRoot && this.$parent) {
+      if (!this._isVueLikeRoot && this.$context) {
         Object.keys(this._optionMergeStrategies).forEach(key => {
-          let ret = this._optionMergeStrategies[key](this.$parent[key], this[key], this, key);
+          let ret = this._optionMergeStrategies[key](this.$context[key], this[key], this, key);
           if (ret !== this[key]) this[key] = ret;
         });
       }
-      this.$root = this.$parent ? this.$parent.$root : this;
+      this.$root = this.$context ? this.$context.$root : this;
 
       this._resolveInherits();
       this._resolveMethods();
@@ -347,15 +351,15 @@ class ReactVueLike extends React.Component {
       mounted && this.$nextTick(mounted);
     });
 
-    if (!this.$parent || this.$parent._isWillMount) _pending();
-    else this.$parent._mountedPending.push(_pending);
+    if (!this.$context || this.$context._isWillMount) _pending();
+    else this.$context._mountedPending.push(_pending);
   }
 
   _resolveInherits() {
-    if (!this._isVueLikeRoot && this.$parent) {
-      if (this.$parent._inherits) {
+    if (!this._isVueLikeRoot && this.$context) {
+      if (this.$context._inherits) {
         if (!this._inherits) this._inherits = {};
-        Object.assign(this._inherits, this.$parent._inherits);
+        Object.assign(this._inherits, this.$context._inherits);
       }
     }
     if (this._inherits) {
@@ -446,15 +450,16 @@ class ReactVueLike extends React.Component {
     if (this._isVueLikeRoot) return;
     if (this.props.$parent) this.$parent = this.props.$parent;
     else iterativeParent(this, vm => !vm._isVueLikeAbstract && (this.$parent = vm), ReactVueLike);
+    this.$context = this.props.$context || this.$parent;
     if (this.$parent) this.$parent.$children.push(this);
   }
 
   _resolveInject() {
-    if (!this.$parent) return;
+    if (!this.$context) return;
     try {
       const injects = this._injects.slice();
       if (injects.length) {
-        iterativeParent(this, vm => Object.keys(vm.$provides).some(key => {
+        iterativeParent(this.$context, vm => Object.keys(vm.$provides).some(key => {
           let idx = injects.indexOf(key);
           if (~idx) {
             let v = vm.$provides[key];
@@ -462,7 +467,7 @@ class ReactVueLike extends React.Component {
             injects.splice(idx, 1);
           }
           return !injects.length;
-        }), ReactVueLike);
+        }), ReactVueLike, true);
         // if (process.env.NODE_ENV !== 'production') {
         //   injects.forEach(key => warn(`inject '${key}' not found it's provide!`, this));
         // }

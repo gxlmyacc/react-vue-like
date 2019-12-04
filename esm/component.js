@@ -193,7 +193,8 @@ function (_React$Component) {
         mixins = target.mixins,
         isRoot = target.isRoot,
         isAbstract = target.isAbstract,
-        inherits = target.inherits;
+        _target$inherits = target.inherits,
+        inherits = _target$inherits === void 0 ? {} : _target$inherits;
     if (isRoot) _this2._isVueLikeRoot = true;
     if (isAbstract) _this2._isVueLikeAbstract = true;
     _this2._shouldComponentUpdateFn = _this2.shouldComponentUpdate;
@@ -212,6 +213,7 @@ function (_React$Component) {
     _this2._isDirty = false;
     _this2._isRendering = false;
     _this2.$parent = null;
+    _this2.$context = null;
     _this2.$root = null;
     _this2.$children = [];
     _this2.$attrs = attrs;
@@ -221,9 +223,9 @@ function (_React$Component) {
     if (_this2.$slots.default === undefined) _this2.$slots.default = _props.children;
     (0, _mobx2.extendObservable)(_assertThisInitialized(_this2), {
       _isMounted: false,
-      _inherits: _objectSpread({}, inherits || {})
-    });
-    (0, _mobx2.extendObservable)(_assertThisInitialized(_this2), {
+      _inherits: _mobx.observable.object(_objectSpread({}, inherits), {}, {
+        deep: false
+      }),
       $refs: {}
     }, {}, {
       deep: false
@@ -288,7 +290,7 @@ function (_React$Component) {
           var v = merge(parent, child, _assertThisInitialized(_this2), key);
 
           if (v !== undefined && v !== child) {
-            _this2._inherits[key] = (0, _mobx2.isObservable)(v) ? v : _mobx.observable.ref(v);
+            _this2._inherits[key] = v; // isObservable(v) ? v : observable.ref(v);
           }
         } else _this2._inherits[key] = parent;
       });
@@ -420,15 +422,15 @@ function (_React$Component) {
       var _this5 = this;
 
       var _pending = (0, _mobx2.action)(function () {
-        if (!_this5._isVueLikeRoot && _this5.$parent) {
+        if (!_this5._isVueLikeRoot && _this5.$context) {
           Object.keys(_this5._optionMergeStrategies).forEach(function (key) {
-            var ret = _this5._optionMergeStrategies[key](_this5.$parent[key], _this5[key], _this5, key);
+            var ret = _this5._optionMergeStrategies[key](_this5.$context[key], _this5[key], _this5, key);
 
             if (ret !== _this5[key]) _this5[key] = ret;
           });
         }
 
-        _this5.$root = _this5.$parent ? _this5.$parent.$root : _this5;
+        _this5.$root = _this5.$context ? _this5.$context.$root : _this5;
 
         _this5._resolveInherits();
 
@@ -456,17 +458,17 @@ function (_React$Component) {
         mounted && _this5.$nextTick(mounted);
       });
 
-      if (!this.$parent || this.$parent._isWillMount) _pending();else this.$parent._mountedPending.push(_pending);
+      if (!this.$context || this.$context._isWillMount) _pending();else this.$context._mountedPending.push(_pending);
     }
   }, {
     key: "_resolveInherits",
     value: function _resolveInherits() {
       var _this6 = this;
 
-      if (!this._isVueLikeRoot && this.$parent) {
-        if (this.$parent._inherits) {
+      if (!this._isVueLikeRoot && this.$context) {
+        if (this.$context._inherits) {
           if (!this._inherits) this._inherits = {};
-          Object.assign(this._inherits, this.$parent._inherits);
+          Object.assign(this._inherits, this.$context._inherits);
         }
       }
 
@@ -583,6 +585,7 @@ function (_React$Component) {
       if (this.props.$parent) this.$parent = this.props.$parent;else (0, _utils.iterativeParent)(this, function (vm) {
         return !vm._isVueLikeAbstract && (_this9.$parent = vm);
       }, ReactVueLike);
+      this.$context = this.props.$context || this.$parent;
       if (this.$parent) this.$parent.$children.push(this);
     }
   }, {
@@ -590,13 +593,13 @@ function (_React$Component) {
     value: function _resolveInject() {
       var _this10 = this;
 
-      if (!this.$parent) return;
+      if (!this.$context) return;
 
       try {
         var injects = this._injects.slice();
 
         if (injects.length) {
-          (0, _utils.iterativeParent)(this, function (vm) {
+          (0, _utils.iterativeParent)(this.$context, function (vm) {
             return Object.keys(vm.$provides).some(function (key) {
               var idx = injects.indexOf(key);
 
@@ -608,7 +611,7 @@ function (_React$Component) {
 
               return !injects.length;
             });
-          }, ReactVueLike); // if (process.env.NODE_ENV !== 'production') {
+          }, ReactVueLike, true); // if (process.env.NODE_ENV !== 'production') {
           //   injects.forEach(key => warn(`inject '${key}' not found it's provide!`, this));
           // }
         }
