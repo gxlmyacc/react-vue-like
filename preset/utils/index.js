@@ -481,15 +481,22 @@ function createDisplayProp(condition, showValue) {
   );
 }
 
-function mergeAttrEvent(handlerNode, funcExpression, params) {
-  const callee = handlerNode.value.expression;
-  funcExpression.body.body.push(t.returnStatement(
+function mergeFns(func1, func2, params) {
+  func1.body.body.push(t.returnStatement(
     t.callExpression(
-      callee,
-      params || funcExpression.params
+      func2,
+      params || func1.params
     )
   ));
-  handlerNode.value = t.JSXExpressionContainer(funcExpression);
+  return func1;
+}
+
+function mergeAttrEvent(handlerNode, funcExpression, params) {
+  handlerNode.value = t.JSXExpressionContainer(mergeFns(
+    funcExpression,
+    handlerNode.value.expression,
+    params
+  ));
   // let params = params || funcExpression.params;
   // handlerNode.value = t.JSXExpressionContainer(
   //   t.arrowFunctionExpression(
@@ -783,6 +790,7 @@ module.exports = {
   removeAttributeVisitor,
   transformElseIfBindings,
   throwAttributeError,
+  mergeFns,
   mergeAttrEvent,
   appendAttrEvent,
   parseCondition,

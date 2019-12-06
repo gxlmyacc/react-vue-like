@@ -2,7 +2,7 @@
 const {
   importSpecifier, parseDirective, directiveRegx, escapeRegx,
   getAttrASTAndIndexByName, removeAttrASTByIndex, expr2var,
-  ObserverName
+  ObserverName, mergeFns
 } = require('../utils');
 const options = require('../options');
 
@@ -19,14 +19,20 @@ module.exports = function ({ types: t, template }) {
     removeAttrASTByIndex(path.node, binding.index);
 
     const slot = getAttrASTAndIndexByName(path.node, 'slot');
-
+    const key = getAttrASTAndIndexByName(path.node, 'key');
     this.hasObserver = true;
 
-    const expr = t.jSXExpressionContainer(
-      template('() => $1')({
-        $1: path.node
-      }).expression
-    );
+    let renderFn = template('() => $1')({
+      $1: path.node
+    }).expression;
+
+    if (binding.attr.value
+      && t.isJSXExpressionContainer(binding.attr.value)
+      && t.isArrowFunctionExpression(binding.attr.value.expression)) {
+      renderFn = mergeFns(binding.attr.value.expression, renderFn);
+    }
+
+    const expr = t.jSXExpressionContainer(renderFn);
 
     const useRender = Boolean(parsed.modifiers.render);
 
@@ -35,6 +41,10 @@ module.exports = function ({ types: t, template }) {
     if (slot) {
       observerAttrs.push(t.jsxAttribute(t.jSXIdentifier('slot'), slot.attr.value));
       removeAttrASTByIndex(path.node, slot.index);
+    }
+    if (key) {
+      observerAttrs.push(t.jsxAttribute(t.jSXIdentifier('key'), key.attr.value));
+      removeAttrASTByIndex(path.node, key.index);
     }
 
     path.replaceWith(t.jSXElement(

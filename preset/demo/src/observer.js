@@ -5,9 +5,15 @@ class App extends ReactVueLike {
 
 
   render() {
+    let aa;
     return (<div class="root" v-observer>
       <div v-observer$render>
          dddd
+      </div>
+      <div v-observer={() => {
+       aa = 1;
+      }}>
+         aaaa
       </div>
     </div>);
   }

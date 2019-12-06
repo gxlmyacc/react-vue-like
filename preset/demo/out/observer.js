@@ -47,6 +47,7 @@ function (_ReactVueLike) {
   _createClass(App, [{
     key: "render",
     value: function render() {
+      var aa;
       return _react.default.createElement(_reactVueLike.Observer, null, function () {
         return _react.default.createElement("div", {
           className: "root"
@@ -54,6 +55,11 @@ function (_ReactVueLike) {
           render: function render() {
             return _react.default.createElement("div", null, "dddd");
           }
+        }), _react.default.createElement(_reactVueLike.Observer, null, function () {
+          aa = 1;
+          return function () {
+            return _react.default.createElement("div", null, "aaaa");
+          }();
         }));
       });
     }
