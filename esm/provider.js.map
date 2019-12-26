@@ -1,1 +1,0 @@
-{"version":3,"sources":["../src/provider.js"],"names":[],"mappings":";;;;;;;;;;;;;;;;;;AAAA","sourcesContent":["export { Provider, Observer } from 'mobx-react';\n"],"file":"provider.js"}

@@ -4,10 +4,19 @@ import { observer } from 'mobx-react';
 import { configure, observable } from 'mobx';
 import { isObservable, extendObservable, observe, when, set, remove, action, runInAction } from './mobx';
 import {
-  isPrimitive, isFalsy, isObject, warn, isProduction, appendProperty,
+  isPrimitive, isFalsy, isObject, isPlainObject, warn, isProduction, appendProperty,
   parseExpr, camelize, isFunction, iterativeParent, handleError, defComputed
 } from './utils';
 import config from './config';
+
+function checkUnmount(fn) {
+  if (!fn) return fn;
+  let old;
+  return function get() {
+    if (this && this.$isWillUnmount) return old;
+    return old = fn.apply(this, arguments);
+  };
+}
 
 function generateComputed(obj, propData, data, methods, target) {
   const ret = {};
@@ -23,8 +32,8 @@ function generateComputed(obj, propData, data, methods, target) {
       throw e;
     }
     const v = obj[key];
-    if (isFunction(v)) return defComputed(ret, key, v);
-    defComputed(ret, key, v.get, action(key, v.set));
+    if (isFunction(v)) return defComputed(ret, key, checkUnmount(v));
+    defComputed(ret, key, checkUnmount(v.get), action(key, v.set));
   });
   return ret;
 }
@@ -137,6 +146,7 @@ class ReactVueLike extends React.Component {
     this._el = null;
     this._mountedPending = [];
     this._isWillMount = false;
+    this._isWillUnmount = false;
     this._isActive = true;
     this._isDirty = false;
     this._isRendering = false;
@@ -204,6 +214,8 @@ class ReactVueLike extends React.Component {
         this._provideFns.forEach(p => Object.assign(ret, isFunction(p) ? p.call(this) : p));
         return this._provides = ret;
       });
+    defComputed(this, '$isWillUnmount', () => this._isWillUnmount || (this.parent && this.parent.$isWillUnmount));
+
 
     this._inheritMergeStrategies = Object.assign({}, config.inheritMergeStrategies, this.$options.inheritMergeStrategies);
     action(() => {
@@ -225,6 +237,10 @@ class ReactVueLike extends React.Component {
     this.$emit('hook:beforeCreate', _props);
 
     // if (_props.el instanceof Element) this.$mount(_props.el);
+  }
+
+  _willUnmount() {
+    this._isWillUnmount = true;
   }
 
   _resolvePropRef(ref) {
@@ -533,7 +549,7 @@ class ReactVueLike extends React.Component {
   }
 
   _shouldComponentUpdate(nextProps, nextState) {
-    if (this._isActive) {
+    if (this._isActive && !this.$isWillUnmount) {
       this._isDirty = false;
       return this._shouldComponentUpdateFn(nextProps, nextState);
     }
@@ -677,7 +693,7 @@ class ReactVueLike extends React.Component {
 
   $watch(expOrFn, callback, options = {}) {
     if (!expOrFn || !callback) return;
-    callback = action(callback.bind(this));
+    callback = action(checkUnmount(callback).bind(this));
     if (options.deep && options.deep !== undefined) console.warn('$watch not support deep option!');
     if (typeof expOrFn === 'string') {
       let { obj, key } = parseExpr(this, expOrFn);
@@ -709,31 +725,31 @@ class ReactVueLike extends React.Component {
         throw e;
       }
       let computedObj = {};
-      if (isFunction(value)) defComputed(computedObj, key, value);
-      else defComputed(computedObj, key, value.get, value.set);
+      if (isFunction(value)) defComputed(computedObj, key, checkUnmount(value));
+      else defComputed(computedObj, key, checkUnmount(value.get), value.set);
       extendObservable(obj, computedObj);
     }
   }
 
   $set(target, expr, value) {
     if (!isObservable(target)) {
-      if (isObject(expr)) return Object.assign(target, expr);
+      if (isPlainObject(expr)) return Object.assign(target, expr);
       let { obj, key } = parseExpr(target, expr);
       if (obj && key) obj.key = value;
       return;
     }
-    if (isObject(expr)) {
+    if (isPlainObject(expr)) {
       const _expr = {};
       Object.keys(expr).forEach(key => {
         value = expr[key];
-        if (value && !isObservable(value) && isObject(value)) value = observable(value);
+        if (value && !isObservable(value) && (isPlainObject(value) || Array.isArray(value))) value = observable(value);
         _expr[key] = value;
       });
       return set(target, _expr);
     }
     let { obj, key } = parseExpr(target, expr);
     if (obj && key) {
-      if (value && !isObservable(value) && isObject(value))  value = observable(value);
+      if (value && !isObservable(value) && (isPlainObject(value) || Array.isArray(value))) value = observable(value);
       set(obj, key, value);
     }
   }

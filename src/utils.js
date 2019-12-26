@@ -104,6 +104,12 @@ export function isObject(obj) {
   return obj !== null && typeof obj === 'object';
 }
 
+const _toString = Object.prototype.toString;
+
+export function isPlainObject(obj) {
+  return _toString.call(obj) === '[object Object]';
+}
+
 export function isFalsy(value) {
   return value === undefined
     || Number.isNaN(value)

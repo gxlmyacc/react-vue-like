@@ -6,7 +6,7 @@ module.exports = {
       '@babel/preset-env',
       {
         modules: 'commonjs',
-        useBuiltIns: 'entry',
+        useBuiltIns: 'usage',
         corejs: 2,
         targets: { browsers: ['Chrome >= 31'] }
       }
