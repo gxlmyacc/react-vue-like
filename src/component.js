@@ -214,7 +214,7 @@ class ReactVueLike extends React.Component {
         this._provideFns.forEach(p => Object.assign(ret, isFunction(p) ? p.call(this) : p));
         return this._provides = ret;
       });
-    defComputed(this, '$isWillUnmount', () => this._isWillUnmount || (this.parent && this.parent.$isWillUnmount));
+    defComputed(this, '$isWillUnmount', () => this._isWillUnmount || Boolean(this.parent && this.parent.$isWillUnmount));
 
 
     this._inheritMergeStrategies = Object.assign({}, config.inheritMergeStrategies, this.$options.inheritMergeStrategies);
@@ -548,13 +548,16 @@ class ReactVueLike extends React.Component {
     }
   }
 
-  _shouldComponentUpdate(nextProps, nextState) {
+  _checkActive(callback, args) {
     if (this._isActive && !this.$isWillUnmount) {
       this._isDirty = false;
-      return this._shouldComponentUpdateFn(nextProps, nextState);
+      return callback.apply(this, args);
     }
     this._isDirty = true;
-    return false;
+  }
+
+  _shouldComponentUpdate(nextProps, nextState) {
+    return Boolean(this._checkActive(this._shouldComponentUpdateFn, [nextProps, nextState]));
   }
 
   static use(plugin, options = {}, ...args) {

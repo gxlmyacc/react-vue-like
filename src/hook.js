@@ -40,6 +40,16 @@ function ReactHook() {
 
   React.createElement = createElement;
   React.cloneElement = cloneElement;
+
+  const _forceUpdate = React.Component.prototype.forceUpdate;
+  function forceUpdate() {
+    if (this && this._isVueLike) {
+      return this._checkActive(_forceUpdate, arguments);
+    }
+    return _forceUpdate.apply(this, arguments);
+  }
+  forceUpdate._isVueLike = true;
+  if (!React.Component.prototype.forceUpdate._isVueLike) React.Component.prototype.forceUpdate = forceUpdate;
 }
 
 export default ReactHook;
