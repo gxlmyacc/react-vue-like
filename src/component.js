@@ -21,19 +21,24 @@ function checkUnmount(fn) {
 function generateComputed(obj, propData, data, methods, target) {
   const ret = {};
   Object.keys(obj).forEach(key => {
+    if (RESERVED_KEYS.includes(key)) {
+      let e = new Error(`key '${key}' in computed is reserved keywords`);
+      handleError(e, this, `generateComputed:${target.name}`);
+      throw e;
+    }
     if (key in propData) {
       let e = new Error(`key '${key}' in computed cannot be duplicated with props`);
-      handleError(e, this, `constructor:${target.name}`);
+      handleError(e, this, `generateComputed:${target.name}`);
       throw e;
     }
     if (key in data) {
       let e = new Error(`key '${key}' in computed cannot be duplicated with data()`);
-      handleError(e, this, `constructor:${target.name}`);
+      handleError(e, this, `generateComputed:${target.name}`);
       throw e;
     }
     const v = obj[key];
     if (isFunction(v)) return defComputed(ret, key, checkUnmount(v));
-    defComputed(ret, key, checkUnmount(v.get), action(key, v.set));
+    defComputed(ret, key, checkUnmount(v.get), v.set ? action(key, v.set) : undefined);
   });
   return ret;
 }
@@ -48,8 +53,10 @@ function bindMethods(ctx, methods) {
 
 function bindWatch(ctx, watch) {
   if (!watch) return [];
-  return Object.keys(watch).map(key => ctx.$watch(key, watch[key]));
+  return watch.map(({ key, value }) => ctx.$watch(key, value));
 }
+
+const RESERVED_KEYS = ['state', 'props'];
 
 const LIFECYCLE_HOOKS = [
   'beforeCreate',
@@ -176,7 +183,7 @@ class ReactVueLike extends React.Component {
     let _datas = [];
     let _computed = {};
     let _methods = {};
-    let _watch = {};
+    let _watch = [];
     let _directives = {};
     let _filters = {};
     let _provideFns = [];
@@ -187,7 +194,7 @@ class ReactVueLike extends React.Component {
       if (ctx.data) _datas.push(ctx.data);
       if (ctx.computed) Object.assign(_computed, ctx.computed);
       if (ctx.methods) Object.assign(_methods, ctx.methods);
-      if (ctx.watch) Object.assign(_watch, ctx.watch);
+      if (ctx.watch) Object.keys(ctx.watch).forEach(key => _watch.push({ key, value: ctx.watch[key] }));
       if (ctx.provide) _provideFns.push(ctx.provide);
       if (ctx.inject) ctx.inject.forEach(key => !_injects.includes(key) && _injects.push(key));
     });
@@ -425,9 +432,14 @@ class ReactVueLike extends React.Component {
     if (!_shadows) {
       this.$options.__shadows = _shadows = keys
         .filter(key => {
+          if (RESERVED_KEYS.includes(key)) {
+            let e = new Error(`key '${key}' in data() is reserved keywords`);
+            handleError(e, this, `_resolveData:${this.$options.name}`);
+            throw e;
+          }
           if (key in this._propData) {
             let e = new Error(`key '${key}' in data() cannot be duplicated with props`);
-            handleError(e, this, `constructor:${this.$options.name}`);
+            handleError(e, this, `_resolveData:${this.$options.name}`);
             throw e;
           }
           return RETX_SPECIAL_KEYS.test(key) || isPrimitiveObj(_data[key]);
