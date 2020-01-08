@@ -43,7 +43,7 @@ function ReactHook() {
 
   const _forceUpdate = React.Component.prototype.forceUpdate;
   function forceUpdate() {
-    if (this && this._isVueLike) {
+    if (this && this._isVueLike && this._checkActive) {
       return this._checkActive(_forceUpdate, arguments);
     }
     return _forceUpdate.apply(this, arguments);
