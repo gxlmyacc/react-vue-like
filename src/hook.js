@@ -3,6 +3,8 @@ import before from './before';
 import collect from './collect';
 
 function ReactHook() {
+  if (React._vueLike) return;
+
   const _createElement = React.createElement;
   const _cloneElement = React.cloneElement;
 
@@ -50,6 +52,8 @@ function ReactHook() {
   }
   forceUpdate._isVueLike = true;
   if (!React.Component.prototype.forceUpdate._isVueLike) React.Component.prototype.forceUpdate = forceUpdate;
+
+  Object.defineProperty(React, '_vueLike', { writable: true, configurable: true, value: true });
 }
 
 export default ReactHook;
