@@ -1,6 +1,7 @@
 import React from 'react';
 import before from './before';
 import collect from './collect';
+import ReactVueLike from './component';
 
 function ReactHook() {
   if (React._vueLike) return;
@@ -53,7 +54,7 @@ function ReactHook() {
   forceUpdate._isVueLike = true;
   if (!React.Component.prototype.forceUpdate._isVueLike) React.Component.prototype.forceUpdate = forceUpdate;
 
-  Object.defineProperty(React, '_vueLike', { writable: true, configurable: true, value: true });
+  Object.defineProperty(React, '_vueLike', { writable: true, configurable: true, value: ReactVueLike });
 }
 
 export default ReactHook;

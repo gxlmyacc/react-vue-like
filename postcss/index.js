@@ -26,9 +26,9 @@ module.exports = postcss.plugin('react-vue-like-add-id', function (opts) {
         return;
       }
       if (node.selector.startsWith(':global')) {
-        node.selector = node.selector.replace(':global', '').trim();
+        node.selector = node.selector.replace(/:global/g, '').trim();
       } else if (node.selector.includes(':scope')) {
-        node.selector = node.selector.replace(':scope', '.' + id);
+        node.selector = node.selector.replace(/:scope/g, '.' + id);
       } else {
         node.selector = selectorParser(function (selectors) {
           selectors.each(function (selector) {
