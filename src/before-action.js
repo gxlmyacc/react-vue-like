@@ -18,7 +18,7 @@ function _handleAction(target, key, flows) {
   if (v !== n) target[key] = n;
 }
 
-export default function beforeAction(target) {
+export default function beforeAction(target, ReactVueLike) {
   if (!target) return;
   let flows = target.__flows || [];
   if (target.methods) {

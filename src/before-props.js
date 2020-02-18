@@ -73,7 +73,7 @@ function generateProps(aPropTypes, aProps) {
   return ret;
 }
 
-export default function beforeProps(source, target) {
+export default function beforeProps(source, target, ReactVueLike) {
   if (!target) target = source;
   const { props } = source;
   if (!props) return source;

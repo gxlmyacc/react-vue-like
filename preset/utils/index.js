@@ -117,18 +117,20 @@ function obj2Expression(obj, parent) {
 function extractNodeCode(path, node) {
   const sources = path.hub.file.code.split('\n');
   let ret = [];
-  let lineStart = node.loc.start.line - 1;
-  let lineIndex = lineStart;
-  let lineEnd = node.loc.end.line - 1;
-  if (lineStart === lineEnd) {
-    ret.push(sources[lineStart].substring(node.loc.start.column, node.loc.end.column));
-  } else {
-    while (lineIndex < lineEnd) {
-      let line = sources[lineIndex];
-      if (lineIndex === lineStart) ret.push(line.substr(node.loc.start.column));
-      else if (lineIndex === lineEnd) ret.push(line.substr(0, node.loc.end.column));
-      else ret.push(line);
-      lineIndex++;
+  if (node) {
+    let lineStart = node.loc.start.line - 1;
+    let lineIndex = lineStart;
+    let lineEnd = node.loc.end.line - 1;
+    if (lineStart === lineEnd) {
+      ret.push(sources[lineStart].substring(node.loc.start.column, node.loc.end.column));
+    } else {
+      while (lineIndex < lineEnd) {
+        let line = sources[lineIndex];
+        if (lineIndex === lineStart) ret.push(line.substr(node.loc.start.column));
+        else if (lineIndex === lineEnd) ret.push(line.substr(0, node.loc.end.column));
+        else ret.push(line);
+        lineIndex++;
+      }
     }
   }
   return ret.join('\n');

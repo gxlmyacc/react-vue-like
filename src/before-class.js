@@ -8,7 +8,7 @@ function parseClassName(source, className) {
   return source;
 }
 
-export default function beforeClass(props) {
+export default function beforeClass(props, ReactVueLike) {
   if (!props || !props.className || typeof props.className === 'string') return;
   props.className = parseClassName([], props.className).join(' ');
 }

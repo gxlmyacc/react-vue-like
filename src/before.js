@@ -1,21 +1,26 @@
-import ReactVueLike from './component';
-import Mixin from './mixin';
-import Directive from './directive';
+import React from 'react';
+import ReactVueLike_ from './component';
+import Directive_ from './directive';
 import beforeProps from './before-props';
 import beforeAction from './before-action';
 import beforeRender from './before-render';
 import beforeClass from './before-class';
+
+const ReactVueLike = React._vueLike && React._vueLike instanceof React.Component
+  ? React._vueLike
+  : ReactVueLike_;
+const Directive = ReactVueLike.Directive || Directive_;
 
 function isVueLikeComponent(source) {
   return source && source.prototype instanceof ReactVueLike;
 }
 
 function isMixinComponent(source) {
-  return source && source.prototype instanceof Mixin;
+  return source && source.prototype instanceof ReactVueLike.Mixin;
 }
 
 export default function before(source, props, target, isMixin) {
-  if (!isMixin) beforeClass(props);
+  if (!isMixin) beforeClass(props, ReactVueLike);
 
   const isReactVueLikeClass = isVueLikeComponent(source);
   const isReactVueLikeMixin = isMixin || isMixinComponent(source);
@@ -49,10 +54,10 @@ export default function before(source, props, target, isMixin) {
     }
 
     // eslint-disable-next-line
-    if (source.props) target = beforeProps(source, target);
+    if (source.props) target = beforeProps(source, target, ReactVueLike);
 
-    beforeAction(source);
-    beforeRender(source);
+    beforeAction(source, ReactVueLike);
+    beforeRender(source, ReactVueLike);
 
     return target;
   } finally {

@@ -32,7 +32,7 @@ module.exports = function ({ types: t, template }) {
       const binding = Object.assign(parsed, {
         name: camelCase(parsed.name),
         attr,
-        expression: extractNodeCode(path, attr.value.expression),
+        expression: extractNodeCode(path, t.isJSXExpressionContainer(attr.value) ? attr.value.expression : attr.value),
       });
       bindings.push(binding);
     });
@@ -40,7 +40,7 @@ module.exports = function ({ types: t, template }) {
     if (!bindings.length) return;
 
     bindings = bindings.map(({ attr, ...binding }) => {
-      binding.value = attr.value.expression;
+      binding.value = t.isJSXExpressionContainer(attr.value) ? attr.value.expression : attr.value;
       removeAttrAST(path.node, expr2var(attr.name));
       return binding;
     });

@@ -113,19 +113,19 @@ function initListeners(ctxs, props) {
   return listeners;
 }
 
-function parseProps(target, props, propTypes) {
+function parseProps(target, propTypes) {
   const propData = {};
   const attrs = {};
   if (!propTypes) propTypes = {};
-  Object.getOwnPropertyNames(props).forEach(key => {
-    if (propTypes[key] !== undefined) return propData[key] = props[key];
+  Object.getOwnPropertyNames(this.props).forEach(key => {
+    if (propTypes[key] !== undefined) return defComputed(propData, key, () => this.props[key]);
     if (['ref', 'children'].includes(key) || RETX_SPECIAL_KEYS.test(key)) return;
 
     if (target.inheritAttrs || target.inheritAttrs === undefined) {
       if (Array.isArray(target.inheritAttrs) && ~target.inheritAttrs.indexOf(key)) return;
       if (~config.inheritAttrs.indexOf(key)) return;
     }
-    attrs[key] = props[key];
+    defComputed(attrs, key, () => this.props[key]);
   });
   return { propData, attrs };
 }
@@ -146,7 +146,7 @@ class ReactVueLike extends React.Component {
     this._shouldComponentUpdateFn = this.shouldComponentUpdate;
     this.shouldComponentUpdate = this._shouldComponentUpdate;
 
-    const { propData, attrs } = parseProps(target, _props, propTypes);
+    const { propData, attrs } = parseProps.call(this, target, propTypes);
 
     this._isVueLike = true;
     this._ticks = [];
@@ -477,7 +477,7 @@ class ReactVueLike extends React.Component {
   _resolveParent() {
     if (this._isVueLikeRoot) return;
     if (this.props.$parent) this.$parent = this.props.$parent;
-    else iterativeParent(this, vm => !vm._isVueLikeAbstract && (this.$parent = vm), ReactVueLike);
+    else iterativeParent(this, vm => !vm._isVueLikeAbstract && (this.$parent = vm), vm => vm._isVueLike);
     this.$context = this.props.$context || this.$parent;
     if (this.$parent) this.$parent.$children.push(this);
   }
@@ -495,7 +495,7 @@ class ReactVueLike extends React.Component {
             injects.splice(idx, 1);
           }
           return !injects.length;
-        }), ReactVueLike, true);
+        }), vm => vm._isVueLike, true);
         // if (process.env.NODE_ENV !== 'production') {
         //   injects.forEach(key => warn(`inject '${key}' not found it's provide!`, this));
         // }

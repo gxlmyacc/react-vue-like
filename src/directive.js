@@ -2,7 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import { action } from './mobx';
-import ReactVueLike from './component';
 import config from './config';
 import {
   iterativeParent
@@ -26,7 +25,7 @@ class Directive extends React.Component {
   }
 
   componentDidMount() {
-    iterativeParent(this, parent => this.$parent = parent, ReactVueLike);
+    iterativeParent(this, parent => this.$parent = parent, vm => vm._isVueLike);
     if (!this.$parent) throw new Error('[ReactVueLike error]: can not find directive parent component');
 
     const _pending = () => {

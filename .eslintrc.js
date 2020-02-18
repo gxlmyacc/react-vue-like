@@ -59,7 +59,13 @@ module.exports = {
     // 如果一个类方法没有使用this，那么必须将该方法转换为静态函数
     'class-methods-use-this': 0,
     // 数组和对象键值对最后一个逗号，never参数：不能带末尾的逗号, always参数：必须带末尾的逗号，always-multiline：多行模式必须带逗号，单行模式不能带逗号
-    'comma-dangle': [2, { arrays: 'ignore', exports: 'never', functions: 'ignore', imports: 'never', objects: 'ignore' }],
+    'comma-dangle': [2, {
+      arrays: 'ignore',
+      exports: 'never',
+      functions: 'ignore',
+      imports: 'never',
+      objects: 'ignore'
+    }],
     // 要求 return 语句要么总是指定返回的值，要么不指定
     'consistent-return': 0,
     // 强制所有控制语句使用一致的括号风格

@@ -10,7 +10,7 @@ function createScopeId(filename) {
   return `v-${hash(filename.replace(/\\/g, '/'))}`;
 }
 
-const excluedTags = ['template', 'slot', ObserverName, DirectiveName];
+const excluedTags = ['template', 'slot', ObserverName];
 
 module.exports = function ({ types: t, template }) {
   const scopeAttrs = options.inject.scopeAttrs;

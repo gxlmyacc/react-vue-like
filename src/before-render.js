@@ -1,7 +1,6 @@
-import ReactVueLike from './component';
 import collect from './collect';
 
-export default function beforeCollect(target) {
+export default function beforeCollect(target, ReactVueLike) {
   let t = target.prototype;
   if (hasOwnProperty.call(t, 'render')) {
     t._renderFn = collect.wrap(t.render, ReactVueLike.prototype._eachRenderElement);

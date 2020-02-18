@@ -8,6 +8,7 @@ import { checkKeyCodes } from './utils';
 export * from './utils';
 
 ReactVueLike.Mixin = Mixin;
+ReactVueLike.Directive = Directive;
 ReactVueLike.observable = observable;
 ReactVueLike.flow = flow;
 ReactVueLike.action = action;

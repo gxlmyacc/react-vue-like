@@ -41,7 +41,10 @@ class Collect {
       ref: props.ref || null,
       key: props.key || null,
       type: component,
-      _store: { validated: Boolean(component) && (typeof component === 'string' || component.prototype instanceof React.Component) }
+      _store: {
+        validated: Boolean(component)
+          && (typeof component === 'string' || component.prototype instanceof React.Component)
+      }
     };
     this.elements.push(node);
     return node;

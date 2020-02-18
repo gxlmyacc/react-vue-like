@@ -61,7 +61,7 @@ export function camelize(str) {
   return ret;
 }
 
-export function iterativeParent(ctx, callback, componentClass, fromSelf) {
+export function iterativeParent(ctx, callback, componentClassFn, fromSelf) {
   if (ctx._isVueLikeRoot) return;
   let parentNode = fromSelf
     ? ctx.stateNode ? ctx : ctx
@@ -70,7 +70,7 @@ export function iterativeParent(ctx, callback, componentClass, fromSelf) {
       : ctx.stateNode ? ctx : null;
   while (parentNode) {
     const vm = parentNode.nodeType === undefined && parentNode.stateNode;
-    if (vm && (!componentClass || vm instanceof componentClass)) {
+    if (vm && (!componentClassFn || componentClassFn(vm))) {
       if (callback(vm)) break;
     }
     if (vm && vm._isVueLikeRoot) break;
