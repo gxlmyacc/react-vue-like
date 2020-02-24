@@ -760,12 +760,12 @@ class ReactVueLike extends React.Component {
         if (value && !isObservable(value) && (isPlainObject(value) || Array.isArray(value))) value = observable(value);
         _expr[key] = value;
       });
-      return set(target, _expr);
+      return ReactVueLike.runAction(() => set(target, _expr));
     }
     let { obj, key } = parseExpr(target, expr);
     if (obj && key) {
       if (value && !isObservable(value) && (isPlainObject(value) || Array.isArray(value))) value = observable(value);
-      set(obj, key, value);
+      ReactVueLike.runAction(() => set(obj, key, value));
     }
   }
 
