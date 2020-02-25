@@ -5,6 +5,14 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
+require("core-js/modules/es7.symbol.async-iterator");
+
+require("core-js/modules/es6.symbol");
+
+require("core-js/modules/es6.object.set-prototype-of");
+
+require("core-js/modules/es6.regexp.match");
+
 var _react = _interopRequireDefault(require("react"));
 
 var _reactVueLike = _interopRequireDefault(require("react-vue-like"));
@@ -68,7 +76,7 @@ function (_ReactVueLike) {
         __dirname: "/preset/demo/src",
         dirname: a.__dirname,
         filename: "/preset/demo/src/app.js",
-        now: "2019-11-28 14:10:42",
+        now: "2020-02-25 09:19:41",
         vif: true,
         vshow: true,
         formData: {
@@ -84,6 +92,7 @@ function (_ReactVueLike) {
   return App;
 }(_reactVueLike.default);
 
+App.__vuelike = true;
 App.__file = "/preset/demo/src/app.js";
 var _default = App;
 exports.default = _default;

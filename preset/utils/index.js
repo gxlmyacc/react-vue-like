@@ -690,6 +690,11 @@ function findClassStaticPath(classDeclarationPath, propertyName) {
   return { methodsPath, varName };
 }
 
+function isReactVueLikeMixin(classDeclarationPath) {
+  return classDeclarationPath.node.superClass
+    && (['ReactVueLike.Mixin'].includes(expr2var(classDeclarationPath.node.superClass)));
+}
+
 function isReactVueLike(classDeclarationPath) {
   return classDeclarationPath.node.superClass
     && (['ReactVueLike', 'ReactVueLike.Mixin'].includes(expr2var(classDeclarationPath.node.superClass)));
@@ -804,6 +809,7 @@ module.exports = {
   findClassVarName,
   findClassStaticPath,
   isReactVueLike,
+  isReactVueLikeMixin,
   directiveRegx,
   parseDirective,
   parseModifiers,

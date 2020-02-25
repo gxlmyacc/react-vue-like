@@ -1,7 +1,7 @@
 const hash = require('hash-sum');
 const options = require('../options');
 const {
-  isReactVueLike, expr2var, isFunction, ObserverName, DirectiveName,
+  isReactVueLike, expr2var, isFunction, ObserverName,
   /* findClassVarName */
 } = require('../utils');
 

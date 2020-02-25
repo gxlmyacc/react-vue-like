@@ -12,11 +12,11 @@ const ReactVueLike = React._vueLike && React._vueLike instanceof React.Component
 const Directive = ReactVueLike.Directive || Directive_;
 
 function isVueLikeComponent(source) {
-  return source && source.prototype instanceof ReactVueLike;
+  return source && (source.__vuelike || source.prototype instanceof ReactVueLike);
 }
 
 function isMixinComponent(source) {
-  return source && source.prototype instanceof ReactVueLike.Mixin;
+  return source && (source.__vuelikeMixin || source.prototype instanceof ReactVueLike.Mixin);
 }
 
 export default function before(source, props, target, isMixin) {

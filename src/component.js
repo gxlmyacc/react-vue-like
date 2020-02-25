@@ -893,4 +893,7 @@ ReactVueLike.runAction = runInAction;
 ReactVueLike.set = ReactVueLike.prototype.set;
 ReactVueLike.delete = ReactVueLike.prototype.delete;
 
+appendProperty(ReactVueLike, 'build', __timestamp);
+
+
 export default ReactVueLike;

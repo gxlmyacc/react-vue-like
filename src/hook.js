@@ -4,7 +4,9 @@ import collect from './collect';
 import ReactVueLike from './component';
 
 function ReactHook() {
-  if (React._vueLike) return;
+  if (React._vueLike) {
+    if (React._vueLike.build && React._vueLike.build >= ReactVueLike.build) return;
+  }
 
   const _createElement = React.createElement;
   const _cloneElement = React.cloneElement;

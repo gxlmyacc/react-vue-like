@@ -25,6 +25,8 @@ module.exports = function ({ types: t }) {
       path.replaceWith(t.stringLiteral(this.dirname));
     } else if (identifier === '__now') {
       path.replaceWith(t.stringLiteral(this.now));
+    } else if (identifier === '__timestamp') {
+      path.replaceWith(t.numericLiteral(Date.now()));
     } else if (defineNames.includes(identifier)) {
       path.replaceWith(var2Expression(defines[identifier]));
     } else if (this.pkg) {

@@ -40,7 +40,8 @@ module.exports = {
     '__WATCH__': true,
     '$': true,
     'importCss': true,
-    'importJs': true
+    'importJs': true,
+    '__timestamp': true,
   },
   rules: {
     'jsx-a11y/href-no-hash': 'off',
