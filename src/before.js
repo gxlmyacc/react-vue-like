@@ -19,13 +19,17 @@ function isMixinComponent(source) {
   return source && (source.__vuelikeMixin || source.prototype instanceof ReactVueLike.Mixin);
 }
 
+function isDirectiveComponent(source) {
+  return source && (source.__vueLikeDirective || source === Directive);
+}
+
 export default function before(source, props, target, isMixin) {
   if (!isMixin) beforeClass(props, ReactVueLike);
 
   const isReactVueLikeClass = isVueLikeComponent(source);
   const isReactVueLikeMixin = isMixin || isMixinComponent(source);
-  const isDirective = source === Directive;
-  const isReactVueLikeClasses = isReactVueLikeClass || isReactVueLikeMixin;
+  const isDirective = isDirectiveComponent(source);
+  const isReactVueLikeClasses = isReactVueLikeClass || isReactVueLikeMixin || isDirective;
 
   if (!isReactVueLikeClasses || (isDirective && !isVueLikeComponent(props._source))) {
     if (props) {
@@ -45,7 +49,7 @@ export default function before(source, props, target, isMixin) {
 
   if (!source || !source.prototype || source.__ReactVueLikeHandled) return source;
 
-  if (!isReactVueLikeClasses) return source;
+  if (!isReactVueLikeClasses || isDirective) return source;
   try {
     if (!target) target = source;
 

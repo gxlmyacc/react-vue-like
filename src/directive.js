@@ -4,7 +4,9 @@ import PropTypes from 'prop-types';
 import { action } from './mobx';
 import config from './config';
 import {
-  iterativeParent
+  iterativeParent,
+  isFunction,
+  isObject
 } from './utils';
 
 class Directive extends React.Component {
@@ -35,7 +37,7 @@ class Directive extends React.Component {
 
       this._mountPending = () => {
         this._mountPending = null;
-        this._call('insert');
+        setTimeout(() => this._call('inserted'), 0);
       };
       this.setState({ isMounted: true });
     };
@@ -58,7 +60,15 @@ class Directive extends React.Component {
     this._call('unbind');
   }
 
-  async _call(eventName) {
+  _updateRef(r) {
+    let ref = this.props.$ref;
+    if (ref) {
+      if (isFunction(ref)) ref(r);
+      else if (isObject(ref)) ref.current = r;
+    }
+  }
+
+  _call(eventName) {
     const el = ReactDOM.findDOMNode(this);
     this.props._bindings.forEach(binding => {
       let d = this.$directives[binding.name];
@@ -74,9 +84,11 @@ class Directive extends React.Component {
     if (!this.state.isMounted) return null;
     // eslint-disable-next-line
     const { _source, _bindings, children, ...props } = this.props;
-    if (typeof _source === 'string') return React.createElement(_source, Object.assign(props, { ref: this.$ref }), children);
+    return React.createElement(_source, Object.assign(props, { ref: ref => this._updateRef(ref) }), children);
   }
 
 }
+
+Directive.__vueLikeDirective = true;
 
 export default Directive;
