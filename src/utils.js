@@ -105,9 +105,18 @@ export function isObject(obj) {
 }
 
 const _toString = Object.prototype.toString;
+const _hasOwnProperty = Object.prototype.hasOwnProperty;
 
 export function isPlainObject(obj) {
   return _toString.call(obj) === '[object Object]';
+}
+
+export function hasOwnProperty(obj, prop) {
+  return _hasOwnProperty.call(obj, prop);
+}
+
+export function hasOwnPropertyValue(obj, prop, value) {
+  return hasOwnProperty(obj, prop) && obj[prop] === value;
 }
 
 export function isFalsy(value) {

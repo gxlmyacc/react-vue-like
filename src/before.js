@@ -5,6 +5,7 @@ import beforeProps from './before-props';
 import beforeAction from './before-action';
 import beforeRender from './before-render';
 import beforeClass from './before-class';
+import { hasOwnProperty } from './utils';
 
 const ReactVueLike = React._vueLike && React._vueLike instanceof React.Component
   ? React._vueLike
@@ -12,7 +13,9 @@ const ReactVueLike = React._vueLike && React._vueLike instanceof React.Component
 const Directive = ReactVueLike.Directive || Directive_;
 
 function isVueLikeComponent(source) {
-  return source && (source.__vuelike || source.prototype instanceof ReactVueLike);
+  return source
+    && (source.__vuelike || source.prototype instanceof ReactVueLike)
+    && !hasOwnProperty(source, '__vuelikeClass');
 }
 
 function isMixinComponent(source) {

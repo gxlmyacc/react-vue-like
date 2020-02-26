@@ -894,6 +894,6 @@ ReactVueLike.set = ReactVueLike.prototype.set;
 ReactVueLike.delete = ReactVueLike.prototype.delete;
 
 appendProperty(ReactVueLike, 'build', __timestamp);
-
+appendProperty(ReactVueLike, '__vuelikeClass', true);
 
 export default ReactVueLike;
