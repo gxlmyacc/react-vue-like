@@ -7,17 +7,16 @@ import {
 } from './utils';
 
 function defaultInitial(instance) {
-  const scopeId = instance.vm && instance.vm.$options.__scopeId;
+  const className = instance.props.className;
   return React.createElement('span', {
-    className: `${scopeId ? `${scopeId} ` : ''}react-vue-like-async-placeholder`
+    className: `${className ? `${className} ` : ''}react-vue-like-async-placeholder`
   });
 }
 
 class ReactVueLikeAsync extends React.Component {
 
   static propTypes = {
-    vm: PropTypes.any,
-    each: PropTypes.func,
+    className: PropTypes.any,
     promise: PropTypes.oneOfType([PropTypes.func, PropTypes.instanceOf(Promise)]).isRequired,
     initial: PropTypes.any,
     error: PropTypes.any,
@@ -42,7 +41,6 @@ class ReactVueLikeAsync extends React.Component {
 
   componentDidMount() {
     this.mounted = true;
-    // iterativeParent(this, vm => !vm._isVueLikeAbstract && (this.$parent = vm), vm => vm._isVueLike);
     if (this.props.promise) this.start();
   }
 
@@ -65,13 +63,6 @@ class ReactVueLikeAsync extends React.Component {
     let { promise, initial, loading, error } = this.props;
     const counter = ++this.counter;
     const isCanceled = () => this.state.pending !== promise || !this.mounted || counter !== this.counter;
-
-    const asyncs = promise && promise.asyncs;
-    if (asyncs) {
-      if (asyncs.initial) initial = asyncs.initial;
-      if (asyncs.loading) loading = asyncs.loading;
-      if (asyncs.error) error = asyncs.error;
-    }
 
     this.setState({
       isResolved: false,

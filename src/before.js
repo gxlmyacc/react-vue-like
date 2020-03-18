@@ -26,6 +26,13 @@ function isDirectiveComponent(source) {
   return source && (source.__vueLikeDirective || source === Directive);
 }
 
+export function renamePropsRef(props) {
+  if (props && props.ref) {
+    props.$ref = props.ref;
+    delete props.ref;
+  }
+}
+
 export default function before(source, props, target, isMixin) {
   if (!isMixin) beforeClass(props, ReactVueLike);
 
@@ -42,12 +49,7 @@ export default function before(source, props, target, isMixin) {
       }
     }
   } else {
-    if (props) {
-      if (props.ref) {
-        props.$ref = props.ref;
-        delete props.ref;
-      }
-    }
+    renamePropsRef(props);
   }
 
   if (!source || !source.prototype || source.__ReactVueLikeHandled) return source;
