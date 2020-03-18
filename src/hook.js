@@ -2,6 +2,7 @@ import React from 'react';
 import before from './before';
 import collect from './collect';
 import ReactVueLike from './component';
+import Async from './async';
 
 function ReactHook() {
   if (React._vueLike) {
@@ -18,24 +19,50 @@ function ReactHook() {
       delete props.$component;
     }
 
-    if (!Component) return _createElement.call(this, Component, props, ...children);
+    const _create = (Component, props, children, isAsync) => {
+      if (!isAsync && collect.elements) return collect.push(_createElement, Component, props, children);
+      return _createElement.call(this, Component, props, ...children);
+    };
 
-    Component = before(Component, props);
+    const _resolveElement = (Component, props, children, isAsync) => {
+      if (!Component) return _createElement.call(this, Component, props, ...children);
 
-    let newComponent;
-    if (Component.beforeConstructor) {
-      newComponent = Component.beforeConstructor(props, ...children);
-      if (newComponent !== undefined) Component = newComponent;
-    }
+      children.forEach((c, i) => {
+        if (c instanceof Promise) children[i] = _createElement.call(this, Async, { promise: c });
+      });
 
-    const $slotFn = props && props.$slotFn;
-    if ($slotFn) return $slotFn(props || {}, children);
+      Component = before(Component, props);
 
-    if (Component === 'template') Component = React.Fragment;
+      let newComponent;
+      if (Component.beforeConstructor) {
+        newComponent = Component.beforeConstructor(props, ...children);
+        if (newComponent !== undefined) Component = newComponent;
+      }
 
-    if (collect.elements) return collect.push(_createElement, Component, props, children);
+      const $slotFn = props && props.$slotFn;
+      if ($slotFn) return $slotFn(props || {}, children);
 
-    return _createElement.call(this, Component, props, ...children);
+      if (Component === 'template') Component = React.Fragment;
+
+      return _create(Component, props, children, isAsync);
+    };
+
+    return _resolveElement(Component, props, children);
+    // return Component instanceof Promise
+    //   ? _create(Async, {
+    //     promise: instance => new Promise((resolve, reject) => {
+    //       Component.then(Comp => {
+    //         try {
+    //           if (Comp && Comp.__esModule) Comp = Comp.default;
+
+    //           if (instance.props.each) instance.props.each(Comp, props, children);
+
+    //           resolve(_resolveElement(Comp, props, children, true));
+    //         } catch (ex) { reject(ex); }
+    //       }).catch(reject);
+    //     })
+    //   })
+    //   : _resolveElement(Component, props, children);
   }
 
   function cloneElement(element, props, ...children) {

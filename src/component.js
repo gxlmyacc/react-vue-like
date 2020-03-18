@@ -294,6 +294,11 @@ class ReactVueLike extends React.Component {
       }
     }
 
+    if (component.__vuelikeAsyncClass && props.vm === undefined) {
+      props.vm = this;
+      props.each = (comp, props, children) => this._eachRenderElement(comp, props, children, isRoot);
+    }
+
     // let scopeId = this.$options.__scopeId;
     // if (scopeId) {
     //   if (!props.className) props.className = scopeId;
