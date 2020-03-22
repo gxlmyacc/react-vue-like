@@ -1,5 +1,6 @@
 import React from 'react';
 
+import './test.scss';
 import './index.scss?scoped';
 
 class App extends ReactVueLike {

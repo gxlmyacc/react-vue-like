@@ -14,7 +14,7 @@ const excluedTags = ['template', 'slot', ObserverName];
 
 module.exports = function ({ types: t, template }) {
   const scopeAttrs = options.inject.scopeAttrs;
-  const scopeFn = isFunction(options.inject.scope) ? options.inject.scope : (p1, p2) => p1 + p2;
+  const scopeFn = isFunction(options.inject.scope) ? options.inject.scope : null;
   // const useCollect = options.useCollect;
   return {
     visitor: {
@@ -51,13 +51,22 @@ module.exports = function ({ types: t, template }) {
           path.traverse({
             ImportDeclaration(path) {
               const source = path.node.source.value;
-              const matched = source.match(this.regx);
+              const [matched, , scoped] = source.match(this.regx) || [];
               if (!matched) return;
+              if (scoped !== '?scoped') {
+                if (scopeFn) {
+                  let file = source.replace(this.regx, (match, p1) => scopeFn(p1, '', { filename, scopeId: '' }));
+                  if (file) path.node.source.value = file;
+                }
+                return;
+              }
+
               this.scopeId = createScopeId(filename);
-              let file = source.replace(this.regx, (match, p1) => scopeFn(p1, `?react-vue-like&scoped=true&id=${this.scopeId}`, {
-                filename,
-                scopeId: this.scopeId
-              }));
+              let file = source.replace(this.regx, (match, p1) => {
+                const p2 = `?react-vue-like&scoped=true&id=${this.scopeId}`;
+                if (!scopeFn) return p1 + p2;
+                return scopeFn(p1, p2, { filename, scopeId: this.scopeId });
+              });
               if (file) path.node.source.value = file;
             },
             ClassDeclaration: ClassVisitor,

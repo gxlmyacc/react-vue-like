@@ -47,7 +47,7 @@ module.exports = {
     attrs: false,
     file: true,
     vuelike: true,
-    scopeRegx: /(\.(le|sc|sa|c)ss)\?scoped(.*)$/,
+    scopeRegx: /(\.(?:le|sc|sa|c)ss)(\?scoped)?(.*)$/,
     scope: true,
     scopeAttrs: true,
   },

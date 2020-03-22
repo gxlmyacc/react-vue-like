@@ -752,7 +752,7 @@ class ReactVueLike extends React.Component {
     if (!isObservable(target)) {
       if (isPlainObject(expr)) return Object.assign(target, expr);
       let { obj, key } = parseExpr(target, expr);
-      if (obj && key) obj.key = value;
+      if (obj && key) obj[key] = value;
       return;
     }
     if (isPlainObject(expr)) {

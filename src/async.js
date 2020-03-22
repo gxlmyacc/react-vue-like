@@ -64,6 +64,13 @@ class ReactVueLikeAsync extends React.Component {
     const counter = ++this.counter;
     const isCanceled = () => this.state.pending !== promise || !this.mounted || counter !== this.counter;
 
+    const asyncs = promise && promise.asyncs;
+    if (asyncs) {
+      if (asyncs.initial !== undefined) initial = asyncs.initial;
+      if (asyncs.loading !== undefined) loading = asyncs.loading;
+      if (asyncs.error !== undefined) error = asyncs.error;
+    }
+
     this.setState({
       isResolved: false,
       pending: promise,
