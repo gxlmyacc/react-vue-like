@@ -125,7 +125,7 @@ module.exports = function ({ types: t, template }) {
     }
     path.traverse({
       ClassMethod(path) {
-        if (path.node.kind !== 'method') return;
+        if (path.node.kind !== 'method' || path.node.static) return;
         allMethods.push(path);
       }
     });

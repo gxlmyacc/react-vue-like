@@ -8,14 +8,16 @@ module.exports = postcss.plugin('react-vue-like-add-id', function (opts) {
   // };
   opts = opts || {};
   return function (root) {
-    let scoped; let id;
+    let scoped; let id; let globalSelector = '';
     if (typeof opts === 'function') {
       let _opts = opts(root);
       scoped = _opts.scoped;
       id = _opts.id;
+      globalSelector = _opts.globalSelector || '';
     } else {
       scoped = opts.scoped;
       id = opts.id;
+      globalSelector = opts.globalSelector || '';
     }
     if (!scoped || !id) return;
     root.each(function rewriteSelector(node) {
@@ -26,7 +28,7 @@ module.exports = postcss.plugin('react-vue-like-add-id', function (opts) {
         return;
       }
       if (node.selector.startsWith(':global')) {
-        node.selector = node.selector.replace(/:global/g, '').trim();
+        node.selector = node.selector.replace(/:global/g, globalSelector).trim();
       } else if (node.selector.includes(':scope')) {
         node.selector = node.selector.replace(/:scope/g, '.' + id);
       } else {

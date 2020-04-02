@@ -13,6 +13,10 @@ class UpdatePwdModal extends ReactVueLike {
     };
   }
 
+  static async staticTest(data) {
+    data.aa = await this.aa.test();
+  }
+
   static methods = {
     renderTest(row) {
       return <dpl-popover v-observer>

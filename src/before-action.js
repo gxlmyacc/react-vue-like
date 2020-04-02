@@ -26,4 +26,6 @@ export default function beforeAction(target, ReactVueLike) {
   }
   Object.getOwnPropertyNames(target.prototype)
     .forEach(key => !reserved.includes(key) && _handleAction(target.prototype, key, flows));
+  // Object.getOwnPropertyNames(target)
+  //   .forEach(key => !reserved.includes(key) && _handleAction(target.prototype, key, flows));
 }

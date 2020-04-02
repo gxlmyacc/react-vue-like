@@ -6,7 +6,8 @@ import config from './config';
 import {
   iterativeParent,
   isFunction,
-  isObject
+  isObject,
+  warn
 } from './utils';
 
 class Directive extends React.Component {
@@ -72,7 +73,12 @@ class Directive extends React.Component {
     const el = ReactDOM.findDOMNode(this);
     this.props._bindings.forEach(binding => {
       let d = this.$directives[binding.name];
-      if (!d) throw new Error(`directive '${binding.name}' not be found!`);
+      if (!d) {
+        if (process.env.NODE_ENV !== 'production') {
+          warn(`directive '${binding.name}' not be found!`);
+        }
+        return;
+      }
       let event = d[eventName];
       if (!event) return;
       if (config.enforceActions) event = action(event);

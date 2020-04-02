@@ -204,7 +204,7 @@ function repeat(str, n) {
 }
 
 function generateComponentTrace(vm) {
-  if (vm._isVue && vm.$parent) {
+  if (vm._isVueLike && vm.$parent) {
     let tree = [];
     let currentRecursiveSequence = 0;
     while (vm) {
