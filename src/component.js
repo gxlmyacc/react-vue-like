@@ -259,6 +259,7 @@ class ReactVueLike extends React.Component {
   }
 
   _resolveRef(refName, el, key) {
+    if (el) el.__vuelike__ = this;
     if (!key) {
       this.$refs[refName] = el;
       return;
@@ -524,7 +525,7 @@ class ReactVueLike extends React.Component {
   }
 
   _resolveDestroy() {
-    this._flushTicks();
+    // this._flushTicks();
 
     this._watched.forEach(v => v && v());
 
@@ -538,6 +539,9 @@ class ReactVueLike extends React.Component {
       const idx = this.$parent.$children.findIndex(c => c === this);
       if (~idx) this.$parent.$children.splice(idx, 1);
     }
+
+    const el = this.$el;
+    if (el && el.__vuelike__) delete el.__vuelike__;
   }
 
   _flushTicks() {
@@ -704,8 +708,12 @@ class ReactVueLike extends React.Component {
 
   $nextTick(cb, ctx) {
     if (!cb) return new Promise(resolve => this._ticks.push(action(resolve)));
-    if (ctx) cb = cb.bind(ctx);
-    this._ticks.push(action(cb));
+
+    if (!Array.isArray(cb)) cb = [cb];
+    cb.forEach((c, i) => cb[i] = action(ctx ? c.bind(ctx) : c));
+
+    this._ticks.push(...cb);
+    setTimeout(() => this._flushTicks(), 0);
   }
 
   $watch(expOrFn, callback, options = {}) {
