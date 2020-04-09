@@ -9,6 +9,35 @@ class UpdatePwdModal extends ReactVueLike {
         oldPassword: '',
         newPassword: '',
         confirmPassword: '',
+        columns: [
+          // { type: 'selection', }
+          {
+            prop: 'phone',
+            minWidth: 120,
+            render: (row, column, index) =>
+              <dpl-popover v-observer control="full" type="error"
+                getPopupContainer={() => this.tableBody}
+                placement="left"
+                padding="small"
+                visible={Boolean(row.reason)}
+                content={row.reason}>
+                <dpl-input
+                  value={row.newPhone}
+                  maxLength="11"
+                  onChange={e => {
+                    if (row.newPhone === e.target.value) return;
+                    row.newPhone = e.target.value;
+                    row.reason = '';
+                  }}
+                  warn={row.reason}
+                  onBlur={e => {
+                    if (row.phone === row.newPhone) return;
+                    this.updatePhone(row);
+                  }}
+                />
+              </dpl-popover>
+          },
+        ]
       }
     };
   }
@@ -18,20 +47,6 @@ class UpdatePwdModal extends ReactVueLike {
   }
 
   static methods = {
-    renderTest(row) {
-      return <dpl-popover v-observer>
-        <dpl-input onChange={e => {
-            if (row.newPhone === e.target.value) return;
-            row.newPhone = e.target.value;
-            row.reason = '';
-          }}
-          onBlur={e => {
-            if (row.phone === row.newPhone) return;
-            this.updatePhone(row);
-          }}
-        />
-      </dpl-popover>
-    },
     // async doOk() {
     //   this.props.form.validateFields(async (err, values) => {
     //     if (err) return;

@@ -125,7 +125,7 @@ module.exports = function ({ types: t, template }) {
     }
     path.traverse({
       ClassMethod(path) {
-        if (path.node.kind !== 'method' || path.node.static) return;
+        if (path.node.kind !== 'method') return;
         allMethods.push(path);
       }
     });
@@ -140,7 +140,7 @@ module.exports = function ({ types: t, template }) {
       if (COMP_METHS.includes(expr2var(path.node.key))) return;
 
       // if (!path.node.decorators) path.node.decorators = [];
-      if (path.node.async) {
+      if (!path.node.static && path.node.async) {
         asyncToGen(path);
         flows.push(t.stringLiteral(expr2var(path.node.key)));
         // path.node.decorators.push(t.decorator(flowExpr));

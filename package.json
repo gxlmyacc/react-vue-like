@@ -1,6 +1,6 @@
 {
   "name": "react-vue-like",
-  "version": "0.1.8-alpha.1",
+  "version": "0.1.8-alpha.2",
   "description": "write react component like vue",
   "keywords": [
     "react-vue-like",
@@ -11,7 +11,7 @@
   "main": "dist/react-vue-like.min.js",
   "module": "esm/index.js",
   "engines": {
-    "node": "> 6.9.1"
+    "node": ">=8.9"
   },
   "files": [
     "dist",

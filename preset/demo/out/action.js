@@ -1,12 +1,6 @@
 "use strict";
 
-require("core-js/modules/es6.object.define-properties");
-
 require("core-js/modules/es7.object.get-own-property-descriptors");
-
-require("core-js/modules/es6.array.for-each");
-
-require("core-js/modules/es6.array.filter");
 
 require("core-js/modules/web.dom.iterable");
 
@@ -17,7 +11,7 @@ require("core-js/modules/es6.object.keys");
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports["default"] = void 0;
+exports.default = void 0;
 
 require("core-js/modules/es7.symbol.async-iterator");
 
@@ -27,10 +21,6 @@ require("core-js/modules/es6.promise");
 
 require("core-js/modules/es6.object.to-string");
 
-require("core-js/modules/es6.object.define-property");
-
-require("core-js/modules/es6.object.create");
-
 require("core-js/modules/es6.object.set-prototype-of");
 
 require("regenerator-runtime/runtime");
@@ -39,7 +29,7 @@ var _reactVueLike = _interopRequireWildcard(require("react-vue-like"));
 
 var _react = _interopRequireDefault(require("react"));
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
 
@@ -87,11 +77,49 @@ function (_ReactVueLike) {
   _createClass(UpdatePwdModal, null, [{
     key: "data",
     value: function data() {
+      var _this = this;
+
       return {
         formData: {
           oldPassword: '',
           newPassword: '',
-          confirmPassword: ''
+          confirmPassword: '',
+          columns: [// { type: 'selection', }
+          {
+            prop: 'phone',
+            minWidth: 120,
+            render: function render(row, column, index) {
+              return _react.default.createElement(_reactVueLike.Observer, null, function () {
+                return _react.default.createElement("dpl-popover", {
+                  control: "full",
+                  type: "error",
+                  getPopupContainer: function getPopupContainer() {
+                    return _this.tableBody;
+                  },
+                  placement: "left",
+                  padding: "small",
+                  visible: Boolean(row.reason),
+                  content: row.reason,
+                  $component: _this._c("DplPopover")
+                }, _react.default.createElement("dpl-input", {
+                  value: row.newPhone,
+                  maxLength: "11",
+                  onChange: _this._a(function (e) {
+                    if (row.newPhone === e.target.value) return;
+                    row.newPhone = e.target.value;
+                    row.reason = '';
+                  }),
+                  warn: row.reason,
+                  onBlur: function onBlur(e) {
+                    if (row.phone === row.newPhone) return;
+
+                    _this.updatePhone(row);
+                  },
+                  $component: _this._c("DplInput")
+                }));
+              });
+            }
+          }]
         }
       };
     }
@@ -128,33 +156,12 @@ function (_ReactVueLike) {
   }]);
 
   return UpdatePwdModal;
-}(_reactVueLike["default"]);
+}(_reactVueLike.default);
 
 UpdatePwdModal.__vuelike = true;
 UpdatePwdModal.__file = "/preset/demo/src/action.js";
 
-_defineProperty(UpdatePwdModal, "methods", {
-  renderTest: function renderTest(row) {
-    var _this = this;
-
-    return _react["default"].createElement(_reactVueLike.Observer, null, function () {
-      return _react["default"].createElement("dpl-popover", {
-        $component: _this._c("DplPopover")
-      }, _react["default"].createElement("dpl-input", {
-        onChange: _this._a(function (e) {
-          if (row.newPhone === e.target.value) return;
-          row.newPhone = e.target.value;
-          row.reason = '';
-        }),
-        onBlur: function onBlur(e) {
-          if (row.phone === row.newPhone) return;
-
-          _this.updatePhone(row);
-        },
-        $component: _this._c("DplInput")
-      }));
-    });
-  } // async doOk() {
+_defineProperty(UpdatePwdModal, "methods", {// async doOk() {
   //   this.props.form.validateFields(async (err, values) => {
   //     if (err) return;
   //     Object.assign(this.data, { dd });
@@ -201,10 +208,9 @@ _defineProperty(UpdatePwdModal, "methods", {
   // doOk5(cc) {
   //   this.$nextTick(cc => cc.dd = 1);
   // },
-
 });
 
-var test1 = _reactVueLike["default"].flow(
+var test1 = _reactVueLike.default.flow(
 /*#__PURE__*/
 regeneratorRuntime.mark(function test1() {
   return regeneratorRuntime.wrap(function test1$(_context2) {
@@ -218,7 +224,7 @@ regeneratorRuntime.mark(function test1() {
   }, test1);
 }));
 
-var test2 = _reactVueLike["default"].flow(
+var test2 = _reactVueLike.default.flow(
 /*#__PURE__*/
 regeneratorRuntime.mark(function test1() {
   return regeneratorRuntime.wrap(function test1$(_context3) {
@@ -232,10 +238,10 @@ regeneratorRuntime.mark(function test1() {
   }, test1);
 }));
 
-var _default = _react["default"].forwardRef(function (props, ref) {
-  return _react["default"].createElement(Form.create({})(UpdatePwdModal), _objectSpread({}, props, {
+var _default = _react.default.forwardRef(function (props, ref) {
+  return _react.default.createElement(Form.create({})(UpdatePwdModal), _objectSpread({}, props, {
     wrappedComponentRef: ref
   }));
 });
 
-exports["default"] = _default;
+exports.default = _default;

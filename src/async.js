@@ -71,21 +71,23 @@ class ReactVueLikeAsync extends React.Component {
       if (asyncs.error !== undefined) error = asyncs.error;
     }
 
-    this.setState({
-      isResolved: false,
-      pending: promise,
-      result: loading || initial || null,
-      error: null,
-    });
-    if (promise) {
-      (isFunction(promise) ? promise : () => promise)(this).then(result => {
-        if (isCanceled()) return;
-        this.setState({ isResolved: true, result, pending: null });
-      }).catch(ex => {
-        if (isCanceled()) return;
-        this.setState({ isResolved: true, error: ex, result: error || null, pending: null });
+    if (promise instanceof Promise) {
+      this.setState({
+        isResolved: false,
+        pending: promise,
+        result: loading || initial || null,
+        error: null,
       });
-    }
+      if (promise) {
+        (isFunction(promise) ? promise : () => promise)(this).then(result => {
+          if (isCanceled()) return;
+          this.setState({ isResolved: true, result, pending: null });
+        }).catch(ex => {
+          if (isCanceled()) return;
+          this.setState({ isResolved: true, error: ex, result: error || null, pending: null });
+        });
+      }
+    } else this.setState({ isResolved: true, result: promise, pending: null });
   }
 
   componentWillUnmount() {
