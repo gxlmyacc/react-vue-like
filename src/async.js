@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {
   // iterativeParent,
+  warn,
   appendProperty,
   isFunction
 } from './utils';
@@ -84,6 +85,9 @@ class ReactVueLikeAsync extends React.Component {
           this.setState({ isResolved: true, result, pending: null });
         }).catch(ex => {
           if (isCanceled()) return;
+          if (process.env.NODE_ENV !== 'production') {
+            warn('[async] promise throw error:', ex);
+          }
           this.setState({ isResolved: true, error: ex, result: error || null, pending: null });
         });
       }
@@ -98,7 +102,7 @@ class ReactVueLikeAsync extends React.Component {
     let { result } = this.state;
     if (result && result.__esModule) result = result.default;
     if (isFunction(result)) result = result(this);
-    return result;
+    return result === undefined ? null : result;
   }
 
 }
