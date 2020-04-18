@@ -330,7 +330,7 @@ class ReactVueLike extends React.Component {
           break;
         default:
           if (props[key] !== undefined) return;
-          if (v === true || (isPrimitiveTag && !isPrimitive(v))) v = '';
+          if (/* v === true || */(isPrimitiveTag && !isPrimitive(v))) v = '';
           props[key] = v;
       }
       return props;
