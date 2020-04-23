@@ -1,4 +1,5 @@
 import React from 'react';
+import { Observer } from './utils';
 import before from './before';
 import collect from './collect';
 import ReactVueLike from './component';
@@ -38,6 +39,7 @@ function ReactHook() {
 
     if (Component === 'template') Component = React.Fragment;
     else if (Component === 'async') Component = Async;
+    else if (Component === 'observer') Component = Observer;
 
     if (collect.elements) return collect.push(_createElement, Component, props, children);
     return _createElement.call(this, Component, props, ...children);

@@ -253,7 +253,9 @@ function memberExpr2Str(expr) {
     default:
       objStr = expr2str(expr.object);
   }
-  return objStr + (objStr ? '.' : '') + expr.property.name;
+  let propIsMember = expr.property.type === 'MemberExpression';
+  let propStr = expr2str(expr.property);
+  return objStr + (objStr && !propIsMember ? '.' : '') + (propIsMember ? `[${propStr}]` : propStr);
 }
 
 function findNextNode(path, siblings, index) {

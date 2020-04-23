@@ -70,11 +70,16 @@ module.exports = function ({ types: t, template }) {
       },
       CallExpression(path) {
         if (path.getFunctionParent() !== exprPath) return;
-        if (!t.isMemberExpression(path.node.callee)
-          || expr2var(path.node.callee) !== 'Object.assign') return;
-        if (!isClassMember(path.get('arguments.0'))) return;
-        ret = true;
-        path.stop();
+        if (!t.isMemberExpression(path.node.callee)) return;
+        let calleeStr = expr2var(path.node.callee);
+        if (calleeStr === 'Object.assign') {
+          ret = isClassMember(path.get('arguments.0'));
+          return path.stop();
+        }
+        if (/\.(push|remove|pop|unshift|splice)$/.test(calleeStr)) {
+          ret = true;
+          return path.stop();
+        }
       },
       UpdateExpression(path) {
         if (path.getFunctionParent() !== exprPath) return;

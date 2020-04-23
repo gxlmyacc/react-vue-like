@@ -3,48 +3,56 @@ import ReactVueLike, { action } from 'react-vue-like';
 
 class UpdatePwdModal extends ReactVueLike {
 
-  static data() {
-    return {
-      formData: {
-        oldPassword: '',
-        newPassword: '',
-        confirmPassword: '',
-        columns: [
-          // { type: 'selection', }
-          {
-            prop: 'phone',
-            minWidth: 120,
-            render: (row, column, index) =>
-              <dpl-popover v-observer control="full" type="error"
-                getPopupContainer={() => this.tableBody}
-                placement="left"
-                padding="small"
-                visible={Boolean(row.reason)}
-                content={row.reason}>
-                <dpl-input
-                  value={row.newPhone}
-                  maxLength="11"
-                  onChange={e => {
-                    if (row.newPhone === e.target.value) return;
-                    row.newPhone = e.target.value;
-                    row.reason = '';
-                  }}
-                  warn={row.reason}
-                  onBlur={e => {
-                    if (row.phone === row.newPhone) return;
-                    this.updatePhone(row);
-                  }}
-                />
-              </dpl-popover>
-          },
-        ]
-      }
-    };
+  // static data() {
+  //   return {
+  //     // formData: {
+  //     //   oldPassword: '',
+  //     //   newPassword: '',
+  //     //   confirmPassword: '',
+  //     //   columns: [
+  //     //     // { type: 'selection', }
+  //     //     {
+  //     //       prop: 'phone',
+  //     //       minWidth: 120,
+  //     //       render: (row, column, index) =>
+  //     //         <dpl-popover v-observer control="full" type="error"
+  //     //           getPopupContainer={() => this.tableBody}
+  //     //           placement="left"
+  //     //           padding="small"
+  //     //           visible={Boolean(row.reason)}
+  //     //           content={row.reason}>
+  //     //           <dpl-input
+  //     //             value={row.newPhone}
+  //     //             maxLength="11"
+  //     //             onChange={e => {
+  //     //               if (row.newPhone === e.target.value) return;
+  //     //               row.newPhone = e.target.value;
+  //     //               row.reason = '';
+  //     //             }}
+  //     //             warn={row.reason}
+  //     //             onBlur={e => {
+  //     //               if (row.phone === row.newPhone) return;
+  //     //               this.updatePhone(row);
+  //     //             }}
+  //     //           />
+  //     //         </dpl-popover>
+  //     //     },
+  //     //   ]
+  //     // }
+  //   };
+  // }
+
+  renderTable({ label, table: { columns } }) {
+    return <div className="table-container">
+      <a onClick={() => {
+        this.formData[this.activeKey].push1({});
+      }}>+ 添加{label}</a>
+    </div>;
   }
 
-  static async staticTest(data) {
-    data.aa = await this.aa.test();
-  }
+  // static async staticTest(data) {
+  //   data.aa = await this.aa.test();
+  // }
 
   static methods = {
     // async doOk() {
