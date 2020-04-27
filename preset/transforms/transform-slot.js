@@ -2,7 +2,7 @@
 const {
   DirectiveName,
   childrenToArrayExpr,
-  isReactVueLike,
+  isObserverClass,
   expr2var
 } = require('../utils');
 const { compRegx } = require('../options');
@@ -12,7 +12,7 @@ module.exports = function ({ types: t, template }) {
     if (this.handled.includes(path.node)) return;
     this.handled.push(path.node);
 
-    if (!isReactVueLike(path)) return;
+    if (!isObserverClass(path)) return;
 
     path.traverse({
       ClassMethod(path) {

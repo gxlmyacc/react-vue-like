@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = appInit;
+exports.default = void 0;
 
 require("core-js/modules/es7.symbol.async-iterator");
 
@@ -17,11 +17,9 @@ require("core-js/modules/es6.reflect.construct");
 
 require("core-js/modules/es6.object.set-prototype-of");
 
-var _reactVueLike = _interopRequireDefault(require("react-vue-like"));
+var _react = _interopRequireDefault(require("react"));
 
-var _config = _interopRequireDefault(require("@/config"));
-
-var _store = _interopRequireDefault(require("@/store"));
+var _reactVueLike = require("react-vue-like");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -47,34 +45,33 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
-function appInit() {
-  var _class = class extends _reactVueLike.default.Mixin {
-    constructor() {
-      return _super.apply(this, arguments);
+// @vuelike
+var App = /*#__PURE__*/function (_React$Component) {
+  _inherits(App, _React$Component);
+
+  var _super = _createSuper(App);
+
+  function App() {
+    _classCallCheck(this, App);
+
+    return _super.apply(this, arguments);
+  }
+
+  _createClass(App, [{
+    key: "render",
+    value: function render() {
+      return /*#__PURE__*/_react.default.createElement("div", {
+        className: "root"
+      });
     }
+  }]);
 
-    beforeRouteEnter(to, from, next) {
-      if (!router) return next();
-      var employeeService = _store.default.state.customer && _store.default.state.customer.employeeService;
+  return App;
+}(_react.default.Component);
 
-      if (!employeeService || !employeeService.openEmployeeService) {
-        return next({
-          path: _config.default.openServicePage,
-          query: {
-            redirect: router.currentRoute ? router.currentRoute.fullPath : '/index'
-          }
-        });
-      }
+App.__vuelike = true;
+App.__file = "/preset/demo/src/decorator.js";
 
-      next();
-    }
+var _default = (0, _reactVueLike.vuelike)(App);
 
-  };
-
-  var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
-      router = _ref.router;
-
-  _class.__file = "/preset/demo/src/mixin.js";
-  _class.__vuelikeMixin = true;
-  return _class;
-}
+exports.default = _default;

@@ -1,7 +1,7 @@
 
 const {
   getConstCache,
-  isReactVueLike,
+  isObserverClass,
   findClassVarName
 } = require('../utils');
 
@@ -14,14 +14,19 @@ module.exports = function ({ types: t, template }) {
     if (this.handled.includes(path.node)) return;
     this.handled.push(path.node);
 
-    if (!isReactVueLike(path)) return;
+    if (!isObserverClass(path)) return;
     const cache = getConstCache(filename);
 
     const varName = findClassVarName(path);
-    let parentPath = t.isProgram(path.parentPath.node) ? path : path.parentPath;
-    parentPath.insertAfter(template(`${varName}.__file = $FILE$;`)({
+    if (!varName) return;
+
+    let expr = template(`${varName}.__file = $FILE$;`)({
       $FILE$: t.stringLiteral(cache.filename)
-    }));
+    });
+
+    let parentPath = t.isProgram(path.parentPath.node) ? path : path.parentPath;
+    if (t.isReturnStatement(parentPath.node)) parentPath.insertBefore(expr);
+    else parentPath.insertAfter(expr);
   }
 
 

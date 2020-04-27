@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {
   // iterativeParent,
   warn,
-  appendProperty,
+  innumerable,
   isFunction
 } from './utils';
 
@@ -107,6 +107,6 @@ class ReactVueLikeAsync extends React.Component {
 
 }
 
-appendProperty(ReactVueLikeAsync, '__vuelikeAsyncClass', true);
+innumerable(ReactVueLikeAsync, '__vuelikeAsyncClass', true);
 
 export default ReactVueLikeAsync;

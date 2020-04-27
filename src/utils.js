@@ -253,10 +253,54 @@ export function checkKeyCodes(
   return keyCodes !== eventKeyCode;
 }
 
-export function appendProperty(target, key, value) {
-  Object.defineProperty(target, key, {
-    value,
-    configurable: true,
-    writable: true,
+export function innumerable(
+  obj,
+  key,
+  value,
+  options = { configurable: true, writable: true }
+) {
+  return Object.defineProperty(obj, key, { value, ...options });
+}
+
+const ignorePropertyNames = ['constructor', 'length", "prototype", "name'];
+export function mergeMethods(target, source, includes) {
+  if (target instanceof source) return;
+  const sm = includes || Object.getOwnPropertyNames(source);
+  const tm = Object.getOwnPropertyNames(target);
+  sm.forEach(key => {
+    if (ignorePropertyNames.includes(key)) return;
+    let sfn = source[key];
+    if (!tm.includes(key) || !isFunction(sfn)) return;
+    let tfn = target[key];
+    if (tfn) {
+      target[key] = function () {
+        let sr = sfn.apply(this, arguments);
+        let tr = tfn.apply(this, arguments);
+        return tr === undefined ? sr : tr;
+      };
+    } else innumerable(target, key, sfn);
   });
+}
+
+export function replaceMethods(target, source, includes) {
+  let ret = {};
+  const sm = includes || Object.getOwnPropertyNames(source);
+  const tm = Object.getOwnPropertyNames(target);
+  sm.forEach(key => {
+    if (ignorePropertyNames.includes(key)) return;
+    let sfn = source[key];
+    if (!tm.includes(key) || !isFunction(sfn)) return;
+    let tfn = target[key];
+    if (tfn) {
+      target[key] = sfn;
+      ret[key] = tfn;
+    } else innumerable(target, key, sfn);
+  });
+  return ret;
+}
+
+export const VUE_LIKE_CLASS = '__vuelikeClass';
+
+export function isVueLikeComponent(source) {
+  return source && source.__vuelike && !hasOwnProperty(source, VUE_LIKE_CLASS);
 }

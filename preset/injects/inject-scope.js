@@ -1,7 +1,8 @@
 const hash = require('hash-sum');
 const options = require('../options');
 const {
-  isReactVueLike, expr2var, isFunction, ObserverName,
+  LibraryName,
+  isObserverClass, expr2var, isFunction, ObserverName,
   /* findClassVarName */
 } = require('../utils');
 
@@ -37,7 +38,7 @@ module.exports = function ({ types: t, template }) {
             this.handled.push(path.node);
 
             if (!this.scopeId) return path.stop();
-            if (!isReactVueLike(path)) return path.skip();
+            if (!isObserverClass(path)) return path.skip();
 
             // if (useCollect) {
             //   const varName = findClassVarName(path);
@@ -63,7 +64,7 @@ module.exports = function ({ types: t, template }) {
 
               this.scopeId = createScopeId(filename);
               let file = source.replace(this.regx, (match, p1) => {
-                const p2 = `?react-vue-like&scoped=true&id=${this.scopeId}`;
+                const p2 = `?${LibraryName}&scoped=true&id=${this.scopeId}`;
                 if (!scopeFn) return p1 + p2;
                 return scopeFn(p1, p2, { filename, scopeId: this.scopeId });
               });
@@ -90,7 +91,7 @@ module.exports = function ({ types: t, template }) {
                     }).expression;
                   }
                 } else {
-                  path.get('openingElement').pushContainer('attributes', t.JSXAttribute(
+                  path.get('openingElement').unshiftContainer('attributes', t.JSXAttribute(
                     t.JSXIdentifier('className'), t.stringLiteral(this.scopeId)
                   ));
                 }

@@ -46,7 +46,7 @@ module.exports = {
   inject: {
     attrs: false,
     file: true,
-    vuelike: true,
+    flag: true,
     scopeRegx: /(\.(?:le|sc|sa|c)ss)(\?scoped)?(.*)$/,
     scope: true,
     scopeAttrs: true,

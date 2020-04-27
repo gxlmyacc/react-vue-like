@@ -1,6 +1,6 @@
 
 const camelCase = require('camelcase');
-const { appendAttrEvent, mergeAttrEvent, directiveRegx, parseDirective, bindModifiers, expr2var } = require('../utils');
+const { LibraryName, LibraryVarName, appendAttrEvent, mergeAttrEvent, directiveRegx, parseDirective, bindModifiers, expr2var } = require('../utils');
 const options = require('../options');
 
 module.exports = function ({ types: t, template }) {
@@ -40,9 +40,9 @@ module.exports = function ({ types: t, template }) {
       if (keyVal) return ('$event.keyCode!==' + keyVal);
       let code = keyCodes[key];
       if (code) return ('$event.keyCode!==' + code);
-      this.needReactVueLike = true;
+      this.needImportLibrary = true;
       return (
-        `ReactVueLike._k.call(this,$event.keyCode,${JSON.stringify(key)},{},$event.key)`
+        `${LibraryVarName}._k.call(this,$event.keyCode,${JSON.stringify(key)},{},$event.key)`
       );
     }
 
@@ -93,22 +93,22 @@ module.exports = function ({ types: t, template }) {
         enter(path) {
           let ctx = {
             declaration: null,
-            needReactVueLike: false
+            needImportLibrary: false
           };
           path.traverse({
             ImportDeclaration(path) {
-              if (path.node.source.value === 'react-vue-like') {
+              if (path.node.source.value === LibraryName) {
                 this.declaration = path.node;
               }
             },
             JSXAttribute: JSXAttributeVisitor
           }, ctx);
 
-          if (ctx.needReactVueLike) {
+          if (ctx.needImportLibrary) {
             if (ctx.declaration) {
               if (!ctx.declaration.specifiers.find(v => t.isImportDefaultSpecifier(v))) {
                 ctx.declaration.specifiers.push(
-                  t.importDefaultSpecifier(t.identifier('ReactVueLike'))
+                  t.importDefaultSpecifier(t.identifier(LibraryVarName))
                 );
               }
             } else {
@@ -116,9 +116,9 @@ module.exports = function ({ types: t, template }) {
                 'body',
                 t.importDeclaration(
                   [
-                    t.importDefaultSpecifier(t.identifier('ReactVueLike'))
+                    t.importDefaultSpecifier(t.identifier(LibraryVarName))
                   ],
-                  t.stringLiteral('react-vue-like'),
+                  t.stringLiteral(LibraryName),
                 )
               );
             }

@@ -4,5 +4,7 @@ class Mixin {
 
 }
 
+Mixin.__vuelikeMixin = true;
+
 
 export default Mixin;

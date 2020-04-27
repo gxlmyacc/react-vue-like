@@ -1,4 +1,4 @@
-const { findClassStaticPath, expr2var, isReactVueLike } = require('../utils');
+const { LibraryName, LibraryVarName, findClassStaticPath, expr2var, isObserverClass } = require('../utils');
 
 const COMP_METHS = [
   'data',
@@ -8,8 +8,8 @@ const COMP_METHS = [
 ];
 
 module.exports = function ({ types: t, template }) {
-  const flowExpr = template('ReactVueLike.flow')().expression;
-  // const actionExpr = template('ReactVueLike.action')().expression;
+  const flowExpr = template(`${LibraryVarName}.flow`)().expression;
+  // const actionExpr = template(`${LibraryVarName}.action`)().expression;
 
   function asyncToGen(asyncPath) {
     let node = asyncPath.node;
@@ -101,7 +101,7 @@ module.exports = function ({ types: t, template }) {
 
     if (expression.async) {
       asyncToGen(exprPath);
-      exprPath.replaceWith(template('ReactVueLike.flow($1)')({ $1: exprPath.node }).expression);
+      exprPath.replaceWith(template(`${LibraryVarName}.flow($1)`)({ $1: exprPath.node }).expression);
       return;
     }
 
@@ -115,7 +115,7 @@ module.exports = function ({ types: t, template }) {
     if (handled.includes(path.node)) return;
     handled.push(path.node);
 
-    if (!isReactVueLike(path)) return;
+    if (!isObserverClass(path)) return;
 
     let allMethods = [];
 
@@ -173,8 +173,8 @@ module.exports = function ({ types: t, template }) {
         if (t.isIdentifier(callee) && callee.name === 'action') {
           a = path.scope.bindings.action;
           if (!a || !t.isImportDeclaration(a.path.parent)
-            || a.path.parent.source.value !== 'react-vue-like') return;
-        } else if (t.isMemberExpression(callee) && expr2var(callee) === 'ReactVueLike.action') {
+            || a.path.parent.source.value !== LibraryName) return;
+        } else if (t.isMemberExpression(callee) && expr2var(callee) === `${LibraryVarName}.action`) {
           //
         } else return;
         const FunctionVisitor = function (funcPath) {

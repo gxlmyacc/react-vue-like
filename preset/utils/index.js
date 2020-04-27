@@ -8,6 +8,10 @@ const types = require('./types');
 
 const DirectiveName = 'ReactVueLikeDirective';
 const ObserverName = 'Observer';
+const LibraryName = 'react-vue-like';
+const LibraryVarName = 'ReactVueLike';
+const ComponentFlagPrefix = '__vuelike';
+const DecoratorName = 'vuelike';
 
 if (!Date.prototype.format) {
   Date.prototype.format = function (fmt) {
@@ -137,7 +141,7 @@ function extractNodeCode(path, node) {
 }
 
 function expr2var(expr) {
-  if (!expr) return;
+  if (!expr) return '';
   switch (expr.type) {
     case 'JSXExpressionContainer':
       return expr2var(expr.expression);
@@ -167,6 +171,7 @@ function expr2var(expr) {
 
 function expr2str(expr) {
   if (!expr) return '';
+  if (typeof expr === 'string') return expr;
   // if (expr.extra) return expr.extra.raw;
   switch (expr.type) {
     case 'JSXExpressionContainer':
@@ -622,8 +627,18 @@ function childrenToArrayExpr(children, trim) {
 }
 
 function findClassVarName(classDeclarationPath) {
-  if (t.isClassExpression(classDeclarationPath) && classDeclarationPath.key === 'right') {
-    return expr2var(classDeclarationPath.parent.left);
+  if (t.isClassExpression(classDeclarationPath)) {
+    let parent = classDeclarationPath.parent;
+    if (t.isReturnStatement(parent)) {
+      if (t.isClassExpression(parent.argument)) {
+        let id = classDeclarationPath.scope.generateUidIdentifier('_class');
+        classDeclarationPath.scope.parent.push({ id, init: parent.argument });
+        parent.argument = id;
+      }
+      return expr2str(parent.argument);
+    }
+    if (t.isAssignmentExpression(parent)) return expr2var(parent.left);
+    return '';
   }
   return expr2var(classDeclarationPath.node.id);
 }
@@ -633,7 +648,7 @@ function findClassStaticPath(classDeclarationPath, propertyName) {
   let isArg1Ok;
   let scope;
   let varName;
-  // if (expr2var(classDeclarationPath.node.superClass) === 'ReactVueLike.Mixin') {
+  // if (expr2var(classDeclarationPath.node.superClass) === `${LibraryVarName}.Mixin`) {
   //   classDeclarationPath.traverse({
   //     ClassMethod(path) {
   //       if (path.parent !== classDeclarationPath.node.body) return;
@@ -692,14 +707,31 @@ function findClassStaticPath(classDeclarationPath, propertyName) {
   return { methodsPath, varName };
 }
 
-function isReactVueLikeMixin(classDeclarationPath) {
+function isObserverClassMixin(classDeclarationPath) {
   return classDeclarationPath.node.superClass
-    && (['ReactVueLike.Mixin'].includes(expr2var(classDeclarationPath.node.superClass)));
+    && ([`${LibraryVarName}.Mixin`].includes(expr2var(classDeclarationPath.node.superClass)));
 }
 
-function isReactVueLike(classDeclarationPath) {
-  return classDeclarationPath.node.superClass
-    && (['ReactVueLike', 'ReactVueLike.Mixin'].includes(expr2var(classDeclarationPath.node.superClass)));
+function isObserverClass(classDeclarationPath) {
+  let superClass = expr2var(classDeclarationPath.node.superClass);
+  if (!superClass) return false;
+  if (superClass === 'React.Component') {
+    let declaration = isImportLibrary(classDeclarationPath);
+    let specifier = declaration && isImportSpecifier(classDeclarationPath, DecoratorName, declaration);
+    if (!specifier) return false;
+    let decoratorName = expr2str(specifier.imported);
+    if (!decoratorName) return;
+
+    let decorators = classDeclarationPath.node.decorators;
+    if (decorators && decorators.some(node => (t.isIdentifier(node.expression) && node.expression.name === decoratorName)
+      || (t.isCallExpression(node.expression) && expr2str(node.expression.callee) === decoratorName))) return true;
+   
+    return Object.keys(classDeclarationPath.scope.bindings).some(key => {
+      let binding = classDeclarationPath.scope.bindings[key];
+      return Object.keys(binding.scope.bindings).some(v => v === decoratorName);
+    });
+  } 
+  return [LibraryVarName, `${LibraryVarName}.Mixin`].includes(superClass);
 }
 
 function directiveRegx(regx, prefix = '') {
@@ -741,16 +773,26 @@ function escapeRegx(string) {
   return string.replace(matchOperatorsRegex, '\\$&');
 }
 
-function importSpecifier(path, specifierName, libraryName = 'react-vue-like') {
-  let declaration = null;
-  path.traverse({
-    ImportDeclaration(path) {
-      if (path.node.source.value === libraryName) declaration = path.node;
-      path.stop();
-    },
-  });
+function isImportLibrary(path, libraryName = LibraryName) {
+  let declaration = path.context.scope.path.node.body.find(node => t.isImportDeclaration(node) && node.source.value === libraryName);
+  // path.traverse({
+  //   ImportDeclaration(path) {
+  //     if (path.node.source.value === libraryName) declaration = path.node;
+  //     path.stop();
+  //   },
+  // });
+  return declaration;
+}
+
+function isImportSpecifier(path, specifierName, declaration, libraryName) {
+  if (!declaration && libraryName) declaration = isImportLibrary(path, libraryName);
+  return declaration && declaration.specifiers.find(v => v.local.name === specifierName);
+}
+
+function importSpecifier(path, specifierName, libraryName = LibraryName) {
+  let declaration = isImportLibrary(path, libraryName);
   if (declaration) {
-    if (!declaration.specifiers.find(v => v.local.name === specifierName)) {
+    if (!isImportSpecifier(path, specifierName, declaration)) {
       declaration.specifiers.push(
         t.importSpecifier(t.identifier(specifierName), t.identifier(specifierName))
       );
@@ -771,6 +813,10 @@ function importSpecifier(path, specifierName, libraryName = 'react-vue-like') {
 module.exports = {
   DirectiveName,
   ObserverName,
+  LibraryName,
+  LibraryVarName,
+  ComponentFlagPrefix,
+  DecoratorName,
 
   getConstCache,
   fileExists,
@@ -810,8 +856,8 @@ module.exports = {
   childrenToArrayExpr,
   findClassVarName,
   findClassStaticPath,
-  isReactVueLike,
-  isReactVueLikeMixin,
+  isObserverClass,
+  isObserverClassMixin,
   directiveRegx,
   parseDirective,
   parseModifiers,

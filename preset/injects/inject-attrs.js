@@ -2,7 +2,7 @@
 const {
   expr2var,
   findClassStaticPath,
-  isReactVueLike,
+  isObserverClass,
   // extractNodeCode
 } = require('../utils');
 const options = require('../options');
@@ -132,7 +132,7 @@ module.exports = function ({ types: t, template }) {
   }
 
   function ClassVisitor(path) {
-    if (!isReactVueLike(path)) return;
+    if (!isObserverClass(path)) return;
     const ctx = {
       cached: [],
       classPath: path,

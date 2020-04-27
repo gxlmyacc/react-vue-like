@@ -2,7 +2,10 @@ const postcss = require('postcss');
 const postcssPkg = require('postcss/package.json');
 const { getRemainingRequest, getOptions, getCurrentRequest } = require('loader-utils');
 const qs = require('qs');
+const pkg = require('../package.json');
 const postcssPlugin = require('../postcss');
+
+const REGX = new RegExp(`${pkg.name}&scoped=true&id=([a-z0-9-]+)`);
 
 module.exports = function loader(content, map, meta) {
   const options = getOptions(this) || {};
@@ -11,7 +14,7 @@ module.exports = function loader(content, map, meta) {
 
   let [, _query] = (this.request.match(/\?([a-z0-9-&=!]+)$/i) || []);
   if (!_query) return this.callback(null, content, map, meta);
-  const matched = _query.match(/react-vue-like&scoped=true&id=([a-z0-9-]+)/);
+  const matched = _query.match(REGX);
   if (!matched) return this.callback(null, content, map, meta);
 
 

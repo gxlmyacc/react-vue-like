@@ -18,13 +18,13 @@ function _handleAction(target, key, flows) {
   if (v !== n) target[key] = n;
 }
 
-export default function beforeAction(target, ReactVueLike) {
+export default function beforeAction(target) {
   if (!target) return;
   let flows = target.__flows || [];
   if (target.methods) {
     Object.keys(target.methods).forEach(key => _handleAction(target.methods, key, flows));
   }
-  Object.getOwnPropertyNames(target.prototype)
+  target.prototype && Object.getOwnPropertyNames(target.prototype)
     .forEach(key => !reserved.includes(key) && _handleAction(target.prototype, key, flows));
   // Object.getOwnPropertyNames(target)
   //   .forEach(key => !reserved.includes(key) && _handleAction(target.prototype, key, flows));

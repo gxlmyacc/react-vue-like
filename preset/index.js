@@ -20,7 +20,7 @@ const vObserver = require('./directives/v-observer');
 const vCustomDirective = require('./directives/v-custom-directive');
 
 const injectFile = require('./injects/inject-file');
-const injectVueLike = require('./injects/inject-vuelike');
+const injectFlag = require('./injects/inject-flag');
 const injectScope = require('./injects/inject-scope');
 const injectAttrs = require('./injects/inject-attrs');
 
@@ -85,7 +85,7 @@ module.exports = declare((api, opts = {}) => {
   if (options.directive.custom) plugins.push(vCustomDirective);
 
   if (options.inject.file) plugins.push(injectFile);
-  if (options.inject.vuelike) plugins.push(injectVueLike);
+  if (options.inject.flag) plugins.push(injectFlag);
   if (options.inject.scope) plugins.push(injectScope);
   if (options.inject.attrs) plugins.push(injectAttrs);
 

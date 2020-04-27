@@ -1,5 +1,6 @@
 const camelCase = require('camelcase');
 const {
+  LibraryName,
   expr2var,
   DirectiveName,
   iterativeAttrAST,
@@ -73,7 +74,7 @@ module.exports = function ({ types: t, template }) {
 
           path.traverse({
             ImportDeclaration(path) {
-              if (path.node.source.value === 'react-vue-like') {
+              if (path.node.source.value === LibraryName) {
                 this.declaration = path.node;
               }
             },

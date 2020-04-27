@@ -1,4 +1,4 @@
-const { isReactVueLike, directiveRegx, parseDirective, memberExpr2Str, expr2var } = require('../utils');
+const { isObserverClass, directiveRegx, parseDirective, memberExpr2Str, expr2var } = require('../utils');
 const options = require('../options');
 
 module.exports = function ({ types: t, template }) {
@@ -8,8 +8,8 @@ module.exports = function ({ types: t, template }) {
     if (this.handled.includes(path.node)) return;
     this.handled.push(path.node);
 
-    if (!isReactVueLike(path)) return;
-    this.isReactVueLike = true;
+    if (!isObserverClass(path)) return;
+    this.isObserverClass = true;
   }
   return {
     visitor: {
@@ -22,7 +22,7 @@ module.exports = function ({ types: t, template }) {
             ClassDeclaration: ClassVisitor,
             ClassExpression: ClassVisitor,
             JSXAttribute(path) {
-              if (!this.isReactVueLike
+              if (!this.isObserverClass
                 || !path.node.name
                 || !t.isStringLiteral(path.node.value)) return path.stop();
 

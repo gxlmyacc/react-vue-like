@@ -1,7 +1,8 @@
 
 const {
-  isReactVueLike,
-  isReactVueLikeMixin,
+  ComponentFlagPrefix,
+  isObserverClass,
+  isObserverClassMixin,
   findClassVarName
 } = require('../utils');
 
@@ -10,11 +11,16 @@ module.exports = function ({ types: t, template }) {
     if (this.handled.includes(path.node)) return;
     this.handled.push(path.node);
 
-    if (!isReactVueLike(path)) return;
+    if (!isObserverClass(path)) return;
 
     const varName = findClassVarName(path);
+    if (!varName) return;
+
+    let expr = template(`${varName}.${ComponentFlagPrefix}${isObserverClassMixin(path) ? 'Mixin' : ''} = true;`)({});
+
     let parentPath = t.isProgram(path.parentPath.node) ? path : path.parentPath;
-    parentPath.insertAfter(template(`${varName}.__vuelike${isReactVueLikeMixin(path) ? 'Mixin' : ''} = true;`)({}));
+    if (t.isReturnStatement(parentPath.node)) parentPath.insertBefore(expr);
+    else parentPath.insertAfter(expr);
   }
 
 
