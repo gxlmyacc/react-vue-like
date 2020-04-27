@@ -2,11 +2,11 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { observer } from 'mobx-react';
 import { configure, observable } from 'mobx';
-import { isObservable, extendObservable, observe, when, set, remove, action, runInAction } from './mobx';
+import { isObservable, extendObservable, observe, when, set, remove, action, runInAction, flow } from './mobx';
 import {
   isPrimitive, isFalsy, isObject, isPlainObject, warn, isProduction, innumerable,
   parseExpr, camelize, isFunction, iterativeParent, handleError, defComputed,
-  VUE_LIKE_CLASS
+  VUE_LIKE_CLASS, checkKeyCodes
 } from './utils';
 import config from './config';
 
@@ -891,6 +891,15 @@ ReactVueLike.config.inheritMergeStrategies = config.inheritMergeStrategies;
 ReactVueLike.runAction = runInAction;
 ReactVueLike.set = ReactVueLike.prototype.set;
 ReactVueLike.delete = ReactVueLike.prototype.delete;
+ReactVueLike.observable = observable;
+ReactVueLike.flow = flow;
+ReactVueLike.action = action;
+ReactVueLike.set = ReactVueLike.prototype.$set;
+ReactVueLike.delete = remove;
+ReactVueLike.isObservable = isObservable;
+ReactVueLike.extendObservable = extendObservable;
+
+innumerable(ReactVueLike, '_k', checkKeyCodes);
 
 innumerable(ReactVueLike, 'build', __timestamp);
 innumerable(ReactVueLike, VUE_LIKE_CLASS, true);

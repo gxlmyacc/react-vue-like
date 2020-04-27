@@ -45,8 +45,8 @@ function createElementHook(Component, props, ...children) {
     if (newComponent !== undefined) Component = newComponent;
   }
   
-  if (Component.beforeConstructor) {
-    let newComponent = Component.beforeConstructor(Component, props || {}, children, React);
+  if (Component.vuelikeConstructor) {
+    let newComponent = Component.vuelikeConstructor(Component, props || {}, children, React);
     if (newComponent !== undefined) Component = newComponent;
   }
 
@@ -89,5 +89,8 @@ function ReactHook() {
 
   innumerable(React, '_vueLike', ReactVueLike);
 }
+
+ReactHook.createElement = createElementHook;
+ReactHook.cloneElement = cloneElementHook;
 
 export default ReactHook;

@@ -1,7 +1,7 @@
 const { declare } = require('@babel/helper-plugin-utils');
 const syntaxJsx = require('@babel/plugin-syntax-jsx').default;
 const path = require('path');
-const { fileExists, isFunction, directiveRegx } = require('./utils');
+const { LibraryVarName, fileExists, isFunction, directiveRegx } = require('./utils');
 const options = require('./options');
 const transformClass = require('./transforms/transform-class');
 const transformRequire = require('./transforms/transform-require');
@@ -23,6 +23,7 @@ const injectFile = require('./injects/inject-file');
 const injectFlag = require('./injects/inject-flag');
 const injectScope = require('./injects/inject-scope');
 const injectAttrs = require('./injects/inject-attrs');
+const injectPragma = require('./injects/inject-pragma');
 
 let pkg;
 if (fileExists(path.join(process.cwd(), 'package.json'))) {
@@ -46,6 +47,14 @@ module.exports = declare((api, opts = {}) => {
   if (!loaded) {
     loaded = true;
     const { attrName, transform, directive, inject, ...others } = opts;
+
+    let config = api && api.loadPartialConfig();
+    if (config) {
+      let presetReact = config.options.presets.find(v => v.file && v.file.request === '@babel/preset-react');
+      if (presetReact && presetReact.options && presetReact.options.pragma === `${LibraryVarName}._ce`) {
+        options.inject.pragma = true;
+      }
+    }
 
     if (attrName) Object.assign(options.attrName, attrName);
     if (transform) Object.assign(options.transform, transform);
@@ -83,7 +92,8 @@ module.exports = declare((api, opts = {}) => {
   if (options.directive.html) plugins.push(vHtml);
   if (options.directive.observer) plugins.push(vObserver);
   if (options.directive.custom) plugins.push(vCustomDirective);
-
+  
+  if (options.inject.pragma) plugins.push(injectPragma);
   if (options.inject.file) plugins.push(injectFile);
   if (options.inject.flag) plugins.push(injectFlag);
   if (options.inject.scope) plugins.push(injectScope);

@@ -1,7 +1,7 @@
 
 import { isVueLikeComponent, innumerable, replaceMethods, VUE_LIKE_CLASS } from './utils';
 import ReactVueLike from './component';
-import beforeConstructor from './before-constructor';
+import vuelikeConstructor from './constructor';
 
 function vuelike(target) {
   let proto = target.prototype;
@@ -19,7 +19,7 @@ function vuelike(target) {
   replaceMethods(VueLikeWrapper, target);
   replaceMethods(VueLikeWrapper.prototype, proto);
 
-  innumerable(VueLikeWrapper, 'beforeConstructor', beforeConstructor);
+  innumerable(VueLikeWrapper, 'vuelikeConstructor', vuelikeConstructor);
   innumerable(VueLikeWrapper, VUE_LIKE_CLASS, true);
   innumerable(VueLikeWrapper, '__vuelikeWrapper', true);
 

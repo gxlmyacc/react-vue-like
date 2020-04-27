@@ -50,6 +50,7 @@ module.exports = {
     scopeRegx: /(\.(?:le|sc|sa|c)ss)(\?scoped)?(.*)$/,
     scope: true,
     scopeAttrs: true,
+    pragma: false,
   },
   transform: {
     class: true,

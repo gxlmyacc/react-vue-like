@@ -11,7 +11,9 @@ module.exports = {
         targets: { browsers: ['Chrome >= 31'] }
       }
     ],
-    '@babel/preset-react',
+    ['@babel/preset-react', {
+      // pragma: 'ReactVueLike._ce',
+    }],
     path.resolve('./preset/index.js'),
   ],
   plugins: [

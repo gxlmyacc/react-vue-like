@@ -42,7 +42,7 @@ function walkMixins(mixins, target) {
   });
 }
 
-function beforeConstructor(target, props, children) {
+function vuelikeConstructor(target, props, children) {
   if (target.vuelikeProto) return;
 
   const vuelikeProto = replaceVueLikeProto(target);
@@ -66,4 +66,4 @@ function beforeConstructor(target, props, children) {
   walkMixins(mixins, target);
 }
 
-export default beforeConstructor;
+export default vuelikeConstructor;

@@ -1,5 +1,13 @@
 "use strict";
 
+require("core-js/modules/web.dom.iterable");
+
+require("core-js/modules/es6.array.iterator");
+
+require("core-js/modules/es6.string.iterator");
+
+require("core-js/modules/es6.weak-map");
+
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
@@ -19,9 +27,11 @@ require("core-js/modules/es6.object.set-prototype-of");
 
 var _react = _interopRequireDefault(require("react"));
 
-require("./test.scss");
+var _reactVueLike = _interopRequireWildcard(require("react-vue-like"));
 
-require("./index.scss?react-vue-like&scoped=true&id=v-e300dfce");
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function _getRequireWildcardCache() { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || _typeof(obj) !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -47,64 +57,33 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-var App = /*#__PURE__*/function (_ReactVueLike) {
-  _inherits(App, _ReactVueLike);
+var App = /*#__PURE__*/function (_React$Component) {
+  _inherits(App, _React$Component);
 
   var _super = _createSuper(App);
 
-  function App(props) {
+  function App() {
     _classCallCheck(this, App);
 
-    return _super.call(this, props);
+    return _super.apply(this, arguments);
   }
 
   _createClass(App, [{
-    key: "cc",
-    value: function cc() {
-      return ReactVueLike._ce("div", {
-        className: "v-e300dfce test"
-      });
-    }
-  }, {
     key: "render",
     value: function render() {
-      var a = true;
-
-      var ret = ReactVueLike._ce("div", {
-        className: "v-e300dfce"
+      return _reactVueLike.default._ce("div", {
+        className: "root"
       });
-
-      if (a) ret = ReactVueLike._ce("span", {
-        className: "v-e300dfce"
-      });else ret = ReactVueLike._ce("p", {
-        className: "v-e300dfce"
-      });
-      console.log('ddd', ret);
-      return ret; // return this.cc();
-      // return a && <div>dd</div>
-    }
-  }], [{
-    key: "data",
-    value: function data() {
-      return {};
     }
   }]);
 
   return App;
-}(ReactVueLike);
+}(_react.default.Component);
 
 App.__vuelike = true;
-App.__file = "/preset/demo/src/scope.js";
+App.__file = "/preset/demo/src/pragma.js";
+console.log(_reactVueLike.default._ce);
 
-_defineProperty(App, "methods", {
-  dd: function dd() {
-    return ReactVueLike._ce("div", {
-      className: "v-e300dfce test"
-    });
-  }
-});
+var _default = (0, _reactVueLike.vuelike)(App);
 
-var _default = App;
 exports.default = _default;

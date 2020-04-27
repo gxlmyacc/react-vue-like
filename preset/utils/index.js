@@ -774,7 +774,9 @@ function escapeRegx(string) {
 }
 
 function isImportLibrary(path, libraryName = LibraryName) {
-  let declaration = path.context.scope.path.node.body.find(node => t.isImportDeclaration(node) && node.source.value === libraryName);
+  let program = path.isProgram() ? path : path.findParent(p => p.isProgram());
+  let declaration = program.node.body.find(node => t.isImportDeclaration(node) && node.source.value === libraryName);
+
   // path.traverse({
   //   ImportDeclaration(path) {
   //     if (path.node.source.value === libraryName) declaration = path.node;
@@ -784,26 +786,28 @@ function isImportLibrary(path, libraryName = LibraryName) {
   return declaration;
 }
 
-function isImportSpecifier(path, specifierName, declaration, libraryName) {
+function isImportSpecifier(path, specifierName, declaration, libraryName = LibraryName) {
   if (!declaration && libraryName) declaration = isImportLibrary(path, libraryName);
   return declaration && declaration.specifiers.find(v => v.local.name === specifierName);
 }
 
 function importSpecifier(path, specifierName, libraryName = LibraryName) {
   let declaration = isImportLibrary(path, libraryName);
+
+  let [local, imported = specifierName] = specifierName.split(',');
+  let specifier = imported === 'default'
+    ? t.importDefaultSpecifier(t.identifier(local))
+    : t.importSpecifier(t.identifier(local), t.identifier(imported));
   if (declaration) {
     if (!isImportSpecifier(path, specifierName, declaration)) {
-      declaration.specifiers.push(
-        t.importSpecifier(t.identifier(specifierName), t.identifier(specifierName))
-      );
+      declaration.specifiers.push(specifier);
     }
   } else {
-    path.unshiftContainer(
+    let program = path.isProgram() ? path : path.findParent(p => p.isProgram());
+    program.unshiftContainer(
       'body',
       t.importDeclaration(
-        [
-          t.importSpecifier(t.identifier(specifierName), t.identifier(specifierName))
-        ],
+        [specifier],
         t.stringLiteral(libraryName),
       )
     );
@@ -862,6 +866,7 @@ module.exports = {
   parseDirective,
   parseModifiers,
   bindModifiers,
+  isImportSpecifier,
   importSpecifier,
   log
 };
