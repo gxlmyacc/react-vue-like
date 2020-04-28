@@ -142,9 +142,10 @@ class ReactVueLike extends React.Component {
     this._createInstance(_props, target);
   }
 
-  _createInstance(props, target) {
+  _createInstance(props, target, wrapper) {
     // eslint-disable-next-line
     const { propTypes, mixins, isRoot, isAbstract, inherits = {} } = target;
+    if (wrapper && wrapper.inherits) Object.assign(inherits, wrapper.inherits);
   
     if (isRoot) this._isVueLikeRoot = true;
     if (isAbstract) this._isVueLikeAbstract = true;
@@ -184,7 +185,9 @@ class ReactVueLike extends React.Component {
       throw new Error('ReactVueLike error: $el is readonly!');
     });
   
-    const ctxs = mixins ? [...ReactVueLike.mixins, ...mixins, target] : [...ReactVueLike.mixins, target];
+    const ctxs =  [...ReactVueLike.mixins, target];
+    if (wrapper) ctxs.push(wrapper);
+    if (mixins) Array.prototype.push.apply(ctxs, mixins);
   
     let _datas = [];
     let _computed = {};
@@ -194,7 +197,10 @@ class ReactVueLike extends React.Component {
     let _filters = {};
     let _provideFns = [];
     let _injects = [];
+    let _components = {};
     ctxs.forEach(ctx => {
+      if (!ctx) return;
+      if (ctx.components) Object.assign(_components, ctx.components);
       if (ctx.filters) Object.assign(_filters, ctx.filters);
       if (ctx.directives) Object.assign(_directives, ctx.directives);
       if (ctx.data) _datas.push(ctx.data);
@@ -209,6 +215,7 @@ class ReactVueLike extends React.Component {
   
     this.$listeners = initListeners(ctxs, props);
   
+    this.$components = _components;
     this.$filters = _filters;
     this.$directives = _directives;
     this._datas = _datas;
@@ -517,9 +524,9 @@ class ReactVueLike extends React.Component {
 
   _resolveComp(compName) {
     let comp;
-    if (this.$options.components) comp = this.$options.components[compName];
-    if (!this._isVueLikeRoot && !comp && this.$root.$options.components) {
-      comp = this.$root.$options.components[compName];
+    if (this.$components) comp = this.$components[compName];
+    if (!this._isVueLikeRoot && !comp && this.$root.$components) {
+      comp = this.$root.$components[compName];
     }
 
     if (!isProduction && !comp) warn(`can not resolve component '${compName}'!`, this);

@@ -262,16 +262,21 @@ export function innumerable(
   return Object.defineProperty(obj, key, { value, ...options });
 }
 
-const ignorePropertyNames = ['constructor', 'length", "prototype", "name'];
-export function mergeMethods(target, source, includes) {
-  if (target instanceof source) return;
-  const sm = includes || Object.getOwnPropertyNames(source);
+const ClassPropertyNames = ['constructor', 'length", "prototype", "name'];
+
+export {
+  ClassPropertyNames
+};
+
+export function mergeMethods(target, source, excludes = []) {
+  if (source.prototype && target instanceof source) return;
+  const sm = Object.getOwnPropertyNames(source);
   const tm = Object.getOwnPropertyNames(target);
   sm.forEach(key => {
-    if (ignorePropertyNames.includes(key)) return;
+    if (ClassPropertyNames.includes(key) || excludes.includes(key)) return;
     let sfn = source[key];
-    if (!tm.includes(key) || !isFunction(sfn)) return;
-    let tfn = target[key];
+    if (!isFunction(sfn)) return;
+    let tfn = tm.includes(key) ? target[key] : null;
     if (tfn) {
       target[key] = function () {
         let sr = sfn.apply(this, arguments);
@@ -287,10 +292,10 @@ export function replaceMethods(target, source, includes) {
   const sm = includes || Object.getOwnPropertyNames(source);
   const tm = Object.getOwnPropertyNames(target);
   sm.forEach(key => {
-    if (ignorePropertyNames.includes(key)) return;
+    if (ClassPropertyNames.includes(key)) return;
     let sfn = source[key];
-    if (!tm.includes(key) || !isFunction(sfn)) return;
-    let tfn = target[key];
+    if (!isFunction(sfn)) return;
+    let tfn = tm.includes(key) ? target[key] : null;
     if (tfn) {
       target[key] = sfn;
       ret[key] = tfn;
@@ -303,4 +308,8 @@ export const VUE_LIKE_CLASS = '__vuelikeClass';
 
 export function isVueLikeComponent(source) {
   return source && source.__vuelike && !hasOwnProperty(source, VUE_LIKE_CLASS);
+}
+
+export function isVueLikeClass(source) {
+  return source && source.__vuelike && source[VUE_LIKE_CLASS];
 }

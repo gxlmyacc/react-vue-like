@@ -29,8 +29,15 @@ module.exports = function ({ types: t, template }) {
       this.handled = [];
     },
     visitor: {
-      ClassDeclaration: ClassVisitor,
-      ClassExpression: ClassVisitor,
-    },
+      Program: {
+        enter(path) {
+          const ctx = { handled: [] };
+          path.traverse({
+            ClassDeclaration: ClassVisitor,
+            ClassExpression: ClassVisitor,
+          }, ctx);
+        }
+      }
+    }
   };
 };

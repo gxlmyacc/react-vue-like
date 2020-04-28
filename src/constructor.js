@@ -1,29 +1,31 @@
-import { isVueLikeComponent, hasOwnProperty, innumerable } from './utils';
+import { isVueLikeClass, hasOwnProperty, innumerable  } from './utils';
 import beforeCollect from './before-collect';
 import beforeProps from './before-props';
-import beforeAction from './before-action';
+import beforeAction, { VUE_LIKE_METHODS } from './before-action';
 
 import ReactVueLike from './component';
 
+const REACT_LIFECYCLE_HOOKS = [
+  'render',
+  'renderError',
+  'componentDidMount',
+  'getSnapshotBeforeUpdate',
+  'componentDidUpdate',
+  'componentDidActivate',
+  'componentWillUnactivate',
+  'componentWillUnmount',
+  'componentDidCatch'
+];
+
 function replaceVueLikeProto(target) {
-  const REACT_LIFECYCLE_HOOKS = [
-    'render',
-    'renderError',
-    'componentDidMount',
-    'getSnapshotBeforeUpdate',
-    'componentDidUpdate',
-    'componentDidActivate',
-    'componentWillUnactivate',
-    'componentWillUnmount',
-    'componentDidCatch'
-  ];
   let ret = {};
-  let isVueLike = isVueLikeComponent(target);
+  let isVueLike = isVueLikeClass(target);
   let tp = target.prototype; 
   const tm = Object.getOwnPropertyNames(tp);
-  REACT_LIFECYCLE_HOOKS.forEach(key => {
+  let methods = isVueLike ? REACT_LIFECYCLE_HOOKS : VUE_LIKE_METHODS;
+  methods.forEach(key => {
     let sfn = ReactVueLike.prototype[key];
-    if (!tm.includes(key)) return;
+    if (isVueLike && !tm.includes(key)) return;
     let tfn = tp[key];
     if (tfn) {
       tp[key] = sfn;
@@ -54,9 +56,13 @@ function vuelikeConstructor(target, props, children) {
 
   beforeCollect(vuelikeProto, ReactVueLike);
 
-  Object.keys(props).forEach(key => /^\$/.test(key) && innumerable(props, key, props[key]));
+  // Object.keys(props).forEach(key => {
+  //   if (!/^\$/.test(key)) return;
+  //   Object.defineProperty(props, key, Object.assign(Object.getOwnPropertyDescriptor(props, key), { enumerable: false }));
+  // });
   if (props.ref) {
-    innumerable(props, '$ref', props.ref);
+    props.$ref = props.ref;
+    // innumerable(props, '$ref', props.ref);
     delete props.ref;
   }
 
@@ -65,5 +71,10 @@ function vuelikeConstructor(target, props, children) {
  
   walkMixins(mixins, target);
 }
+
+export {
+  VUE_LIKE_METHODS,
+  REACT_LIFECYCLE_HOOKS
+};
 
 export default vuelikeConstructor;

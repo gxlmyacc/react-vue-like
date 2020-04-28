@@ -1,5 +1,5 @@
 import ReactVueLike from './component';
-import vuelike from './hoc';
+import withVuelike from './hoc';
 import Directive from './directive';
 import Mixin from './mixin';
 import hook from './hook';
@@ -17,7 +17,7 @@ innumerable(ReactVueLike, '_cc', hook.cloneElement);
 
 export {
   Directive as ReactVueLikeDirective,
-  vuelike
+  withVuelike
 };
 
 hook();

@@ -11,7 +11,7 @@ const ObserverName = 'Observer';
 const LibraryName = 'react-vue-like';
 const LibraryVarName = 'ReactVueLike';
 const ComponentFlagPrefix = '__vuelike';
-const DecoratorName = 'vuelike';
+const DecoratorName = 'withVuelike';
 
 if (!Date.prototype.format) {
   Date.prototype.format = function (fmt) {

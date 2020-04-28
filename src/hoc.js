@@ -1,29 +1,48 @@
 
-import { isVueLikeComponent, innumerable, replaceMethods, VUE_LIKE_CLASS } from './utils';
-import ReactVueLike from './component';
+import React from 'react';
+// import { observer } from 'mobx-react';
+import { innumerable } from './utils';
+// import ReactVueLike from './component';
 import vuelikeConstructor from './constructor';
 
-function vuelike(target) {
-  let proto = target.prototype;
-  if (!proto || isVueLikeComponent(proto)) return target;
+function withVuelike(target) {
+  if (target.vuelikeConstructor || !target.prototype) return target;
+  if (!(target.prototype instanceof React.Component)) return target;
 
-  class VueLikeWrapper extends target {
-     
-    constructor(props) {
-      super(props);
-      ReactVueLike.prototype._createInstance.call(this, props);
-    }
+  // class VueLikeWrapper extends target {
+
+  //   constructor(props) {
+  //     super(props);
+  //     this._createInstance(props, target, VueLikeWrapper);
+  //   }
   
+  // }
+  // VueLikeWrapper.Component = target;
+  // VueLikeWrapper.displayName = target.displayName || target.name;
+
+  // const render = target.prototype.render;
+  // target = observer(target);
+  // target.prototype.render = render;
+
+  // eslint-disable-next-line no-proto
+  const oldConstructor = target.__proto__;
+  function VueLikeWrapper(props) {
+    oldConstructor.apply(this, arguments);
+    this._createInstance(props, target);
   }
+  // VueLikeWrapper.prototype = Object.assign(target.prototype, {
+  //   constructor: VueLikeWrapper
+  // });
+  // eslint-disable-next-line no-proto
+  target.__proto__ = VueLikeWrapper;
 
-  replaceMethods(VueLikeWrapper, target);
-  replaceMethods(VueLikeWrapper.prototype, proto);
+  innumerable(target, 'vuelikeConstructor', function (target, props, children) {
+    return vuelikeConstructor(target, props, children);
+  });
+  innumerable(target, '__vuelikeWrapper', true);
 
-  innumerable(VueLikeWrapper, 'vuelikeConstructor', vuelikeConstructor);
-  innumerable(VueLikeWrapper, VUE_LIKE_CLASS, true);
-  innumerable(VueLikeWrapper, '__vuelikeWrapper', true);
-
-  return VueLikeWrapper;
+  return target;
 }
 
-export default vuelike;
+
+export default withVuelike;
