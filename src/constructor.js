@@ -3,7 +3,7 @@ import beforeCollect from './before-collect';
 import beforeProps from './before-props';
 import beforeAction, { VUE_LIKE_METHODS } from './before-action';
 
-import ReactVueLike from './component';
+import ReactVueLikeComponent from './component';
 
 const REACT_LIFECYCLE_HOOKS = [
   'render',
@@ -24,10 +24,10 @@ function replaceVueLikeProto(target) {
   const tm = Object.getOwnPropertyNames(tp);
   let methods = isVueLike ? REACT_LIFECYCLE_HOOKS : VUE_LIKE_METHODS;
   methods.forEach(key => {
-    let sfn = ReactVueLike.prototype[key];
     if (isVueLike && !tm.includes(key)) return;
-    let tfn = tp[key];
-    if (tfn) {
+    let sfn = ReactVueLikeComponent.prototype[key];
+    if (hasOwnProperty(tp, key)) {
+      let tfn = tp[key];
       tp[key] = sfn;
       ret[key] = tfn;
     } else if (!isVueLike) innumerable(tp, key, sfn);
@@ -54,7 +54,7 @@ function vuelikeConstructor(target, props, children) {
     delete target.prototype.shouldComponentUpdate;
   }
 
-  beforeCollect(vuelikeProto, ReactVueLike);
+  beforeCollect(vuelikeProto, ReactVueLikeComponent);
 
   // Object.keys(props).forEach(key => {
   //   if (!/^\$/.test(key)) return;

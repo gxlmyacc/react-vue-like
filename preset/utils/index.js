@@ -6,10 +6,12 @@ const findUp = require('find-up');
 const path = require('path');
 const types = require('./types');
 
-const DirectiveName = 'ReactVueLikeDirective';
+const LibraryVarName = 'ReactVueLike';
+const DirectiveComponentName = 'Directive';
+const DirectiveName =  `${LibraryVarName}.${DirectiveComponentName}`;
+const ComponentName = `${LibraryVarName}.Component`;
 const ObserverName = 'Observer';
 const LibraryName = 'react-vue-like';
-const LibraryVarName = 'ReactVueLike';
 const ComponentFlagPrefix = '__vuelike';
 const DecoratorName = 'withVuelike';
 
@@ -731,7 +733,7 @@ function isObserverClass(classDeclarationPath) {
       return Object.keys(binding.scope.bindings).some(v => v === decoratorName);
     });
   } 
-  return [LibraryVarName, `${LibraryVarName}.Mixin`].includes(superClass);
+  return [ComponentName, `${LibraryVarName}.Mixin`].includes(superClass);
 }
 
 function directiveRegx(regx, prefix = '') {
@@ -814,13 +816,19 @@ function importSpecifier(path, specifierName, libraryName = LibraryName) {
   }
 }
 
+function importDefaultSpecifier(path, specifierName, libraryName = LibraryName) {
+  return importSpecifier(path, `${specifierName},default`, libraryName);
+}
+
 module.exports = {
   DirectiveName,
+  DirectiveComponentName,
   ObserverName,
   LibraryName,
   LibraryVarName,
   ComponentFlagPrefix,
   DecoratorName,
+  ComponentName,
 
   getConstCache,
   fileExists,
@@ -868,5 +876,6 @@ module.exports = {
   bindModifiers,
   isImportSpecifier,
   importSpecifier,
+  importDefaultSpecifier,
   log
 };

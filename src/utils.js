@@ -22,13 +22,13 @@ if (!Array.isArray(arrayType)) {
   };
 }
 
-export function defComputed(obj, key, get, set) {
-  Object.defineProperty(obj, key, {
+export function defComputed(obj, key, get, set, options) {
+  Object.defineProperty(obj, key, Object.assign({
     enumerable: true,
     configurable: true,
     get,
     set: set || function (v) { throw new Error(`props: ${key} is readonly!`); }
-  });
+  }, options));
 }
 
 export function isFunction(fn) {
@@ -112,7 +112,7 @@ export function isPlainObject(obj) {
 }
 
 export function hasOwnProperty(obj, prop) {
-  return _hasOwnProperty.call(obj, prop);
+  return obj && _hasOwnProperty.call(obj, prop);
 }
 
 export function hasOwnPropertyValue(obj, prop, value) {
@@ -304,6 +304,33 @@ export function replaceMethods(target, source, includes) {
   return ret;
 }
 
+
+export function mergeObject(target) {
+  function _mergeObject(target, source, copiedObjects) {
+    if (!target) return target;
+    if (!isPlainObject(source)) return target;
+    copiedObjects.push({ source, target });
+    Object.keys(source).forEach(key => {
+      let v = source[key];
+      if (isPlainObject(v)) {
+        let copied = copiedObjects.find(c => c.target === v);
+        if (copied) target[key] = copied.target;
+        else {
+          let w = target[key];
+          if (!isPlainObject(w)) w = target[key] = {};
+          _mergeObject(w, v, copiedObjects);
+        }
+      } else target[key] = v;
+    });
+    return target;
+  }
+
+  let ret = target;
+  let copiedObjects = [];
+  for (let i = 1; i < arguments.length; i++) _mergeObject(ret, arguments[i], copiedObjects);
+  return ret;
+}
+
 export const VUE_LIKE_CLASS = '__vuelikeClass';
 
 export function isVueLikeComponent(source) {
@@ -312,4 +339,22 @@ export function isVueLikeComponent(source) {
 
 export function isVueLikeClass(source) {
   return source && source.__vuelike && source[VUE_LIKE_CLASS];
+}
+
+export function directivesMergeStrategies(parent, child, vm, key) {
+  let ret = {};
+  if (parent) return Object.assign(ret, parent);
+  if (child) return Object.assign(ret, child);
+  return ret;
+}
+
+export function defaultMergeStrategies(parent, child, vm, key) {
+  return child || parent;
+}
+
+export function filtersMergeStrategies(parent, child, vm, key) {
+  let ret = {};
+  if (parent) return mergeObject(ret, parent);
+  if (child) return mergeObject(ret, child);
+  return ret;
 }

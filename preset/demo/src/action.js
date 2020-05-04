@@ -107,6 +107,14 @@ class UpdatePwdModal extends ReactVueLike {
     // },
   }
 
+  $set(target, expr, value) {
+    let { obj, key } = parseExpr(target, expr);
+    if (obj && key) {
+      if (value && !isObservable(value) && (isPlainObject(value) || Array.isArray(value))) value = observable(value);
+      ReactVueLike.runAction(() => set(obj, key, value));
+    }
+  }
+
 }
 
 const test1 = action(async function test1() {
@@ -115,6 +123,10 @@ const test1 = action(async function test1() {
 
 const test2 = ReactVueLike.action(async function test1() {
 
+});
+
+ReactVueLike.runAction(async () => {
+  this.aa = 1;
 });
 
 export default React.forwardRef((props, ref) => React.createElement(Form.create({})(UpdatePwdModal), {

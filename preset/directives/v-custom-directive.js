@@ -3,12 +3,15 @@ const {
   LibraryName,
   expr2var,
   DirectiveName,
+  DirectiveComponentName,
+  LibraryVarName,
   iterativeAttrAST,
   var2Expression,
   removeAttrAST,
   extractNodeCode,
   parseDirective,
-  importSpecifier
+  importDefaultSpecifier,
+  expr2str
 } = require('../utils');
 
 const options = require('../options');
@@ -22,7 +25,8 @@ module.exports = function ({ types: t, template }) {
     let bindings = [];
 
     iterativeAttrAST(path.node, attr => {
-      if (path.node.openingElement.name.name === DirectiveName) return;
+      const sourceName = expr2str(path.node.openingElement.name);
+      if (sourceName === DirectiveName) return;
       let parsed = parseDirective(expr2var(attr.name), attrName);
       if (!parsed || !parsed.name) return;
 
@@ -46,12 +50,18 @@ module.exports = function ({ types: t, template }) {
       return binding;
     });
 
-    const sourceName = path.node.openingElement.name.name;
-    path.node.openingElement.name.name = DirectiveName;
-    if (path.node.closingElement) path.node.closingElement.name.name = DirectiveName;
+    const sourceName = expr2str(path.node.openingElement.name);
+    const sourceNameNode = path.node.openingElement.name;
+    const elementName = t.jsxMemberExpression(t.jsxIdentifier(LibraryVarName), t.jsxIdentifier(DirectiveComponentName));
+    path.node.openingElement.name = elementName;
+    if (path.node.closingElement) path.node.closingElement.name = elementName;
     path.node.openingElement.attributes.push(t.JSXAttribute(
       t.jSXIdentifier('_source'),
-      t.JSXExpressionContainer(/^[A-Z]/.test(sourceName) ? t.identifier(sourceName) : t.stringLiteral(sourceName))
+      t.JSXExpressionContainer(
+        t.isJSXIdentifier(sourceNameNode) || t.isJSXNamespacedName(sourceNameNode)
+          ? /^[A-Z]/.test(sourceName) ? t.identifier(sourceName) : t.stringLiteral(sourceName)
+          : t.memberExpression(sourceNameNode.Object, sourceNameNode.property)
+      )
     ));
     const $bindings = var2Expression(bindings);
     path.node.openingElement.attributes.push(t.JSXAttribute(
@@ -81,7 +91,7 @@ module.exports = function ({ types: t, template }) {
             JSXElement: JSXElementVisitor,
           }, ctx);
 
-          if (ctx.hasDirectvie) importSpecifier(path, DirectiveName);
+          if (ctx.hasDirectvie) importDefaultSpecifier(path, LibraryVarName);
         },
       },
     }

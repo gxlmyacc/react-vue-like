@@ -3,7 +3,8 @@ const {
   DirectiveName,
   childrenToArrayExpr,
   isObserverClass,
-  expr2var
+  expr2var,
+  expr2str
 } = require('../utils');
 const { compRegx } = require('../options');
 
@@ -21,7 +22,7 @@ module.exports = function ({ types: t, template }) {
 
         path.traverse({
           JSXElement(compPath) {
-            const tagName = compPath.node.openingElement.name.name;
+            const tagName = expr2str(compPath.node.openingElement.name);
             if (tagName !== 'slot') return;
             if (compPath.node.openingElement.attributes.some(attr => attr.name && attr.name.name === '$slotFn')) return;
             compPath.node.openingElement.attributes.push(t.jsxAttribute(
@@ -47,7 +48,7 @@ module.exports = function ({ types: t, template }) {
       ClassExpression: ClassVisitor,
       JSXElement(path) {
         const openingElement = path.node.openingElement;
-        let tagName = openingElement.name.name;
+        let tagName = expr2str(openingElement.name);
         if (tagName === DirectiveName) {
           let tag = openingElement.attributes.find(attr => attr.name && attr.name.name === '_source');
           tagName = tag && expr2var(tag.value);

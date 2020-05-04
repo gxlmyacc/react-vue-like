@@ -1,6 +1,6 @@
 import { action, flow } from './mobx';
 import { isFunction, ClassPropertyNames } from './utils';
-import ReactVueLike from './component';
+import ReactVueLikeComponent from './component';
 
 const RESERVED_METHODS = [
   'constructor',
@@ -11,7 +11,7 @@ const RESERVED_METHODS = [
   'renderError',
 ];
 
-const VUE_LIKE_METHODS = Object.getOwnPropertyNames(ReactVueLike.prototype).filter(key => !ClassPropertyNames.includes(key));
+const VUE_LIKE_METHODS = Object.getOwnPropertyNames(ReactVueLikeComponent.prototype).filter(key => !ClassPropertyNames.includes(key));
 
 function _handleAction(target, key, flows) {
   let v = target[key];

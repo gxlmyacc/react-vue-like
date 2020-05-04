@@ -1,4 +1,4 @@
-const { LibraryVarName, isReactComponent, isImportSpecifier, importSpecifier } = require('../utils');
+const { LibraryVarName, isReactComponent, isImportSpecifier, importDefaultSpecifier } = require('../utils');
 
 module.exports = function ({ types: t }) {
   return {
@@ -14,7 +14,7 @@ module.exports = function ({ types: t }) {
               let declaration = isImportSpecifier(path, LibraryVarName);
               if (declaration) return;
 
-              importSpecifier(path, `${LibraryVarName},default`);
+              importDefaultSpecifier(path, LibraryVarName);
             }
           });
         },

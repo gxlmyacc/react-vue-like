@@ -1,7 +1,7 @@
 import React from 'react';
 import { Observer, innumerable, isVueLikeComponent } from './utils';
 import collect from './collect';
-import ReactVueLike from './component';
+import ReactVueLike from './vue-like';
 import Async from './async';
 import beforeClass from './before-class';
 
@@ -47,6 +47,11 @@ function createElementHook(Component, props, ...children) {
   
   if (Component.vuelikeConstructor) {
     let newComponent = Component.vuelikeConstructor(Component, props || {}, children, React);
+    if (newComponent !== undefined) Component = newComponent;
+  }
+
+  if (Component.beforeConstructor) {
+    let newComponent = Component.beforeConstructor(Component, props || {}, children, React);
     if (newComponent !== undefined) Component = newComponent;
   }
 

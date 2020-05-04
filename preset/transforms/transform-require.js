@@ -1,4 +1,5 @@
 const requires = require('../options').transform.require || {};
+const { expr2str } = require('../utils');
 
 const URL_REGX = /^(?:(https?:)?\/\/)|(data:).+/;
 
@@ -8,7 +9,7 @@ module.exports = function ({ types: t, template }) {
   return {
     visitor: {
       JSXElement({ node: { openingElement } }) {
-        let tagName = openingElement.name.name;
+        let tagName = expr2str(openingElement.name);
         if (!requireKeys.includes(tagName)) return;
         let attrName = requires[tagName];
         if (!attrName) return;

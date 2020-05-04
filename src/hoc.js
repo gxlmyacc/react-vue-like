@@ -2,7 +2,7 @@
 import React from 'react';
 // import { observer } from 'mobx-react';
 import { innumerable } from './utils';
-// import ReactVueLike from './component';
+import ReactVueLikeComponent from './component';
 import vuelikeConstructor from './constructor';
 
 function withVuelike(target) {
@@ -33,6 +33,7 @@ function withVuelike(target) {
   // VueLikeWrapper.prototype = Object.assign(target.prototype, {
   //   constructor: VueLikeWrapper
   // });
+  target.prototype.prototype = ReactVueLikeComponent.prototype;
   // eslint-disable-next-line no-proto
   target.__proto__ = VueLikeWrapper;
 

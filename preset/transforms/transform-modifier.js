@@ -1,6 +1,10 @@
 
 const camelCase = require('camelcase');
-const { LibraryName, LibraryVarName, appendAttrEvent, mergeAttrEvent, directiveRegx, parseDirective, bindModifiers, expr2var } = require('../utils');
+const { 
+  LibraryVarName, appendAttrEvent, 
+  mergeAttrEvent, directiveRegx, parseDirective, bindModifiers, expr2var,
+  importDefaultSpecifier
+} = require('../utils');
 const options = require('../options');
 
 module.exports = function ({ types: t, template }) {
@@ -92,36 +96,14 @@ module.exports = function ({ types: t, template }) {
       Program: {
         enter(path) {
           let ctx = {
-            declaration: null,
             needImportLibrary: false
           };
           path.traverse({
-            ImportDeclaration(path) {
-              if (path.node.source.value === LibraryName) {
-                this.declaration = path.node;
-              }
-            },
             JSXAttribute: JSXAttributeVisitor
           }, ctx);
 
           if (ctx.needImportLibrary) {
-            if (ctx.declaration) {
-              if (!ctx.declaration.specifiers.find(v => t.isImportDefaultSpecifier(v))) {
-                ctx.declaration.specifiers.push(
-                  t.importDefaultSpecifier(t.identifier(LibraryVarName))
-                );
-              }
-            } else {
-              path.unshiftContainer(
-                'body',
-                t.importDeclaration(
-                  [
-                    t.importDefaultSpecifier(t.identifier(LibraryVarName))
-                  ],
-                  t.stringLiteral(LibraryName),
-                )
-              );
-            }
+            importDefaultSpecifier(path, LibraryVarName);
           }
         }
       }

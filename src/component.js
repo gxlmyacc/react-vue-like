@@ -1,12 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { observer } from 'mobx-react';
-import { configure, observable } from 'mobx';
-import { isObservable, extendObservable, observe, when, set, remove, action, runInAction, flow } from './mobx';
+import { isObservable, extendObservable, observe, when, set, remove, action, runInAction, observable } from './mobx';
 import {
-  isPrimitive, isFalsy, isObject, isPlainObject, warn, isProduction, innumerable,
-  parseExpr, camelize, isFunction, iterativeParent, handleError, defComputed,
-  VUE_LIKE_CLASS, checkKeyCodes
+  isPrimitive, isFalsy, isObject, isPlainObject, warn, isProduction, innumerable, VUE_LIKE_CLASS,
+  parseExpr, camelize, isFunction, iterativeParent, handleError, defComputed, mergeObject
 } from './utils';
 import config from './config';
 
@@ -85,22 +83,24 @@ const RGEX_EVENT = /^on([A-Z]\w+)/;
 const RETX_SPECIAL_KEYS = /^[$_]/;
 // const RGEX_SYNC = /^(\w+)\$sync$/;
 
+const addListener = function (listeners, key, handler) {
+  if (!listeners[key]) listeners[key] = [];
+  if (!isFunction(handler)) {
+    if (Array.isArray(handler)) return handler.forEach(h => addListener(listeners, key, h));
+    console.warn(`[addListener]${key} is not function!`);
+    return;
+  }
+  listeners[key].push(action(key, handler));
+};
+
 function initListeners(ctxs, props) {
   let listeners = {};
-  const addListener = (key, handler) => {
-    if (!listeners[key]) listeners[key] = [];
-    if (!isFunction(handler)) {
-      console.warn(`[initListeners]${key} is not function!`);
-      return;
-    }
-    listeners[key].push(action(key, handler));
-  };
   ctxs.forEach(ctx => {
     LIFECYCLE_HOOKS.forEach(key => {
       const name = camelize(`hook:${key}`);
       let handler = ctx[key];
       if (!handler && ctx.prototype && ctx.prototype[key]) handler = ctx.prototype[key];
-      if (handler) addListener(name, handler);
+      if (handler) addListener(listeners, name, handler);
     });
   });
   if (props) {
@@ -108,7 +108,7 @@ function initListeners(ctxs, props) {
       const handler = props[key];
       if (!handler) return;
       let [, eventName] = key.match(RGEX_EVENT) || [];
-      if (eventName) addListener(camelize(eventName), handler);
+      if (eventName) addListener(listeners, camelize(eventName), handler);
     });
   }
   return listeners;
@@ -120,19 +120,19 @@ function parseProps(target, propTypes) {
   if (!propTypes) propTypes = {};
   Object.getOwnPropertyNames(this.props).forEach(key => {
     if (propTypes[key] !== undefined) return defComputed(propData, key, () => this.props[key]);
-    if (['ref', 'children'].includes(key) || RETX_SPECIAL_KEYS.test(key)) return;
+    if (['ref'].includes(key) || RETX_SPECIAL_KEYS.test(key)) return;
 
     if (target.inheritAttrs || target.inheritAttrs === undefined) {
       if (Array.isArray(target.inheritAttrs) && ~target.inheritAttrs.indexOf(key)) return;
       if (~config.inheritAttrs.indexOf(key)) return;
     }
-    defComputed(attrs, key, () => this.props[key]);
+    defComputed(attrs, key, () => this.props[key], null, { enumerable: key !== 'children' });
   });
   return { propData, attrs };
 }
 
 @observer
-class ReactVueLike extends React.Component {
+class ReactVueLikeComponent extends React.Component {
 
   constructor(_props) {
     super(_props);
@@ -147,7 +147,9 @@ class ReactVueLike extends React.Component {
     const { propTypes, mixins, isRoot, isAbstract, inherits = {} } = target;
     if (wrapper && wrapper.inherits) Object.assign(inherits, wrapper.inherits);
   
-    if (isRoot) this._isVueLikeRoot = true;
+    if (isRoot) {
+      this._isVueLikeRoot = true;
+    }
     if (isAbstract) this._isVueLikeAbstract = true;
   
     this._shouldComponentUpdateFn = this.shouldComponentUpdate;
@@ -172,20 +174,21 @@ class ReactVueLike extends React.Component {
     this.$slots = props.$slots || {};
     this.$ref = props.$ref || null;
     this.$options = target;
+    if (isRoot && isRoot.isVueLike) this.$vuelike = isRoot;
   
     if (this.$slots.default === undefined) this.$slots.default = props.children;
-  
-    extendObservable(this, {
-      _isMounted: false,
-      _inherits: observable.object({ ...inherits }, {}, { deep: false }),
-      $refs: {}
-    }, {}, { deep: false });
+
   
     defComputed(this, '$el', () => this._el || (this._el = ReactDOM.findDOMNode(this)), v => {
-      throw new Error('ReactVueLike error: $el is readonly!');
+      throw new Error('ReactVueLike.Component error: $el is readonly!');
     });
   
-    const ctxs =  [...ReactVueLike.mixins, target];
+    const ctxs =  [];
+    if (this.$vuelike) {
+      ctxs.push(this.$vuelike);
+      Array.prototype.push.apply(ctxs, this.$vuelike.plugins.map(p => p.plugin));
+    }
+    ctxs.push(target);
     if (wrapper) ctxs.push(wrapper);
     if (mixins) Array.prototype.push.apply(ctxs, mixins);
   
@@ -201,7 +204,7 @@ class ReactVueLike extends React.Component {
     ctxs.forEach(ctx => {
       if (!ctx) return;
       if (ctx.components) Object.assign(_components, ctx.components);
-      if (ctx.filters) Object.assign(_filters, ctx.filters);
+      if (ctx.filters) mergeObject(_filters, ctx.filters);
       if (ctx.directives) Object.assign(_directives, ctx.directives);
       if (ctx.data) _datas.push(ctx.data);
       if (ctx.computed) Object.assign(_computed, ctx.computed);
@@ -226,6 +229,17 @@ class ReactVueLike extends React.Component {
     this._watched = [];
     this._provideFns = _provideFns;
     this._injects = _injects;
+
+    const _inherits = { ...inherits };
+    if (this.$vuelike) {
+      _inherits.$vuelike = this.$vuelike;
+      Object.assign(_inherits, this.$vuelike.inherits);
+    }
+    extendObservable(this, {
+      _isMounted: false,
+      _inherits: observable.object(_inherits, {}, { deep: false }),
+      $refs: {}
+    }, {}, { deep: false });
   
     defComputed(this, '$provides',
       () => {
@@ -236,23 +250,6 @@ class ReactVueLike extends React.Component {
       });
     defComputed(this, '$isWillUnmount', () => this._isWillUnmount || Boolean(this.parent && this.parent.$isWillUnmount));
   
-  
-    this._inheritMergeStrategies = Object.assign({}, config.inheritMergeStrategies, this.$options.inheritMergeStrategies);
-    action(() => {
-      Object.keys(this._inheritMergeStrategies).forEach(key => {
-        let merge = this._inheritMergeStrategies[key];
-        let child = this._inherits[key];
-        let parent = this[key];
-        if (!parent) return;
-        if (child) {
-          let v = merge(parent, child, this, key);
-          if (v !== undefined && v !== child) {
-            this._inherits[key] = v; // isObservable(v) ? v : observable.ref(v);
-          }
-        } else this._inherits[key] = parent;
-      });
-    })();
-    this._optionMergeStrategies = Object.assign({}, config.optionMergeStrategies, this.$options.optionMergeStrategies);
   
     this.$emit('hook:beforeCreate', props);
   
@@ -362,15 +359,11 @@ class ReactVueLike extends React.Component {
 
   _resolveWillMount(beforeMount, mounted) {
     let _pending = action(() => {
-      if (!this._isVueLikeRoot && this.$context) {
-        Object.keys(this._optionMergeStrategies).forEach(key => {
-          let ret = this._optionMergeStrategies[key](this.$context[key], this[key], this, key);
-          if (ret !== this[key]) this[key] = ret;
-        });
-      }
       this.$root = this.$context ? this.$context.$root : this;
 
+      this._resolveStrategies();
       this._resolveInherits();
+      this._resolveEvents();
       this._resolveMethods();
       this._resolveData();
       this._resolveComputed();
@@ -394,6 +387,33 @@ class ReactVueLike extends React.Component {
     else this.$context._mountedPending.push(_pending);
   }
 
+  _resolveEvents() {
+    if (!this.$vuelike) return;
+    let events = {};
+    if (this._isVueLikeRoot) Object.assign(events, this.$vuelike.events.app);
+    Object.assign(events, this.$vuelike.events.components);
+    Object.keys(events).forEach(eventName => addListener(this.$listeners, eventName, events[eventName]));
+  }
+
+  _resolveStrategies() {
+    let $vuelike = this.$vuelike || (this.$context && this.$context.$vuelike) || { config: {} };
+    this._optionMergeStrategies = Object.assign(
+      {}, 
+      config.optionMergeStrategies, 
+      $vuelike.config.optionMergeStrategies,
+      this.$options.optionMergeStrategies
+    );
+    
+    if (!this._isVueLikeRoot && this.$context) {
+      Object.keys(this._optionMergeStrategies).forEach(key => {
+        let child = this[key];
+        if (child === undefined) return;
+        let ret = this._optionMergeStrategies[key](this.$context[key], child, this, key);
+        if (ret !== child) this[key] = ret;
+      });
+    }
+  }
+
   _resolveInherits() {
     if (!this._isVueLikeRoot && this.$context) {
       if (this.$context._inherits) {
@@ -407,10 +427,11 @@ class ReactVueLike extends React.Component {
         Object.keys(this._inherits).forEach(key => {
           let child = this[key];
           let parent = this._inherits[key];
-          const merge = this._inheritMergeStrategies[key];
+          const merge = this._optionMergeStrategies[key];
           let v = merge ? merge(parent, child, this, key) : parent;
-          if (v !== undefined) {
-            defComputed(
+          if (v !== undefined && v !== child) {
+            if (child) this.$set(this, key, v);
+            else defComputed(
               res,
               key,
               () => this._inherits[key],
@@ -485,7 +506,7 @@ class ReactVueLike extends React.Component {
     bindMethods(this, this._methods);
     const pMethods = {};
     Object.getOwnPropertyNames(this.$options.prototype)
-      .filter(key => !ReactVueLike.prototype[key])
+      .filter(key => !ReactVueLikeComponent.prototype[key])
       .map(key => isFunction(this[key]) && (pMethods[key] = this[key]));
     bindMethods(this, pMethods);
   }
@@ -571,6 +592,7 @@ class ReactVueLike extends React.Component {
 
   _callListener(eventName, handlers, args) {
     const map = {
+      hookMounted: 'componentDidMount',
       hookBeforeUpdate: 'getSnapshotBeforeUpdate',
       hookUpdated: 'componentDidUpdate',
       hookActivated: 'componentDidActivate',
@@ -607,29 +629,10 @@ class ReactVueLike extends React.Component {
   }
 
   _shouldComponentUpdate(nextProps, nextState) {
-    return Boolean(this._checkActive(this._shouldComponentUpdateFn, [nextProps, nextState]));
-  }
-
-  static use(plugin, options = {}, ...args) {
-    let install = isFunction(plugin)
-      ? plugin
-      : plugin.install
-        ? plugin.install.bind(plugin)
-        : null;
-    if (!install) throw Error('ReactVueLike.use error: plugin need has \'install\' method!');
-    return install(ReactVueLike, options, ...args);
-  }
-
-  static config(options = {}) {
-    Object.assign(config, options);
-    if (config.enforceActions !== undefined) {
-      configure({ enforceActions: config.enforceActions ? 'observed' : 'never' });
-    }
-  }
-
-  static mixin(m) {
-    if (!m) return;
-    ReactVueLike.mixins.push(m);
+    let ret1 = this._checkActive(this._shouldComponentUpdateFn, [nextProps, nextState]);
+    let shouldComponentUpdate1 = this.$options.vuelikeProto.shouldComponentUpdate;
+    let ret2 = !shouldComponentUpdate1 || shouldComponentUpdate1(nextProps, nextState);
+    return Boolean(ret1 || ret2);
   }
 
   static isRoot = false;
@@ -643,8 +646,6 @@ class ReactVueLike extends React.Component {
   static props = {}
 
   static components = {}
-
-  static mixins = []
 
   static directives = {}
 
@@ -666,26 +667,26 @@ class ReactVueLike extends React.Component {
 
   static methods = {}
 
-  $mount(elementOrSelector) {
-    if (!elementOrSelector) throw new Error('$mount error: elementOrSelector can not be null!');
-    let el;
-    let sc = false;
-    if (typeof elementOrSelector === 'string') el = document.getElementById(elementOrSelector);
-    else if (elementOrSelector instanceof Element) el = elementOrSelector;
-    else {
-      el = document.createElement('div');
-      sc = true;
-    }
-    // throw new Error(`$mount error: elementOrSelector ${elementOrSelector} is not support type!`);
-    let instance = this;
-    const ReactVueLikeProxy = function ReactVueLikeProxy(props) {
-      return instance;
-    };
-    ReactVueLikeProxy.prototype = React.Component.prototype;
-    ReactVueLikeProxy.dispalyName = this.$options.dispalyName || this.$options.name;
-    ReactDOM.render(React.createElement(ReactVueLikeProxy, this.props), el);
-    return sc ? el : instance;
-  }
+  // $mount(elementOrSelector) {
+  //   if (!elementOrSelector) throw new Error('$mount error: elementOrSelector can not be null!');
+  //   let el;
+  //   let sc = false;
+  //   if (typeof elementOrSelector === 'string') el = document.getElementById(elementOrSelector);
+  //   else if (elementOrSelector instanceof Element) el = elementOrSelector;
+  //   else {
+  //     el = document.createElement('div');
+  //     sc = true;
+  //   }
+  //   // throw new Error(`$mount error: elementOrSelector ${elementOrSelector} is not support type!`);
+  //   let instance = this;
+  //   const ReactVueLikeProxy = function ReactVueLikeProxy(props) {
+  //     return instance;
+  //   };
+  //   ReactVueLikeProxy.prototype = React.Component.prototype;
+  //   ReactVueLikeProxy.dispalyName = this.$options.dispalyName || this.$options.name;
+  //   ReactDOM.render(React.createElement(ReactVueLikeProxy, this.props), el);
+  //   return sc ? el : instance;
+  // }
 
   $destroy() {
     ReactDOM.unmountComponentAtNode(this.$el);
@@ -759,18 +760,18 @@ class ReactVueLike extends React.Component {
         if (value && !isObservable(value) && (isPlainObject(value) || Array.isArray(value))) value = observable(value);
         _expr[key] = value;
       });
-      return ReactVueLike.runAction(() => set(target, _expr));
+      return runInAction(() => set(target, _expr));
     }
     let { obj, key } = parseExpr(target, expr);
     if (obj && key) {
       if (value && !isObservable(value) && (isPlainObject(value) || Array.isArray(value))) value = observable(value);
-      ReactVueLike.runAction(() => set(obj, key, value));
+      runInAction(() => set(obj, key, value));
     }
   }
 
   $delete(target, expr) {
     if (isObject(expr)) {
-      return Object.keys(expr).forEach(key => this.$delete(target, expr[key]));
+      return Object.keys(expr).forEach(key => remove(target, expr[key]));
     }
     let { obj, key } = parseExpr(target, expr);
     if (obj && key) remove(obj, key);
@@ -847,7 +848,6 @@ class ReactVueLike extends React.Component {
       () => this.$emit('hook:beforeMount'),
       () => this.$emit('hook:mounted'),
     );
-    return this._callProto('componentDidMount', arguments);
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
@@ -886,29 +886,20 @@ class ReactVueLike extends React.Component {
 
 }
 
-innumerable(ReactVueLike.prototype, '_c', ReactVueLike.prototype._resolveComp);
-innumerable(ReactVueLike.prototype, '_a', ReactVueLike.prototype._resolveAction);
-innumerable(ReactVueLike.prototype, '_r', ReactVueLike.prototype._resolveRef);
-innumerable(ReactVueLike.prototype, '_f', ReactVueLike.prototype._resolveFilter);
-innumerable(ReactVueLike.prototype, '_o', ReactVueLike.prototype._resolveRootAttrs);
-innumerable(ReactVueLike.prototype, '_s', ReactVueLike.prototype._resolveSlot);
+const ALIAS_METHODS = {
+  _resolveComp: '_c',
+  _resolveAction: '_a',
+  _resolveRef: '_r',
+  _resolveFilter: '_f',
+  _resolveRootAttrs: '_o',
+  _resolveSlot: '_s',
+};
+Object.keys(ALIAS_METHODS).forEach(key => innumerable(
+  ReactVueLikeComponent.prototype, 
+  ALIAS_METHODS[key], 
+  ReactVueLikeComponent.prototype[key]
+));
 
-ReactVueLike.config.optionMergeStrategies = config.optionMergeStrategies;
-ReactVueLike.config.inheritMergeStrategies = config.inheritMergeStrategies;
-ReactVueLike.runAction = runInAction;
-ReactVueLike.set = ReactVueLike.prototype.set;
-ReactVueLike.delete = ReactVueLike.prototype.delete;
-ReactVueLike.observable = observable;
-ReactVueLike.flow = flow;
-ReactVueLike.action = action;
-ReactVueLike.set = ReactVueLike.prototype.$set;
-ReactVueLike.delete = remove;
-ReactVueLike.isObservable = isObservable;
-ReactVueLike.extendObservable = extendObservable;
+innumerable(ReactVueLikeComponent, VUE_LIKE_CLASS, true);
 
-innumerable(ReactVueLike, '_k', checkKeyCodes);
-
-innumerable(ReactVueLike, 'build', __timestamp);
-innumerable(ReactVueLike, VUE_LIKE_CLASS, true);
-
-export default ReactVueLike;
+export default ReactVueLikeComponent;

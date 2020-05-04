@@ -5,94 +5,75 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
-require("core-js/modules/es7.symbol.async-iterator");
-
-require("core-js/modules/es6.symbol");
-
-require("core-js/modules/es6.object.set-prototype-of");
-
-require("core-js/modules/es6.regexp.match");
-
 var _react = _interopRequireDefault(require("react"));
 
 var _reactVueLike = _interopRequireDefault(require("react-vue-like"));
 
+var _reactViewRouter = require("react-view-router");
+
+var _dpl = require("dpl");
+
+var _bodyLoading = _interopRequireDefault(require("@/components/common/body-loading"));
+
+var _history = _interopRequireDefault(require("@/history"));
+
+var _vuelike = _interopRequireDefault(require("@/vuelike"));
+
+require("./app-index.scss?react-vue-like&scoped=true&id=v-9dbd2aa8");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
-
-function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-
-function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
-
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-
-var App =
-/*#__PURE__*/
-function (_ReactVueLike) {
-  _inherits(App, _ReactVueLike);
-
-  function App() {
-    _classCallCheck(this, App);
-
-    return _possibleConstructorReturn(this, _getPrototypeOf(App).apply(this, arguments));
+class AppIndex extends _reactVueLike.default.Component {
+  mounted() {
+    this.init();
   }
 
-  _createClass(App, [{
-    key: "render",
-    value: function render() {
-      return _react.default.createElement("div", {
-        className: "root"
-      }, _react.default.createElement("span", {
-        className: "app-window-icon",
-        onClick: this.windowMax,
-        style: {
-          display: !this.isWindowMax ? null : "none"
-        }
-      }, "1"), _react.default.createElement("span", {
-        className: "app-window-icon",
-        onClick: this.windowRestore,
-        style: {
-          display: this.isWindowMax ? null : "none"
-        }
-      }, "2"));
-    }
-  }], [{
-    key: "data",
-    value: function data() {
-      var namespace1 = "react-vue-like";
-      var namespace = "react-vue-like".match(/\/?([0-9a-z-]+)$/)[1];
-      return {
-        __dirname: "/preset/demo/src",
-        dirname: a.__dirname,
-        filename: "/preset/demo/src/app.js",
-        now: "2020-02-25 09:19:41",
-        vif: true,
-        vshow: true,
-        formData: {
-          text: 'aaa'
-        },
-        namespace: namespace,
-        namespace1: namespace1,
-        languages: ['JavaScript', 'TypeScript', 'Python', 'Rust', 'Scala']
-      };
-    }
-  }]);
+  render() {
+    return /*#__PURE__*/_react.default.createElement("div", {
+      className: "v-9dbd2aa8 app-index"
+    }, /*#__PURE__*/_react.default.createElement(_bodyLoading.default, {
+      className: "v-9dbd2aa8",
+      store: this.$store
+    }), /*#__PURE__*/_react.default.createElement(_reactViewRouter.RouterView, {
+      className: "v-9dbd2aa8",
+      router: _history.default,
+      fallback: /*#__PURE__*/_react.default.createElement(_dpl.Loading, {
+        className: "v-9dbd2aa8 dpl-embed-loading",
+        showMask: true,
+        text: "\u52A0\u8F7D\u4E2D",
+        visible: true
+      })
+    }));
+  }
 
-  return App;
-}(_reactVueLike.default);
+}
 
-App.__vuelike = true;
-App.__file = "/preset/demo/src/app.js";
-var _default = App;
+AppIndex.__file = "/preset/demo/src/app.js";
+
+_defineProperty(AppIndex, "isRoot", _vuelike.default);
+
+_defineProperty(AppIndex, "computed", {
+  account() {
+    return this.$store.state.account;
+  },
+
+  customer() {
+    return this.$store.state.customer;
+  },
+
+  customerList() {
+    return this.$store.state.customerList;
+  }
+
+});
+
+_defineProperty(AppIndex, "methods", {
+  init() {}
+
+});
+
+AppIndex.__vuelike = true;
+var _default = AppIndex;
 exports.default = _default;

@@ -1,9 +1,11 @@
 import React from 'react';
+import Test from 'test';
+// import ReactVueLike from 'react-vue-like';
 
-class App extends ReactVueLike {
+class App extends ReactVueLike.Component {
 
   render() {
-    return (<div class="root" {...props1}>
+    return (<Test.Child class="root" {...props1}>
       <span v-test_dd$aa$bb={[1,'2',true, null, undefined,
         new Date(1, a), new RegExp(), /dd/i, this.vif, {}, [],
         fun(), (function func1(aa = {}, { dd: cc }, [ dd = 1 ]){ let ee = 1, rr; }), ...ddd,
@@ -13,9 +15,9 @@ class App extends ReactVueLike {
         `11${1}22${3}44`
       ]}>
       </span>
-      <Test dd="1" />
+
       <Test2 v-test2={{ aa: 1 }} />
-    </div>);
+    </Test.Child>);
   }
 
 }

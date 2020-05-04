@@ -8,14 +8,14 @@ module.exports = {
         modules: 'commonjs',
         useBuiltIns: 'usage',
         corejs: 2,
-        targets: { browsers: ['Chrome >= 31'] }
+        targets: { browsers: ['Chrome >= 78'] }
       }
     ],
     ['@babel/preset-react', {
       // pragma: 'ReactVueLike._ce',
     }],
-    path.resolve('./preset/index.js'),
-  ],
+    process.env.NODE_ENV === 'production' ? null : path.resolve('./preset/index.js'),
+  ].filter(Boolean),
   plugins: [
     '@babel/plugin-syntax-jsx',
     ['@babel/plugin-proposal-decorators', { legacy: true }],

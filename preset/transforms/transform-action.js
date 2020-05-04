@@ -1,4 +1,4 @@
-const { LibraryName, LibraryVarName, findClassStaticPath, expr2var, isObserverClass } = require('../utils');
+const { LibraryName, LibraryVarName, findClassStaticPath, expr2var, expr2str, isObserverClass } = require('../utils');
 
 const COMP_METHS = [
   'data',
@@ -13,6 +13,7 @@ module.exports = function ({ types: t, template }) {
 
   function asyncToGen(asyncPath) {
     let node = asyncPath.node;
+    if (!node.async) return;
     node.async = false;
     node.generator = true;
     asyncPath.traverse({
@@ -168,30 +169,34 @@ module.exports = function ({ types: t, template }) {
       ClassDeclaration: ClassVisitor,
       ClassExpression: ClassVisitor,
       CallExpression(path) {
+        if (handled.includes(path.node)) return path.skip();
+        handled.push(path.node);
+
+        const arg1 = path.node.arguments[0];
+        if (!arg1 || (!t.isFunctionExpression(arg1)
+          && !t.isArrowFunctionExpression(arg1))
+          || !arg1.async) return;
+
         const callee = path.node.callee;
-        let a;
+        
         if (t.isIdentifier(callee) && callee.name === 'action') {
-          a = path.scope.bindings.action;
+          let a = path.scope.bindings.action;
           if (!a || !t.isImportDeclaration(a.path.parent)
             || a.path.parent.source.value !== LibraryName) return;
-        } else if (t.isMemberExpression(callee) && expr2var(callee) === `${LibraryVarName}.action`) {
-          //
-        } else return;
-        const FunctionVisitor = function (funcPath) {
-          if (funcPath.parent !== path.node) return;
-          if (funcPath.node.async) {
-            asyncToGen(funcPath);
-            if (t.isMemberExpression(callee)) {
-              callee.property.name = 'flow';
-            } else if (a) {
-              path.get('callee').replaceWith(flowExpr);
-            }
+          callee.name = 'flow';
+        } else if (t.isMemberExpression(callee)) {
+          const calleeName = expr2str(callee);
+          if (`${LibraryVarName}.action` === calleeName) {
+            callee.property.name = 'flow';
+          } else if (`${LibraryVarName}.runAction` === calleeName) {
+            let arg1Name = expr2str(arg1);
+            if (arg1Name === `${LibraryVarName}.flow`) return;
+            let argPath = path.get('arguments.0');
+            asyncToGen(argPath);
+            argPath.replaceWith(t.callExpression(flowExpr, [...path.node.arguments]));
+            // path.node.arguments.splice(0, 1, );
           }
-        };
-        path.traverse({
-          ArrowFunctionExpression: FunctionVisitor,
-          FunctionExpression: FunctionVisitor,
-        });
+        }
       }
     }
   };
