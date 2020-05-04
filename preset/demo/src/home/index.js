@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactVueLike from 'react-vue-like';
 
-class HomeIndex extends ReactVueLike {
+class HomeIndex extends ReactVueLike.Component {
 
   static data() {
     return {

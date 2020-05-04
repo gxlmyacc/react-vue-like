@@ -3,7 +3,7 @@ import React from 'react';
 import './test.scss';
 import './index.scss?scoped';
 
-class App extends ReactVueLike {
+class App extends ReactVueLike.Component {
 
   constructor(props) {
     super(props);

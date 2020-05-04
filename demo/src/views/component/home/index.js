@@ -2,7 +2,7 @@ import React from 'react';
 import ReactVueLike from 'react-vue-like';
 import { RouterView } from 'react-view-router';
 
-class HomeIndex extends ReactVueLike {
+class HomeIndex extends ReactVueLike.Component {
 
   render() {
     return (

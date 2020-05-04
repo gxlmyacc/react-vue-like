@@ -4,7 +4,7 @@ import ReactVueLike from 'react-vue-like';
 import { RouterView } from 'react-view-router';
 import AppHeader from './app-header';
 
-class App extends ReactVueLike {
+class App extends ReactVueLike.Component {
 
   static methods = {
     updateRef(el) {

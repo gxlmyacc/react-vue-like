@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactVueLike, { action } from 'react-vue-like';
 
-class UpdatePwdModal extends ReactVueLike {
+class UpdatePwdModal extends ReactVueLike.Component {
 
   // static data() {
   //   return {

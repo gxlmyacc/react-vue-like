@@ -67,7 +67,7 @@ see [Vue props](https://vuejs.org/v2/api/index.html#props)
 
  example:
  ```js
- class Test extends ReactVueLike {
+ class Test extends ReactVueLike.Component {
    static props = {
      aa: {
        type: String,
@@ -81,7 +81,7 @@ see [Vue props](https://vuejs.org/v2/api/index.html#props)
 equals:
  ```js
  import PropTypes from 'prop-types';
- class Test extends ReactVueLike {
+ class Test extends ReactVueLike.Component {
    static propTypes = {
      aa: PropTypes.string.isRequired,
      bb: PropTypes.bool
@@ -101,7 +101,7 @@ see [Vue components](https://vuejs.org/v2/api/index.html#components)
  ```js
  import AComponent from './AComponent';
 
- class Test extends ReactVueLike {
+ class Test extends ReactVueLike.Component {
    static components = {
      AComponent
    }
@@ -115,7 +115,7 @@ see [Vue components](https://vuejs.org/v2/api/index.html#components)
 ### `filters`
  example:
  ```js
- class Test extends ReactVueLike {
+ class Test extends ReactVueLike.Component {
    static filters = {
      prefix(val, suffix = '') {
        return `test:${val}${suffix}`;
@@ -139,7 +139,7 @@ see [Vue directives](https://vuejs.org/v2/api/index.html#directives)
 
 example:
   ```js
-  class Test extends ReactVueLike {
+  class Test extends ReactVueLike.Component {
    static directives = {
      test: {
        bind(el, binding, vnode) {
@@ -180,7 +180,7 @@ example:
 see [Vue mixin](https://vuejs.org/v2/api/index.html#mixins)
  example:
 ```js
-class Test extends ReactVueLike {
+class Test extends ReactVueLike.Component {
   static mixins = [
     {
       data() {
@@ -208,7 +208,7 @@ class Test extends ReactVueLike {
 see [Vue data](https://vuejs.org/v2/api/index.html#data)
  example:
  ```js
- class Test extends ReactVueLike {
+ class Test extends ReactVueLike.Component {
    static data() {
      return {
        text: 'aa',
@@ -232,7 +232,7 @@ see [Vue methods](https://vuejs.org/v2/api/index.html#methods)
 
  example:
  ```js
- class Test extends ReactVueLike {
+ class Test extends ReactVueLike.Component {
    static methods = {
      test1() {
        console.log('test1');
@@ -257,7 +257,7 @@ see [Vue computed](https://vuejs.org/v2/api/index.html#computed)
 
 example:
 ```js
-class Test extends ReactVueLike {
+class Test extends ReactVueLike.Component {
   static data() {
     return {
       text: 'aa',
@@ -295,7 +295,7 @@ see [Vue watch](https://vuejs.org/v2/api/index.html#watch)
 example:
 
 ```js
-class Test extends ReactVueLike {
+class Test extends ReactVueLike.Component {
   static data() {
     return {
       text: 'aa',
@@ -323,7 +323,7 @@ see [Options-Lifecycle-Hooks](https://vuejs.org/v2/api/index.html#Options-Lifecy
 
 example:
 ```js
-class Test extends ReactVueLike {
+class Test extends ReactVueLike.Component {
 
   breforeCreate() { }
 
@@ -376,7 +376,7 @@ import ReactVueLike from 'react-vue-like';
 
 import './test.scss?scoped';
 
-class Test extends ReactVueLike {
+class Test extends ReactVueLike.Component {
 
   render() {
     return (<div className="aa">
@@ -415,7 +415,7 @@ import ReactVueLike from 'react-vue-like';
 
 import './test.scss?scoped';
 
-class Test extends ReactVueLike {
+class Test extends ReactVueLike.Component {
 
   render() {
     return (<div className="v-123dse43 aa">
@@ -435,7 +435,7 @@ example:
 import React from 'react';
 import ReactVueLike from 'react-vue-like';
 
-class ChildComponent extends ReactVueLike {
+class ChildComponent extends ReactVueLike.Component {
 
   render() {
     return (<div>
@@ -457,7 +457,7 @@ import React from 'react';
 import ReactVueLike from 'react-vue-like';
 import ChildComponent from './ChildComponent';
 
-class ParentComponent extends ReactVueLike {
+class ParentComponent extends ReactVueLike.Component {
 
   render() {
     return (<ChildComponent>
@@ -486,7 +486,7 @@ example:
 import React from 'react';
 import ReactVueLike from 'react-vue-like';
 
-class Test extends ReactVueLike {
+class Test extends ReactVueLike.Component {
 
   static data() {
     return {
@@ -528,7 +528,7 @@ example:
 import React from 'react';
 import ReactVueLike from 'react-vue-like';
 
-class Test extends ReactVueLike {
+class Test extends ReactVueLike.Component {
 
   render() {
     return (<div>
@@ -550,7 +550,7 @@ import React from 'react';
 import ReactVueLike from 'react-vue-like';
 import ChildComponent from './ChildComponent';
 
-class ParentComponent extends ReactVueLike {
+class ParentComponent extends ReactVueLike.Component {
 
   mounted() {
     this.$on('change-user', (user) => {
@@ -578,7 +578,7 @@ class ParentComponent extends ReactVueLike {
 import React from 'react';
 import ReactVueLike from 'react-vue-like';
 
-class ChildComponent extends ReactVueLike {
+class ChildComponent extends ReactVueLike.Component {
 
   render() {
     return (<div>
@@ -595,7 +595,7 @@ class ChildComponent extends ReactVueLike {
   img src attribute string value transform to `require` expression
  example:
 ```js
-class Test extends ReactVueLike {
+class Test extends ReactVueLike.Component {
 
   render() {
     return (<div>
@@ -612,7 +612,7 @@ class Test extends ReactVueLike {
 `string ref` transform to `ref function` and set `ref` to `$refs`. see[vue ref](https://vuejs.org/v2/api/index.html#ref)
 
 ```js
-class Test extends ReactVueLike {
+class Test extends ReactVueLike.Component {
 
   static data() {
     return {
@@ -678,7 +678,7 @@ default ReactVueLike component will inherit `className`, `style`, `id`, `disable
 `class attribute` in jsx will transfrom to `className`, and now `class/className` support `String/Array/Object` types. see [Vue class](https://vuejs.org/v2/guide/class-and-style.html)
 
 ```js
-class Test extends ReactVueLike {
+class Test extends ReactVueLike.Component {
   
   static data() {
     return {
@@ -706,7 +706,7 @@ see:
 ```js
 import Child from './child';
 
-class Test extends ReactVueLike {
+class Test extends ReactVueLike.Component {
  
   render() {
     return (<div>
@@ -731,7 +731,7 @@ class Test extends ReactVueLike {
 ```
 
 ```js
-class Child extends ReactVueLike {
+class Child extends ReactVueLike.Component {
  
   changeAa() {
     this.$emit('change:aa', 1);
@@ -755,7 +755,7 @@ import React from 'react';
 import ReactVueLike from 'react-vue-like';
 import ChildComponent from './ChildComponent';
 
-class ParentComponent extends ReactVueLike {
+class ParentComponent extends ReactVueLike.Component {
 
   static provide() {
     return {
@@ -783,7 +783,7 @@ class ParentComponent extends ReactVueLike {
 import React from 'react';
 import ReactVueLike from 'react-vue-like';
 
-class ChildComponent extends ReactVueLike {
+class ChildComponent extends ReactVueLike.Component {
 
   static inject = ['formData'];
 
@@ -1053,7 +1053,7 @@ import SomeComponent from './SomeComponent';
 // scoped css
 import './app.scss?scoped';
 
-class App extends ReactVueLike {
+class App extends ReactVueLike.Component {
 
   static isRoot = true
 
@@ -1097,7 +1097,7 @@ import ReactVueLike from 'react-vue-like';
 // scoped css
 import './some-component.scss?scoped';
 
-class SomeComponent extends ReactVueLike {
+class SomeComponent extends ReactVueLike.Component {
 
   static computed = {
     user() {
@@ -1140,7 +1140,7 @@ import ReactVueLike from 'react-vue-like';
 // scoped css
 import './test.scss?scoped';
 
-class Test extends ReactVueLike {
+class Test extends ReactVueLike.Component {
 
   static computed = {
     user() {

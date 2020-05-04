@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactVueLike from 'react-vue-like';
 
-class HomeMainSomeFooter extends ReactVueLike {
+class HomeMainSomeFooter extends ReactVueLike.Component {
 
   static data() {
     return {

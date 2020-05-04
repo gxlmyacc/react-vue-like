@@ -2,7 +2,7 @@ import React from 'react';
 import ReactVueLike, {action} from 'react-vue-like';
 import router from 'router';
 
-class HomeMainSomeIndex extends ReactVueLike {
+class HomeMainSomeIndex extends ReactVueLike.Component {
 
   static data() {
     return {

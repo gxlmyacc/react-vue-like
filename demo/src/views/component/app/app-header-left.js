@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactVueLike from 'react-vue-like';
 
-class AppHeaderLeft extends ReactVueLike {
+class AppHeaderLeft extends ReactVueLike.Component {
 
   render() {
     return (<div {...this.props}>

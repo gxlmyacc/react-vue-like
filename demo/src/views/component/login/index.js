@@ -2,7 +2,7 @@ import React from 'react';
 import router from 'router';
 import ReactVueLike from 'react-vue-like';
 
-class LoginIndex extends ReactVueLike {
+class LoginIndex extends ReactVueLike.Component {
 
   static methods = {
     doLogin() {

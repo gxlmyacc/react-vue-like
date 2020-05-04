@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactVueLike from 'react-vue-like';
 
-class App extends ReactVueLike {
+class App extends ReactVueLike.Component {
 
   static methods = {
     test() {

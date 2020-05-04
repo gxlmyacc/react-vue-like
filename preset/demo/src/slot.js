@@ -1,6 +1,6 @@
 import React from 'react';
 
-class App extends ReactVueLike {
+class App extends ReactVueLike.Component {
 
   static inheritAttrs = true;
 
