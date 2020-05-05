@@ -1,7 +1,7 @@
 const hash = require('hash-sum');
 const options = require('../options');
 const {
-  LibraryName,
+  LibraryName, SlotComponentName,
   isObserverClass, expr2var, isFunction, ObserverName,
   /* findClassVarName */
 } = require('../utils');
@@ -11,7 +11,7 @@ function createScopeId(filename) {
   return `v-${hash(filename.replace(/\\/g, '/'))}`;
 }
 
-const excluedTags = ['template', 'slot', ObserverName];
+const excluedTags = ['template', 'slot', SlotComponentName, ObserverName];
 
 module.exports = function ({ types: t, template }) {
   const scopeAttrs = options.inject.scopeAttrs;

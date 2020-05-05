@@ -1,16 +1,9 @@
 import React from 'react';
-import { Observer, innumerable, isVueLikeComponent } from './utils';
+import { Observer, innumerable } from './utils';
 import collect from './collect';
-import ReactVueLike from './vue-like';
+import ReactVueLike from './vuelike';
 import Async from './async';
-import beforeClass from './before-class';
-
-function removePropSolts(props) {
-  if (props && props.$slots) {
-    Object.assign(props, props.$slots);
-    delete props.$slots;
-  }
-}
+import { fallbackConstructor, otherConstructor } from './constructor';
 
 const _createElement = React.createElement;
 const _cloneElement = React.cloneElement;
@@ -19,7 +12,7 @@ const _forceUpdate = React.Component.prototype.forceUpdate;
 const builtInTags = {
   template: React.Fragment,
   async: Async,
-  observer: Observer
+  observer: Observer,
 };
 
 const createElement = function (Component, props, ...children) {
@@ -28,11 +21,11 @@ const createElement = function (Component, props, ...children) {
 };
 
 function createElementHook(Component, props, ...children) {
-  const $component = props && props.$component;
-  if ($component) {
-    Component = $component;
-    delete props.$component;
-  }
+  // const $component = props && props.$component;
+  // if ($component) {
+  //   Component = $component;
+  //   delete props.$component;
+  // }
 
   if (!Component) return _createElement.call(this, Component, props, ...children);
 
@@ -40,12 +33,15 @@ function createElementHook(Component, props, ...children) {
     if (c instanceof Promise) children[i] = createElement.call(this, Async, { promise: c });
   });
 
+  let builtIn;
   if (typeof Component === 'string') {
-    let newComponent = builtInTags[Component];
-    if (newComponent !== undefined) Component = newComponent;
+    let builtIn = builtInTags[Component];
+    if (builtIn !== undefined) Component = builtIn;
   }
   
+  let isVuelike = false;
   if (Component.vuelikeConstructor) {
+    isVuelike = true;
     let newComponent = Component.vuelikeConstructor(Component, props || {}, children, React);
     if (newComponent !== undefined) Component = newComponent;
   }
@@ -55,12 +51,9 @@ function createElementHook(Component, props, ...children) {
     if (newComponent !== undefined) Component = newComponent;
   }
 
-  const $slotFn = props && props.$slotFn;
-  if ($slotFn) return $slotFn(props || {}, children);
+  if (!builtIn && !isVuelike) otherConstructor(props, children, React);
 
-  if (!isVueLikeComponent(Component)) removePropSolts(props);
-
-  beforeClass(props);
+  fallbackConstructor(props, children, React);
 
   return createElement.call(this, Component, props, ...children);
 }

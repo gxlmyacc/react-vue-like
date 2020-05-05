@@ -7,7 +7,15 @@ exports.default = void 0;
 
 require("core-js/modules/es7.symbol.async-iterator");
 
+require("core-js/modules/es7.object.get-own-property-descriptors");
+
 require("core-js/modules/es6.symbol");
+
+require("core-js/modules/web.dom.iterable");
+
+require("core-js/modules/es6.array.iterator");
+
+require("core-js/modules/es6.object.keys");
 
 require("core-js/modules/es6.regexp.to-string");
 
@@ -24,6 +32,12 @@ var _reactVueLike = _interopRequireDefault(require("react-vue-like"));
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -45,8 +59,6 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 var App = /*#__PURE__*/function (_ReactVueLike$Compone) {
   _inherits(App, _ReactVueLike$Compone);
 
@@ -61,30 +73,24 @@ var App = /*#__PURE__*/function (_ReactVueLike$Compone) {
   _createClass(App, [{
     key: "render",
     value: function render() {
-      var a = [1, 2, 3];
-      console.log(a);
-      return /*#__PURE__*/_react.default.createElement("div", null, this.props.children);
-    }
-  }], [{
-    key: "data",
-    value: function data() {
-      return {
-        header: true,
-        body: true,
-        footer: true
-      };
+      return /*#__PURE__*/_react.default.createElement("div", {
+        className: "root"
+      }, /*#__PURE__*/_react.default.createElement(this._c("AComponent"), {
+        a: "1",
+        b: 2,
+        c: _objectSpread({}, this.props)
+      }, "1"), /*#__PURE__*/_react.default.createElement(this._c("BComponen"), {
+        a: "1",
+        b: 2,
+        c: _objectSpread({}, this.props)
+      }));
     }
   }]);
 
   return App;
 }(_reactVueLike.default.Component);
 
-App.__file = "/preset/demo/src/slot.js";
-
-_defineProperty(App, "inheritAttrs", true);
-
-_defineProperty(App, "methods", {});
-
+App.__file = "/preset/demo/src/component.js";
 App.__vuelike = true;
 var _default = App;
 exports.default = _default;

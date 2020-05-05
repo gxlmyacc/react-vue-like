@@ -669,7 +669,7 @@ class Test extends ReactVueLike.Component {
 like `$el`,`$options`,`$parent`,`$root`,`$refs`,`$slots`,`$attrs`. see[Instance-Properties](https://vuejs.org/v2/api/index.html#Instance-Properties)
 
 ### `Vue like methods` 
-like `$nextTick`,`$set`,`$delete`,`$watch`,`$emit`,`$on`,`$off`,`$once`,`renderError`, `ReactVueLike.use`, `ReactVueLike.config`. see [Instance-Methods-Data](https://vuejs.org/v2/api/index.html#Instance-Methods-Data) and [Instance-Methods-Events](https://vuejs.org/v2/api/index.html#Instance-Methods-Events)
+like `$nextTick`,`$set`,`$delete`,`$watch`,`$emit`,`$on`,`$off`,`$once`,`renderError`, `ReactVueLike.use`, `ReactVueLike.configure`. see [Instance-Methods-Data](https://vuejs.org/v2/api/index.html#Instance-Methods-Data) and [Instance-Methods-Events](https://vuejs.org/v2/api/index.html#Instance-Methods-Events)
 
 ### `Attrs Inheirt` 
 default ReactVueLike component will inherit `className`, `style`, `id`, `disabled` attributes that be defined in it`s parent component

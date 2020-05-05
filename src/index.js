@@ -2,10 +2,11 @@ import ReactVueLikeComponent from './component';
 import withVuelike from './hoc';
 import Directive from './directive';
 import Mixin from './mixin';
+import Slot from './slot';
 import hook from './hook';
 import { innumerable, checkKeyCodes, defaultMergeStrategies, directivesMergeStrategies, filtersMergeStrategies } from './utils';
 import vuelikeConstructor from './constructor';
-import ReactVueLike from './vue-like';
+import ReactVueLike from './vuelike';
 import { observable, isObservable, extendObservable, remove, action, runInAction, flow } from './mobx';
 import config from './config';
 
@@ -24,6 +25,7 @@ const STATIC_METHODS = {
   Mixin,
   Directive,
   Component: ReactVueLikeComponent,
+  Slot,
   runAction: runInAction,
   set: ReactVueLikeComponent.prototype.$set,
   delete: ReactVueLikeComponent.prototype.$delete,

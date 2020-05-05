@@ -4,7 +4,7 @@ import { observer } from 'mobx-react';
 import { isObservable, extendObservable, observe, when, set, remove, action, runInAction, observable } from './mobx';
 import {
   isPrimitive, isFalsy, isObject, isPlainObject, warn, isProduction, innumerable, VUE_LIKE_CLASS,
-  parseExpr, camelize, isFunction, iterativeParent, handleError, defComputed, mergeObject
+  parseExpr, camelize, isFunction, iterativeParent, handleError, defComputed, mergeObject, ClassPropertyNames
 } from './utils';
 import config from './config';
 
@@ -114,7 +114,7 @@ function initListeners(ctxs, props) {
   return listeners;
 }
 
-function parseProps(target, propTypes) {
+function parseProps(target, propTypes, slots) {
   const propData = {};
   const attrs = {};
   if (!propTypes) propTypes = {};
@@ -126,6 +126,8 @@ function parseProps(target, propTypes) {
       if (Array.isArray(target.inheritAttrs) && ~target.inheritAttrs.indexOf(key)) return;
       if (~config.inheritAttrs.indexOf(key)) return;
     }
+    // if (slots.includes(key)) return;
+
     defComputed(attrs, key, () => this.props[key], null, { enumerable: key !== 'children' });
   });
   return { propData, attrs };
@@ -155,7 +157,7 @@ class ReactVueLikeComponent extends React.Component {
     this._shouldComponentUpdateFn = this.shouldComponentUpdate;
     this.shouldComponentUpdate = this._shouldComponentUpdate;
   
-    const { propData, attrs } = parseProps.call(this, target, propTypes);
+    const { propData, attrs } = parseProps.call(this, target, propTypes, props.$slots || []);
   
     this._isVueLike = true;
     this._ticks = [];
@@ -171,13 +173,13 @@ class ReactVueLikeComponent extends React.Component {
     this.$root = null;
     this.$children = [];
     this.$attrs = attrs;
-    this.$slots = props.$slots || {};
+    this.$slots = {};
     this.$ref = props.$ref || null;
     this.$options = target;
     if (isRoot && isRoot.isVueLike) this.$vuelike = isRoot;
   
+    if (props.$slots) props.$slots.forEach(key => this.$slots[key] = props[key]);
     if (this.$slots.default === undefined) this.$slots.default = props.children;
-
   
     defComputed(this, '$el', () => this._el || (this._el = ReactDOM.findDOMNode(this)), v => {
       throw new Error('ReactVueLike.Component error: $el is readonly!');
@@ -251,7 +253,7 @@ class ReactVueLikeComponent extends React.Component {
     defComputed(this, '$isWillUnmount', () => this._isWillUnmount || Boolean(this.parent && this.parent.$isWillUnmount));
   
   
-    this.$emit('hook:beforeCreate', props);
+    this._emit('hookBeforeCreate', [props]);
   
     // if (props.el instanceof Element) this.$mount(props.el);
   }
@@ -297,7 +299,7 @@ class ReactVueLikeComponent extends React.Component {
     if (!component) return;
 
     if (isRoot) {
-      this.$emit('hookBeforeRenderRoot', component, props, children);
+      this._emit('hookBeforeRenderRoot', [component, props, children]);
 
       if (this.$options.inheritAttrs !== false) this._resolveRootAttrs(component, props, true);
       if (this._isVueLikeAbstract && this.$ref && props.ref === undefined) {
@@ -371,7 +373,7 @@ class ReactVueLikeComponent extends React.Component {
       this._resolveWatch();
       if (!this._isVueLikeAbstract) this._resolvePropRef(this);
 
-      this.$emit('hook:created');
+      this._emit('hookCreated');
 
       let pending = this._mountedPending;
       this._mountedPending = [];
@@ -506,8 +508,8 @@ class ReactVueLikeComponent extends React.Component {
     bindMethods(this, this._methods);
     const pMethods = {};
     Object.getOwnPropertyNames(this.$options.prototype)
-      .filter(key => !ReactVueLikeComponent.prototype[key])
-      .map(key => isFunction(this[key]) && (pMethods[key] = this[key]));
+      .filter(key => !VUE_LIKE_METHODS.includes(key) && isFunction(this[key]))
+      .map(key => pMethods[key] = this[key]);
     bindMethods(this, pMethods);
   }
 
@@ -605,12 +607,12 @@ class ReactVueLikeComponent extends React.Component {
       if (isFunction(handlers)) return handlers.call(this, ...args);
       let ret;
       for (let handler of handlers) {
-        ret = handler.call(this, ...args, ret);
+        ret = handler.apply(this, args.concat(ret));
       }
 
       let protoEventName = map[eventName];
       if (protoEventName && this.$options.vuelikeProto[protoEventName]) {
-        ret = this.$options.vuelikeProto[protoEventName].apply(this, args);
+        ret = this.$options.vuelikeProto[protoEventName].apply(this, args.concat(ret));
       }
     
       return ret;
@@ -618,6 +620,10 @@ class ReactVueLikeComponent extends React.Component {
       handleError(e, this, `$emit:${eventName}`);
       throw e;
     }
+  }
+
+  _emit(eventName, payloads = []) {
+    return this._callListener(eventName, this.$listeners[eventName], payloads);
   }
 
   _checkActive(callback, args) {
@@ -779,7 +785,7 @@ class ReactVueLikeComponent extends React.Component {
 
   $emit(eventName, ...payload) {
     eventName = camelize(eventName);
-    return this._callListener(eventName, this.$listeners[eventName], payload);
+    return this._emit(camelize(eventName), payload);
   }
 
   $on(eventName, handler) {
@@ -814,8 +820,14 @@ class ReactVueLikeComponent extends React.Component {
     let node;
     this._isRendering = true;
     try {
+      node = this._emit('hookBeforeRender');
+      if (node !== undefined) return node;
+
       let renderFn = this.$options.vuelikeProto.render;
       node = (renderFn && renderFn.call(this)) || null;
+
+      let newNode = this._emit('hookAfterRender', [node]);
+      return newNode === undefined ? node : newNode;
     } catch (ex) {
       handleError(ex, this, 'render');
       node = this.renderError && this.renderError(ex);
@@ -827,8 +839,14 @@ class ReactVueLikeComponent extends React.Component {
   renderError(ex) {
     let node = null;
     try {
+      node = this._emit('hookBeforeRenderError');
+      if (node !== undefined) return node;
+
       let _renderErrorFn = this.$options.vuelikeProto.renderError;
       node = (_renderErrorFn && _renderErrorFn.call(this, ex)) || null;
+
+      let newNode = this._emit('hookAfterRenderError', [node]);
+      return newNode === undefined ? node : newNode;
     } catch (ex) {
       handleError(ex, this, 'renderError');
     }
@@ -836,8 +854,8 @@ class ReactVueLikeComponent extends React.Component {
   }
 
   getSnapshotBeforeUpdate(prevProps, prevState) {
-    this.$emit('hook:beforeUpdate');
-    return null;
+    let ret = this._emit('hookBeforeUpdate', [prevProps, prevState]);
+    return ret === undefined ? null : ret;
   }
 
   componentDidMount() {
@@ -845,15 +863,15 @@ class ReactVueLikeComponent extends React.Component {
     this._isWillMount = true;
 
     this._resolveWillMount(
-      () => this.$emit('hook:beforeMount'),
-      () => this.$emit('hook:mounted'),
+      () => this._emit('hookBeforeMount'),
+      () => this._emit('hookMounted'),
     );
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
     this._resolveUpdated();
 
-    const ret = this.$emit('hook:updated');
+    const ret = this._emit('hookUpdated', [prevProps, prevState, snapshot]);
 
     this._flushTicks();
 
@@ -863,7 +881,7 @@ class ReactVueLikeComponent extends React.Component {
   componentDidActivate() {
     if (this._isActive) return;
     this._isActive = true;
-    const ret = this.$emit('hook:activated');
+    const ret = this._emit('hookActivated');
     if (this._isDirty) this.forceUpdate();
     return ret;
   }
@@ -871,17 +889,17 @@ class ReactVueLikeComponent extends React.Component {
   componentWillUnactivate() {
     if (!this._isActive) return;
     this._isActive = false;
-    return this.$emit('hook:deactivated');
+    return this._emit('hookDeactivated');
   }
 
   componentWillUnmount() {
-    const ret = this.$emit('hook:beforeDestroy');
+    const ret = this._emit('hookBeforeDestroy');
     this._resolveDestroy();
     return ret;
   }
 
   componentDidCatch(error, info) {
-    return this.$emit('hook:errorCaptured', error, this, info);
+    return this._emit('hookErrorCaptured', [error, info]);
   }
 
 }
@@ -901,5 +919,11 @@ Object.keys(ALIAS_METHODS).forEach(key => innumerable(
 ));
 
 innumerable(ReactVueLikeComponent, VUE_LIKE_CLASS, true);
+
+const VUE_LIKE_METHODS = Object.getOwnPropertyNames(ReactVueLikeComponent.prototype).filter(key => !ClassPropertyNames.includes(key));
+
+export {
+  VUE_LIKE_METHODS
+};
 
 export default ReactVueLikeComponent;

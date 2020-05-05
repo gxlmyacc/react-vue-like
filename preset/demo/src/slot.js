@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactVueLike from 'react-vue-like';
 
 class App extends ReactVueLike.Component {
 

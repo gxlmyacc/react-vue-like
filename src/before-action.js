@@ -1,6 +1,6 @@
 import { action, flow } from './mobx';
-import { isFunction, ClassPropertyNames } from './utils';
-import ReactVueLikeComponent from './component';
+import { isFunction } from './utils';
+import { VUE_LIKE_METHODS } from './component';
 
 const RESERVED_METHODS = [
   'constructor',
@@ -11,8 +11,6 @@ const RESERVED_METHODS = [
   'renderError',
 ];
 
-const VUE_LIKE_METHODS = Object.getOwnPropertyNames(ReactVueLikeComponent.prototype).filter(key => !ClassPropertyNames.includes(key));
-
 function _handleAction(target, key, flows) {
   let v = target[key];
   if (!isFunction(v)) return;
@@ -20,10 +18,6 @@ function _handleAction(target, key, flows) {
   let n = isFlow ? flow(v) : action(key, v);
   if (v !== n) target[key] = n;
 }
-
-export {
-  VUE_LIKE_METHODS
-};
 
 export default function beforeAction(target) {
   if (!target) return;

@@ -1,7 +1,7 @@
 import { configure } from 'mobx';
 import config from './config';
 import {
-  mergeObject, isFunction, isPlainObject
+  mergeObject, isFunction, isPlainObject, camelize
 } from './utils';
 
 
@@ -134,6 +134,7 @@ class ReactVueLike {
   on(name, listener, isComponent) {
     if (!name) throw new Error('[ReactVueLike]on name can not be empty!');
     if (!listener) throw new Error('[ReactVueLike]on listener can not be null!');
+    name = camelize(name);
     let events = isComponent ? this.events.components : this.events.app;
     let listeners = events[name];
     if (!listeners) events[name] = listeners = []; 
@@ -143,6 +144,7 @@ class ReactVueLike {
   }
 
   off(name, listener, isComponent) {
+    name = camelize(name);
     let events = isComponent ? this.events.components : this.events.app;
     return this._off(name, listener, events);
   }

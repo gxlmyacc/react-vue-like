@@ -4,7 +4,10 @@ const {
   childrenToArrayExpr,
   isObserverClass,
   expr2var,
-  expr2str
+  expr2str,
+  LibraryVarName,
+  SlotComponentName,
+  importSpecifier
 } = require('../utils');
 const { compRegx } = require('../options');
 
@@ -24,24 +27,31 @@ module.exports = function ({ types: t, template }) {
           JSXElement(compPath) {
             const tagName = expr2str(compPath.node.openingElement.name);
             if (tagName !== 'slot') return;
-            if (compPath.node.openingElement.attributes.some(attr => attr.name && attr.name.name === '$slotFn')) return;
+
+            if (!this.importSlotComponent) {
+              importSpecifier(path, SlotComponentName);
+              this.importSlotComponent = true;
+            }
+
+            const elementName = t.jsxMemberExpression(t.jsxIdentifier(LibraryVarName), t.jsxIdentifier(SlotComponentName));
+            compPath.node.openingElement.name = elementName;
+            if (compPath.node.closingElement) compPath.node.closingElement.name = elementName;
+
+            // if (compPath.node.openingElement.attributes.some(attr => attr.name && attr.name.name === '$context')) return;
             compPath.node.openingElement.attributes.push(t.jsxAttribute(
-              t.jSXIdentifier('$slotFn'),
-              t.jsxExpressionContainer(
-                template('$THIS$._s')({
-                  $THIS$: t.thisExpression(),
-                }).expression
-              )
+              t.jSXIdentifier('$context'),
+              t.jsxExpressionContainer(t.thisExpression())
             ));
             return path.skip();
           }
-        });
+        }, this);
       }
-    });
+    }, this);
   }
   return {
     pre(state) {
       this.handled = [];
+      this.importSlotComponent = false;
     },
     visitor: {
       ClassDeclaration: ClassVisitor,
@@ -61,6 +71,7 @@ module.exports = function ({ types: t, template }) {
           let slotNode = child;
           if (!t.isJSXElement(slotNode)) continue;
           let openingElement = slotNode.openingElement;
+          let openingElementName = expr2str(openingElement.name);
           let slotAttrIndex = openingElement.attributes.findIndex(a => a.name && (a.name.namespace
             ? a.name.namespace.name === 'v-slot'
             : a.name.name === 'slot'));
@@ -69,22 +80,30 @@ module.exports = function ({ types: t, template }) {
             slotAttr = openingElement.attributes[slotAttrIndex];
             slotAttrName = slotAttr.name.namespace ? slotAttr.name.name.name : slotAttr.value.value;
           }
-          if (openingElement.name.name === 'template') {
+          if (openingElementName === 'template') {
             path.node.children[slotIndex] = slotNode = childrenToArrayExpr(slotNode.children, true);
           }
           if (~slotAttrIndex) {
-            slots.push(t.objectProperty(t.identifier(slotAttrName), slotNode));
             openingElement.attributes.splice(slotAttrIndex, 1);
-            if (slotAttrName !== 'default') path.node.children.splice(slotIndex, 1);
+            if (slotAttrName !== 'default') {
+              slots.push({ name: slotAttrName, node: slotNode });
+              path.node.children.splice(slotIndex, 1);
+            }
           }
         }
         if (slots.length) {
+          slots.forEach(({ name, node }) => {
+            openingElement.attributes.push(t.JSXAttribute(
+              t.jSXIdentifier(name),
+              t.JSXExpressionContainer(node)
+            ));
+          });
           openingElement.attributes.push(t.JSXAttribute(
             t.jSXIdentifier('$slots'),
-            t.JSXExpressionContainer(t.objectExpression(slots))
+            t.JSXExpressionContainer(t.arrayExpression(slots.map(({ name }) => t.stringLiteral(name))))
           ));
         }
       }
-    }
+    },
   };
 };

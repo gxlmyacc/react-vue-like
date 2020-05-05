@@ -1,9 +1,10 @@
 import { isVueLikeClass, hasOwnProperty, innumerable  } from './utils';
 import beforeCollect from './before-collect';
 import beforeProps from './before-props';
-import beforeAction, { VUE_LIKE_METHODS } from './before-action';
+import beforeAction from './before-action';
+import beforeClass from './before-class';
 
-import ReactVueLikeComponent from './component';
+import ReactVueLikeComponent, { VUE_LIKE_METHODS } from './component';
 
 const REACT_LIFECYCLE_HOOKS = [
   'render',
@@ -72,9 +73,25 @@ function vuelikeConstructor(target, props, children) {
   walkMixins(mixins, target);
 }
 
+function otherConstructor(props) {
+  if (!props) return;
+  if (props.$slots) delete props.$slots;
+  // Object.keys(props).forEach(key => {
+  //   if (!/^\$\S+/.test(key)) return;
+  //   delete props[key];
+  // });
+}
+
+function fallbackConstructor(props) {
+  beforeClass(props);
+}
+
+
 export {
   VUE_LIKE_METHODS,
-  REACT_LIFECYCLE_HOOKS
+  REACT_LIFECYCLE_HOOKS,
+  fallbackConstructor,
+  otherConstructor
 };
 
 export default vuelikeConstructor;

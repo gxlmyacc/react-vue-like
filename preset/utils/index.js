@@ -9,6 +9,7 @@ const types = require('./types');
 const LibraryVarName = 'ReactVueLike';
 const DirectiveComponentName = 'Directive';
 const DirectiveName =  `${LibraryVarName}.${DirectiveComponentName}`;
+const SlotComponentName = 'Slot';
 const ComponentName = `${LibraryVarName}.Component`;
 const ObserverName = 'Observer';
 const LibraryName = 'react-vue-like';
@@ -820,9 +821,30 @@ function importDefaultSpecifier(path, specifierName, libraryName = LibraryName) 
   return importSpecifier(path, `${specifierName},default`, libraryName);
 }
 
+function attrs2obj(attributes, excludes = []) {
+  const attrs = [];
+  attributes.forEach(attr => {
+    if (t.isJSXSpreadAttribute(attr)) {
+      const expr = attr.argument;
+      attrs.push(t.spreadElement(expr));
+    } else if (t.isJSXAttribute(attr)) {
+      let name = expr2str(attr.name);
+      if (excludes.includes(name)) return;
+      let value = attr.value;
+      if (t.isJSXExpressionContainer(value)) value = value.expression;
+      attrs.push(t.objectProperty(
+        t.identifier(name),
+        value
+      ));
+    }
+  });
+  return t.objectExpression(attrs);
+}
+
 module.exports = {
   DirectiveName,
   DirectiveComponentName,
+  SlotComponentName,
   ObserverName,
   LibraryName,
   LibraryVarName,
@@ -845,6 +867,8 @@ module.exports = {
   obj2Expression,
   arr2Expression,
   expr2str,
+  expr2var,
+  attrs2obj,
   types,
   getAttrASTAndIndexByName,
   iterativeAttrAST,
@@ -864,7 +888,7 @@ module.exports = {
   createDisplayProp,
   requireStatement,
   extractNodeCode,
-  expr2var,
+
   childrenToArrayExpr,
   findClassVarName,
   findClassStaticPath,
