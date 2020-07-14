@@ -76,7 +76,8 @@ module.exports = function (options) {
       'hoist-non-react-statics',
       'react-dom',
       'mobx',
-      'mobx-react'
+      'mobx-react',
+      'mobx-react-lite'
     ],
     resolve: {
       symlinks: false,

@@ -1,9 +1,10 @@
 const hash = require('hash-sum');
 const options = require('../options');
 const {
-  LibraryName, SlotComponentName,
-  isObserverClass, expr2var, isFunction, ObserverName,
-  /* findClassVarName */
+  ScopeName, SlotComponentName,
+  expr2str, isFunction, ObserverName, ObserverTagName, LibraryVarName,
+  // isVuelikeClasses, 
+  // findClassVarName
 } = require('../utils');
 
 function createScopeId(filename) {
@@ -11,11 +12,12 @@ function createScopeId(filename) {
   return `v-${hash(filename.replace(/\\/g, '/'))}`;
 }
 
-const excluedTags = ['template', 'slot', SlotComponentName, ObserverName];
+const excluedTags = ['template', 'slot', SlotComponentName, ObserverName, ObserverTagName];
 
 module.exports = function ({ types: t, template }) {
   const scopeAttrs = options.inject.scopeAttrs;
   const scopeFn = isFunction(options.inject.scope) ? options.inject.scope : null;
+  const CLASSNAMES = `${LibraryVarName}._cn`;
   // const useCollect = options.useCollect;
   return {
     visitor: {
@@ -33,21 +35,19 @@ module.exports = function ({ types: t, template }) {
             handled: []
           };
 
-          function ClassVisitor(path) {
-            if (this.handled.includes(path.node)) return;
-            this.handled.push(path.node);
+          // function ClassVisitor(path) {
+          //   if (this.handled.includes(path.node)) return;
+          //   this.handled.push(path.node);
 
-            if (!this.scopeId) return path.stop();
-            if (!isObserverClass(path)) return path.skip();
+          //   if (!this.scopeId) return path.stop();
+          //   if (!isVuelikeClasses(path)) return path.skip();
 
-            // if (useCollect) {
-            //   const varName = findClassVarName(path);
-            //   let parentPath = t.isProgram(path.parentPath.node) ? path : path.parentPath;
-            //   parentPath.insertAfter(template(`${varName}.__scopeId = $SCOPEID$;`)({
-            //     $SCOPEID$: t.stringLiteral(this.scopeId)
-            //   }));
-            // }
-          }
+          //   const varName = findClassVarName(path);
+          //   let parentPath = t.isProgram(path.parentPath.node) ? path : path.parentPath;
+          //   parentPath.insertAfter(template(`${varName}.__scopeId = $SCOPEID$;`)({
+          //     $SCOPEID$: t.stringLiteral(this.scopeId)
+          //   }));
+          // }
 
           path.traverse({
             ImportDeclaration(path) {
@@ -64,31 +64,38 @@ module.exports = function ({ types: t, template }) {
 
               this.scopeId = createScopeId(filename);
               let file = source.replace(this.regx, (match, p1) => {
-                const p2 = `?${LibraryName}&scoped=true&id=${this.scopeId}`;
+                const p2 = `?${ScopeName}&scoped=true&id=${this.scopeId}`;
                 if (!scopeFn) return p1 + p2;
                 return scopeFn(p1, p2, { filename, scopeId: this.scopeId });
               });
               if (file) path.node.source.value = file;
             },
-            ClassDeclaration: ClassVisitor,
-            ClassExpression: ClassVisitor
+            // ClassDeclaration: ClassVisitor,
+            // ClassExpression: ClassVisitor
           }, ctx);
 
           if (scopeAttrs && ctx.scopeId) {
             path.traverse({
               JSXElement(path) {
-                let tagName = expr2var(path.node.openingElement.name);
+                let tagName = expr2str(path.node.openingElement.name);
                 if (!tagName || excluedTags.includes(tagName)) return;
 
-                const classAttr = path.node.openingElement.attributes.find(attr => attr.name && expr2var(attr.name) === 'className');
+                const classAttr = path.node.openingElement.attributes.find(attr => attr.name && expr2str(attr.name) === 'className');
                 if (classAttr) {
                   if (t.isStringLiteral(classAttr.value)) {
                     classAttr.value = t.stringLiteral(`${this.scopeId} ${classAttr.value.value}`);
                   } else if (t.isJSXExpressionContainer(classAttr.value)) {
-                    classAttr.value.expression = template('[$SCOPEID$,$SOURCE$]')({
+                    let expr = classAttr.value.expression;
+                    let updator = v => classAttr.value.expression = v;
+                    if (t.isCallExpression(expr)  
+                      && expr2str(expr.callee) === CLASSNAMES) {
+                      expr = classAttr.value.expression.arguments[0];
+                      updator = v => classAttr.value.expression.arguments[0] = v;
+                    }
+                    updator(template('[$SCOPEID$,$SOURCE$]')({
                       $SCOPEID$: t.stringLiteral(this.scopeId),
-                      $SOURCE$: classAttr.value.expression
-                    }).expression;
+                      $SOURCE$: expr
+                    }).expression);
                   }
                 } else {
                   path.get('openingElement').unshiftContainer('attributes', t.JSXAttribute(

@@ -1,8 +1,8 @@
 
 const {
-  expr2var,
-  findClassStaticPath,
-  isObserverClass,
+  expr2str,
+  findClassStaticMethods,
+  isVuelikeClasses,
   // extractNodeCode
 } = require('../utils');
 const options = require('../options');
@@ -21,11 +21,11 @@ module.exports = function ({ types: t, template }) {
         //     || (t.isMemberExpression(expr)
         //       && ['this.props', 'this.$attrs'].includes(extractNodeCode(path, expr)));
         // }
-      } else if (t.isJSXAttribute(attr) && inheritAttrs.test(expr2var(attr.name))) {
+      } else if (t.isJSXAttribute(attr) && inheritAttrs.test(expr2str(attr.name))) {
         let value = attr.value;
         if (t.isJSXExpressionContainer(value)) value = value.expression;
         attrs.push(t.objectProperty(
-          t.identifier(expr2var(attr.name)),
+          t.identifier(expr2str(attr.name)),
           value
         ));
       }
@@ -35,7 +35,7 @@ module.exports = function ({ types: t, template }) {
       t.jSXSpreadAttribute(
         template('$THIS$._o($TAG$, $PROPS$)')({
           $THIS$: t.thisExpression(),
-          $TAG$: t.stringLiteral(expr2var(element.openingElement.name)),
+          $TAG$: t.stringLiteral(expr2str(element.openingElement.name)),
           $PROPS$: t.objectExpression(attrs),
           // $SPREAD$: t.booleanLiteral(hasSpread)
         }).expression
@@ -106,7 +106,7 @@ module.exports = function ({ types: t, template }) {
           if (this.methodsPath) {
             this.methodsPath.traverse({
               ObjectMethod(path) {
-                if (path.node.kind === 'method' && expr2var(path.node.key) === methodName) {
+                if (path.node.kind === 'method' && expr2str(path.node.key) === methodName) {
                   methodPath = path;
                   path.stop();
                 }
@@ -116,7 +116,7 @@ module.exports = function ({ types: t, template }) {
           if (!methodPath && this.classPath) {
             this.classPath.traverse({
               ClassMethod(path) {
-                if (path.node.kind === 'method' && expr2var(path.node.key) === methodName) {
+                if (path.node.kind === 'method' && expr2str(path.node.key) === methodName) {
                   methodPath = path;
                   path.stop();
                 }
@@ -132,18 +132,18 @@ module.exports = function ({ types: t, template }) {
   }
 
   function ClassVisitor(path) {
-    if (!isObserverClass(path)) return;
+    if (!isVuelikeClasses(path)) return;
     const ctx = {
       cached: [],
       classPath: path,
-      methodsPath: findClassStaticPath(path, 'methods').methodsPath
+      methodsPath: findClassStaticMethods(path, 'methods')
     };
     path.traverse({
       ClassMethod(path) {
         const node = path.node;
         if (node.kind === 'method'
           && (
-            expr2var(node.key) === 'render' || expr2var(node.key) === 'renderError'
+            expr2str(node.key) === 'render' || expr2str(node.key) === 'renderError'
           )) {
           traverseReturn.call(this, path);
           path.stop();

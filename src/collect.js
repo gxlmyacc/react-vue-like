@@ -66,16 +66,29 @@ class Collect {
     if (!fn || !config.useCollect) return fn;
     let collect = this;
     return function render() {
-      collect.start();
+      const _createElement = React.createElement;
+      const _cloneElement = React.cloneElement;
+      React.createElement = (Component, props, ...children) => collect.push(_createElement, Component, props, children);
+      React.cloneElement = (element, props, ...children) => collect.push(_cloneElement, element, props, children);
+      
+      let result;
+      try {
+        collect.start();
 
-      let result = fn.apply(this, arguments);
+        result = fn.apply(this, arguments);
+      } finally {
+        React.createElement = _createElement;
+        React.cloneElement = _cloneElement;
+      }
+
       let { root, elements } = collect.end(result);
 
       pre && pre(root);
-
+      
       collect.render(this, elements, each);
 
       after && after(result);
+
 
       return result;
     };

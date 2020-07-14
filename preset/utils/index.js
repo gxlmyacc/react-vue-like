@@ -12,9 +12,13 @@ const DirectiveName =  `${LibraryVarName}.${DirectiveComponentName}`;
 const SlotComponentName = 'Slot';
 const ComponentName = `${LibraryVarName}.Component`;
 const ObserverName = 'Observer';
+const ObserverTagName = 'observer';
 const LibraryName = 'react-vue-like';
 const ComponentFlagPrefix = '__vuelike';
 const DecoratorName = 'withVuelike';
+const LibraryDecoratorName = 'vuelikeInject';
+const ScopeName = 'vuelike';
+const InstanceName = 'vuelike';
 
 if (!Date.prototype.format) {
   Date.prototype.format = function (fmt) {
@@ -269,12 +273,15 @@ function memberExpr2Str(expr) {
 function findNextNode(path, siblings, index) {
   if (!siblings) return null;
 
-  const nextPath = siblings[index + 1];
-  if (!nextPath) return null;
+  const nextIndex = index + 1;
+  const nextNode = siblings[nextIndex];
+  if (!nextNode) return null;
 
-  const { type, value } = nextPath;
-  if (type === 'JSXText' && !value.trim()) return findNextNode(nextPath, siblings, index + 1);
-  return type === 'JSXElement' ? nextPath : null;
+  const { type, value } = nextNode;
+  if (type === 'JSXText' && !value.trim()) return findNextNode(nextNode, siblings, nextIndex);
+  return type === 'JSXElement' 
+    ? { nextNode, nextIndex } 
+    : null;
 }
 
 function getAttrASTAndIndexByName(node, attrName) {
@@ -286,8 +293,8 @@ function getAttrASTAndIndexByName(node, attrName) {
   const isRegx = attrName instanceof RegExp;
   const index = attributes.findIndex(
     attr => attr.name && (isRegx
-      ? attrName.test(expr2var(attr.name))
-      : expr2var(attr.name) === attrName
+      ? attrName.test(expr2str(attr.name))
+      : expr2str(attr.name) === attrName
     )
   );
   if (index < 0) return null;
@@ -410,7 +417,7 @@ function transformElseIfBindings(path, ifBinding, elseIfBindings, elseBinding) {
 }
 
 function getAlternteAST(elseIfBindings, elseBinding, index = 0) {
-  if (index + 1 < elseIfBindings.length) {
+  if (index < elseIfBindings.length) {
     const elseIfBinding = elseIfBindings[index];
     let {
       attr,
@@ -629,61 +636,36 @@ function childrenToArrayExpr(children, trim) {
   return children.length === 1 ? children[0] : t.arrayExpression(children);
 }
 
-function findClassVarName(classDeclarationPath) {
-  if (t.isClassExpression(classDeclarationPath)) {
-    let parent = classDeclarationPath.parent;
+function findClassVarName(classPath) {
+  if (t.isClassExpression(classPath)) {
+    let parent = classPath.parent;
     if (t.isReturnStatement(parent)) {
       if (t.isClassExpression(parent.argument)) {
-        let id = classDeclarationPath.scope.generateUidIdentifier('_class');
-        classDeclarationPath.scope.parent.push({ id, init: parent.argument });
+        let id = classPath.scope.generateUidIdentifier('_class');
+        classPath.scope.parent.push({ id, init: parent.argument });
         parent.argument = id;
       }
       return expr2str(parent.argument);
     }
-    if (t.isAssignmentExpression(parent)) return expr2var(parent.left);
+    if (t.isAssignmentExpression(parent)) return expr2str(parent.left);
     return '';
   }
-  return expr2var(classDeclarationPath.node.id);
+  return expr2str(classPath.node.id);
 }
 
-function findClassStaticPath(classDeclarationPath, propertyName) {
+function findClassStaticMethods(classPath, propertyName) {
   let bodyPath;
-  let isArg1Ok;
   let scope;
-  let varName;
-  // if (expr2var(classDeclarationPath.node.superClass) === `${LibraryVarName}.Mixin`) {
-  //   classDeclarationPath.traverse({
-  //     ClassMethod(path) {
-  //       if (path.parent !== classDeclarationPath.node.body) return;
-  //       if (path.node.kind !== 'constructor') return path.skip();
-  //       bodyPath = path;
-  //       path.stop();
-  //     }
-  //   });
-  //   if (!bodyPath) return;
-  //   cope = bodyPath.scope.block;
-  //   isArg1Ok = function (arg) {
-  //     return t.isThisExpression(arg);
-  //   };
-  // } else {
-  if (t.isClassExpression(classDeclarationPath) && classDeclarationPath.key === 'right') {
-    let left = classDeclarationPath.parent.left;
-    varName = expr2var(left);
-    bodyPath = classDeclarationPath.findParent(path => t.isSequenceExpression(path));
+  let varName = findClassVarName(classPath);
+  
+  if (t.isClassExpression(classPath) && classPath.key === 'right') {
+    bodyPath = classPath.findParent(path => t.isSequenceExpression(path));
     if (!bodyPath) return;
     scope = bodyPath.scope.block;
-    isArg1Ok = function (arg) {
-      return arg.type === left.type && expr2var(arg) === varName;
-    };
   } else {
-    varName = expr2var(classDeclarationPath.node.id);
-    bodyPath = classDeclarationPath.parentPath;
+    bodyPath = classPath.parentPath;
     scope = bodyPath.scope.block;
-    isArg1Ok = function (arg) {
-      return t.isIdentifier(arg) && expr2var(arg) === varName;
-    };
   }
-  // }
 
   let methodsPath;
   bodyPath.traverse({
@@ -692,10 +674,9 @@ function findClassStaticPath(classDeclarationPath, propertyName) {
       const expr = path.node;
       if (!expr || methodsPath) return path.stop();
       if (!t.isCallExpression(expr)
-        || !t.isIdentifier(expr.callee)
-        || expr2var(expr.callee) !== '_defineProperty'
-        || !isArg1Ok(expr.arguments[0])
-        || expr2var(expr.arguments[1]) !== propertyName) return path.skip();
+        || expr2str(expr.callee) !== '_defineProperty'
+        || expr2str(expr.arguments[0]) !== varName
+        || expr2str(expr.arguments[1]) !== propertyName) return path.skip();
       path.traverse({
         ObjectExpression(path) {
           if (path.parent !== expr) return path.skip();
@@ -707,16 +688,91 @@ function findClassStaticPath(classDeclarationPath, propertyName) {
     }
   });
 
-  return { methodsPath, varName };
+  return methodsPath;
 }
 
-function isObserverClassMixin(classDeclarationPath) {
+function findConstructorMethods(constructorPath) {
+  const methods = [];
+  constructorPath.traverse({
+    CallExpression(callPath) {
+      if (callPath.getFunctionParent() !== constructorPath) return callPath.skip();
+      const callNode = callPath.node;
+      if (expr2str(callNode.callee) !== '_defineProperty'
+      || !t.isThisExpression(callNode.arguments[0])
+      || !t.isStringLiteral(callNode.arguments[1])
+      || !t.isArrowFunctionExpression(callNode.arguments[2])) return callPath.skip();
+      const methodPath = callPath.get('arguments.2');
+      methodPath.node.key = t.identifier(callNode.arguments[1].value);
+      methods.push(methodPath);
+    }
+  });
+  return methods;
+}
+
+function findClassAllMethods(classPath, { staticVars = [], traverseDynamicMethods } = {}) {
+  const methods = [];
+
+  staticVars.forEach(key => {
+    let methodsPath = findClassStaticMethods(classPath, key);
+    if (methodsPath) {
+      methodsPath.traverse({
+        ObjectMethod(methodPath) {
+          if (methodPath.node.kind === 'method') methods.push(methodPath);
+        }
+      });
+    }
+  });
+
+  classPath.traverse({
+    ClassMethod(methodPath) {
+      switch (methodPath.node.kind) {
+        case 'method': 
+          methods.push(methodPath);
+          break;
+        case 'constructor':
+          methods.push(methodPath);
+          if (traverseDynamicMethods) methods.push(...findConstructorMethods(methodPath));
+          break;
+        default: 
+          //
+      }
+    }
+  });
+
+  return methods;
+}
+
+function findAllClassAllMethods(programPath, options = {}) {
+  const classes = [];
+  function ClassVisitor(classPath) {
+    if (options.classFilter && !options.classFilter(classPath)) return; 
+    classes.push({
+      classPath,
+      methods: findClassAllMethods(classPath, options)
+    });
+  }
+  programPath.traverse({
+    ClassDeclaration: ClassVisitor,
+    ClassExpression: ClassVisitor,
+    ...(options.traverses || {})
+  });
+
+  return classes;
+}
+
+function isVuelikeClassMixin(classDeclarationPath) {
   return classDeclarationPath.node.superClass
-    && ([`${LibraryVarName}.Mixin`].includes(expr2var(classDeclarationPath.node.superClass)));
+    && ([`${LibraryVarName}.Mixin`].includes(expr2str(classDeclarationPath.node.superClass)));
 }
 
-function isObserverClass(classDeclarationPath) {
-  let superClass = expr2var(classDeclarationPath.node.superClass);
+function isVuelikeClass(classDeclarationPath) {
+  let superClass = expr2str(classDeclarationPath.node.superClass);
+  if (!superClass) return false;
+  return superClass === ComponentName;
+}
+
+function isVuelikeClasses(classDeclarationPath) {
+  let superClass = expr2str(classDeclarationPath.node.superClass);
   if (!superClass) return false;
   if (superClass === 'React.Component') {
     let declaration = isImportLibrary(classDeclarationPath);
@@ -735,6 +791,41 @@ function isObserverClass(classDeclarationPath) {
     });
   } 
   return [ComponentName, `${LibraryVarName}.Mixin`].includes(superClass);
+}
+
+function isVuelikeHoc(classPath, vuelikePath) {
+  let declaration = isImportLibrary(classPath, vuelikePath);
+  let specifier = declaration && isImportSpecifier(classPath, DecoratorName, declaration);
+  if (!specifier) return false;
+  let decoratorName = expr2str(specifier.imported);
+  if (!decoratorName) return;
+
+  let decorators = classPath.node.decorators;
+  if (decorators && decorators.some(node => (t.isIdentifier(node.expression) && node.expression.name === decoratorName)
+      || (t.isCallExpression(node.expression) && expr2str(node.expression.callee) === decoratorName))) return true;
+   
+  return Object.keys(classPath.scope.bindings).some(key => {
+    let binding = classPath.scope.bindings[key];
+    return Object.keys(binding.scope.bindings).some(v => v === decoratorName);
+  });
+}
+
+function isVuelikeClassHoc(classPath, vuelikePath) {
+  return (t.isClassDeclaration(classPath) || t.isClassExpression(classPath)) && isVuelikeHoc(classPath, vuelikePath);
+}
+
+function findInstanceHocSpecifier(path, vuelikePath) {
+  const specifier = isImportSpecifier(path, DecoratorName, null, vuelikePath);
+  return specifier && (expr2str(specifier.imported) === LibraryName)
+    ? specifier
+    : null;
+}
+
+function findInstanceSpecifier(path, vuelikePath) {
+  const specifier = isImportSpecifier(path, DecoratorName, null, vuelikePath);
+  return specifier && (expr2str(specifier.imported) === InstanceName)
+    ? specifier 
+    : null;
 }
 
 function directiveRegx(regx, prefix = '') {
@@ -776,10 +867,13 @@ function escapeRegx(string) {
   return string.replace(matchOperatorsRegex, '\\$&');
 }
 
-function isImportLibrary(path, libraryName = LibraryName) {
+function getImportDeclarations(path) {
   let program = path.isProgram() ? path : path.findParent(p => p.isProgram());
-  let declaration = program.node.body.find(node => t.isImportDeclaration(node) && node.source.value === libraryName);
+  return program.node.body.filter(node => t.isImportDeclaration(node));
+}
 
+function isImportLibrary(path, libraryName = LibraryName) {
+  let declaration = getImportDeclarations(path).find(node => node.source.value === libraryName);
   // path.traverse({
   //   ImportDeclaration(path) {
   //     if (path.node.source.value === libraryName) declaration = path.node;
@@ -790,8 +884,15 @@ function isImportLibrary(path, libraryName = LibraryName) {
 }
 
 function isImportSpecifier(path, specifierName, declaration, libraryName = LibraryName) {
-  if (!declaration && libraryName) declaration = isImportLibrary(path, libraryName);
-  return declaration && declaration.specifiers.find(v => v.local.name === specifierName);
+  let declarations;
+  if (!declaration) {
+    if (libraryName) declaration = isImportLibrary(path, libraryName);
+    else declarations = getImportDeclarations(path);
+  } 
+  if (declaration) declarations = [declaration];
+  let ret;
+  declarations && declarations.some(item => ret = item.specifiers.find(v => v.local.name === specifierName));
+  return ret;
 }
 
 function importSpecifier(path, specifierName, libraryName = LibraryName) {
@@ -807,14 +908,12 @@ function importSpecifier(path, specifierName, libraryName = LibraryName) {
     }
   } else {
     let program = path.isProgram() ? path : path.findParent(p => p.isProgram());
-    program.unshiftContainer(
-      'body',
-      t.importDeclaration(
-        [specifier],
-        t.stringLiteral(libraryName),
-      )
-    );
+    program.unshiftContainer('body',  t.importDeclaration(
+      [specifier],
+      t.stringLiteral(libraryName),
+    ));
   }
+  return specifier;
 }
 
 function importDefaultSpecifier(path, specifierName, libraryName = LibraryName) {
@@ -846,11 +945,15 @@ module.exports = {
   DirectiveComponentName,
   SlotComponentName,
   ObserverName,
+  ObserverTagName,
   LibraryName,
   LibraryVarName,
   ComponentFlagPrefix,
   DecoratorName,
   ComponentName,
+  ScopeName,
+  InstanceName,
+  LibraryDecoratorName,
 
   getConstCache,
   fileExists,
@@ -888,12 +991,20 @@ module.exports = {
   createDisplayProp,
   requireStatement,
   extractNodeCode,
+  findInstanceSpecifier,
+  findInstanceHocSpecifier,
 
   childrenToArrayExpr,
   findClassVarName,
-  findClassStaticPath,
-  isObserverClass,
-  isObserverClassMixin,
+  findClassStaticMethods,
+  findConstructorMethods,
+  findClassAllMethods,
+  findAllClassAllMethods,
+  isVuelikeClass,
+  isVuelikeClasses,
+  isVuelikeClassMixin,
+  isVuelikeClassHoc,
+  isVuelikeHoc,
   directiveRegx,
   parseDirective,
   parseModifiers,

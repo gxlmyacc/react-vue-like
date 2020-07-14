@@ -1,6 +1,6 @@
 import { action, flow } from './mobx';
-import { isFunction } from './utils';
-import { VUE_LIKE_METHODS } from './component';
+import { isFunction, VUELIKE_PREFIX } from './utils';
+import { VUELIKE_METHODS } from './component';
 
 const RESERVED_METHODS = [
   'constructor',
@@ -26,7 +26,7 @@ export default function beforeAction(target) {
     Object.keys(target.methods).forEach(key => _handleAction(target.methods, key, flows));
   }
   let reserved = RESERVED_METHODS;
-  if (target.__vuelikeWrapper) reserved = reserved.concat(VUE_LIKE_METHODS);
+  if (target[`${VUELIKE_PREFIX}Wrapper`]) reserved = reserved.concat(VUELIKE_METHODS);
   target.prototype && Object.getOwnPropertyNames(target.prototype)
     .forEach(key => !reserved.includes(key) && _handleAction(target.prototype, key, flows));
   // Object.getOwnPropertyNames(target)

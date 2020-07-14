@@ -2,13 +2,14 @@
 const {
   DirectiveName,
   childrenToArrayExpr,
-  isObserverClass,
-  expr2var,
+  isVuelikeClasses,
+  // isVuelikeClassHoc,
   expr2str,
   LibraryVarName,
   SlotComponentName,
   importSpecifier
 } = require('../utils');
+// const options = require('../options');
 const { compRegx } = require('../options');
 
 module.exports = function ({ types: t, template }) {
@@ -16,7 +17,7 @@ module.exports = function ({ types: t, template }) {
     if (this.handled.includes(path.node)) return;
     this.handled.push(path.node);
 
-    if (!isObserverClass(path)) return;
+    if (!isVuelikeClasses(path)/* && !isVuelikeClassHoc(classPath, options.vuelikePath) */) return;
 
     path.traverse({
       ClassMethod(path) {
@@ -61,7 +62,7 @@ module.exports = function ({ types: t, template }) {
         let tagName = expr2str(openingElement.name);
         if (tagName === DirectiveName) {
           let tag = openingElement.attributes.find(attr => attr.name && attr.name.name === '_source');
-          tagName = tag && expr2var(tag.value);
+          tagName = tag && expr2str(tag.value);
         }
         if (!compRegx.test(tagName)) return;
         if (openingElement.attributes.some(attr => attr.name && attr.name.name === '$slots')) return;
@@ -98,10 +99,10 @@ module.exports = function ({ types: t, template }) {
               t.JSXExpressionContainer(node)
             ));
           });
-          openingElement.attributes.push(t.JSXAttribute(
-            t.jSXIdentifier('$slots'),
-            t.JSXExpressionContainer(t.arrayExpression(slots.map(({ name }) => t.stringLiteral(name))))
-          ));
+          // openingElement.attributes.push(t.JSXAttribute(
+          //   t.jSXIdentifier('$slots'),
+          //   t.JSXExpressionContainer(t.arrayExpression(slots.map(({ name }) => t.stringLiteral(name))))
+          // ));
         }
       }
     },

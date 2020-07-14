@@ -1,19 +1,19 @@
-import ReactVueLikeComponent from './component';
-import withVuelike from './hoc';
+import { useLocalStore, useObserver } from 'mobx-react-lite';
+import VuelikeComponent from './component';
 import Directive from './directive';
 import Mixin from './mixin';
 import Slot from './slot';
 import hook from './hook';
+import classNames from './classnames';
 import { innumerable, checkKeyCodes, defaultMergeStrategies, directivesMergeStrategies, filtersMergeStrategies } from './utils';
-import vuelikeConstructor from './constructor';
-import ReactVueLike from './vuelike';
-import { observable, isObservable, extendObservable, remove, action, runInAction, flow } from './mobx';
+import vuelikeConstructor, { vuelikeInject } from './constructor';
+import Vuelike from './vuelike';
+import { observable, isObservable, extendObservable, observe, toJS, remove, action, runInAction, flow } from './mobx';
 import config from './config';
 
 export * from './utils';
 
-innumerable(ReactVueLikeComponent, 'vuelikeConstructor', vuelikeConstructor);
-
+innumerable(VuelikeComponent, 'vuelikeConstructor', vuelikeConstructor);
 
 Object.assign(config.optionMergeStrategies, {
   $directives: directivesMergeStrategies,
@@ -24,36 +24,39 @@ Object.assign(config.optionMergeStrategies, {
 const STATIC_METHODS = {
   Mixin,
   Directive,
-  Component: ReactVueLikeComponent,
+  Component: VuelikeComponent,
   Slot,
   runAction: runInAction,
-  set: ReactVueLikeComponent.prototype.$set,
-  delete: ReactVueLikeComponent.prototype.$delete,
+  set: VuelikeComponent.prototype.$set,
+  delete: VuelikeComponent.prototype.$delete,
   remove,
   observable,
+  observe,
+  toJS,
   flow,
   action,
   isObservable,
   extendObservable,
-  _k: checkKeyCodes
+  _k: checkKeyCodes,
+  _a: action,
+  _cn: classNames,
+  useLocalStore,
+  useObserver
 };
 
 Object.keys(STATIC_METHODS).forEach(key => {
-  innumerable(ReactVueLike, key, STATIC_METHODS[key]);
-  innumerable(ReactVueLike.prototype, key, STATIC_METHODS[key]); 
-  innumerable(ReactVueLikeComponent, key, STATIC_METHODS[key]);
+  innumerable(Vuelike, key, STATIC_METHODS[key]);
+  innumerable(Vuelike.prototype, key, STATIC_METHODS[key]); 
+  innumerable(VuelikeComponent, key, STATIC_METHODS[key]);
 });
 
-innumerable(ReactVueLike, 'build', __timestamp);
+innumerable(Vuelike, 'build', __timestamp);
 
-innumerable(ReactVueLike, '_ce', hook.createElement);
-innumerable(ReactVueLike, '_cc', hook.cloneElement);
-
-export {
-  Directive as ReactVueLikeDirective,
-  withVuelike
-};
-
+innumerable(Vuelike, '_ce', hook.createElement);
 hook();
 
-export default ReactVueLike;
+export {
+  vuelikeInject
+};
+
+export default Vuelike;

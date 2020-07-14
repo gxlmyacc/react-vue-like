@@ -1,11 +1,14 @@
 
 const {
   getConstCache,
-  isObserverClass,
+  isVuelikeClasses,
+  isVuelikeHoc,
   findClassVarName
 } = require('../utils');
 
 module.exports = function ({ types: t, template }) {
+  const options = require('../options');
+
   function ClassVisitor(path, {
     file: {
       opts: { filename }
@@ -14,7 +17,7 @@ module.exports = function ({ types: t, template }) {
     if (this.handled.includes(path.node)) return;
     this.handled.push(path.node);
 
-    if (!isObserverClass(path)) return;
+    if (!isVuelikeClasses(path) && !isVuelikeHoc(path, options.vuelikePath)) return;
     const cache = getConstCache(filename);
 
     const varName = findClassVarName(path);

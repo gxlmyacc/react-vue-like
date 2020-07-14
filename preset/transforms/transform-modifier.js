@@ -2,7 +2,7 @@
 const camelCase = require('camelcase');
 const { 
   LibraryVarName, appendAttrEvent, 
-  mergeAttrEvent, directiveRegx, parseDirective, bindModifiers, expr2var,
+  mergeAttrEvent, directiveRegx, parseDirective, bindModifiers, expr2str,
   importDefaultSpecifier
 } = require('../utils');
 const options = require('../options');
@@ -16,7 +16,7 @@ module.exports = function ({ types: t, template }) {
   function JSXAttributeVisitor(path) {
     const attr = path.node;
     if (!attr.name || !t.isJSXExpressionContainer(attr.value)) return;
-    const parsed = parseDirective(expr2var(attr.name), attrName);
+    const parsed = parseDirective(expr2str(attr.name), attrName);
     if (!parsed || !Object.keys(parsed.modifiers).length) return;
     const isEvent = /^on[A-Z]/.test(parsed.name);
 

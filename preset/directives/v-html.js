@@ -1,4 +1,4 @@
-const { expr2var } = require('../utils');
+const { expr2str } = require('../utils');
 const options = require('../options');
 
 module.exports = function ({ types: t, template }) {
@@ -6,7 +6,7 @@ module.exports = function ({ types: t, template }) {
   return {
     visitor: {
       JSXElement(path) {
-        let attr = path.node.openingElement.attributes.find(attr => attr.name && expr2var(attr.name) === htmlAttrName);
+        let attr = path.node.openingElement.attributes.find(attr => attr.name && expr2str(attr.name) === htmlAttrName);
         if (!attr) return;
         attr.name.name = 'dangerouslySetInnerHTML';
         attr.value = t.jsxExpressionContainer(

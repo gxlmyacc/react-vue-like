@@ -1,37 +1,40 @@
-import { isVueLikeClass, hasOwnProperty, innumerable  } from './utils';
+// import React from 'react';
+import { isVuelikeComponentClass, hasOwnProperty, innumerable  } from './utils';
 import beforeCollect from './before-collect';
 import beforeProps from './before-props';
 import beforeAction from './before-action';
-import beforeClass from './before-class';
 
-import ReactVueLikeComponent, { VUE_LIKE_METHODS } from './component';
+import VuelikeComponent, { VUELIKE_METHODS } from './component';
 
 const REACT_LIFECYCLE_HOOKS = [
   'render',
   'renderError',
+  'componentWillMount',
   'componentDidMount',
   'getSnapshotBeforeUpdate',
   'componentDidUpdate',
   'componentDidActivate',
   'componentWillUnactivate',
   'componentWillUnmount',
-  'componentDidCatch'
+  'componentDidCatch',
+  'componentEachJSXElement',
+  'componentEachRootJSXElement'
 ];
 
-function replaceVueLikeProto(target) {
+function replaceVuelikeProto(target, prefix = '') {
   let ret = {};
-  let isVueLike = isVueLikeClass(target);
   let tp = target.prototype; 
   const tm = Object.getOwnPropertyNames(tp);
-  let methods = isVueLike ? REACT_LIFECYCLE_HOOKS : VUE_LIKE_METHODS;
-  methods.forEach(key => {
-    if (isVueLike && !tm.includes(key)) return;
-    let sfn = ReactVueLikeComponent.prototype[key];
-    if (hasOwnProperty(tp, key)) {
-      let tfn = tp[key];
-      tp[key] = sfn;
-      ret[key] = tfn;
-    } else if (!isVueLike) innumerable(tp, key, sfn);
+  REACT_LIFECYCLE_HOOKS.forEach(key => {
+    let tfn = tm.includes(key) ? tp[key] : null;
+    if (!tfn && prefix && tm.includes(prefix + key)) tfn = tp[prefix + key];
+    if (!tfn) return;
+    let sfn = VuelikeComponent.prototype[key];
+    
+    if (sfn) tp[key] = sfn;
+    else delete tp[key];
+
+    ret[key] = tfn;
   });
   return ret;
 }
@@ -45,18 +48,35 @@ function walkMixins(mixins, target) {
   });
 }
 
-function vuelikeConstructor(target, props, children) {
-  if (target.vuelikeProto) return;
+function vuelikeInject(target) {
+  if (target.vuelikeProto || !isVuelikeComponentClass(target)) return;
 
-  const vuelikeProto = replaceVueLikeProto(target);
+  const vuelikeProto = replaceVuelikeProto(target, 'UNSAFE_');
   innumerable(target, 'vuelikeProto', vuelikeProto);
   if (hasOwnProperty(target.prototype, 'shouldComponentUpdate')) {
     vuelikeProto.shouldComponentUpdate = target.prototype.shouldComponentUpdate;
     delete target.prototype.shouldComponentUpdate;
   }
 
-  beforeCollect(vuelikeProto, ReactVueLikeComponent);
+  beforeCollect(vuelikeProto, VuelikeComponent);
 
+  let mixins = [target];
+  if (target.mixins) Array.prototype.push.apply(mixins, target.mixins);
+ 
+  walkMixins(mixins, target);
+
+  return target;
+  // const newTarget = React.forwardRef((props, ref) => {
+  //   React.createElement(target, Object.assign({ $ref: ref }, props, props.children));
+  // });
+  // innumerable(newTarget, '__component', target);
+  // return newTarget;
+}
+
+
+function vuelikeConstructor(target, props, children) {
+  // vuelikeInject(target);
+  
   // Object.keys(props).forEach(key => {
   //   if (!/^\$/.test(key)) return;
   //   Object.defineProperty(props, key, Object.assign(Object.getOwnPropertyDescriptor(props, key), { enumerable: false }));
@@ -66,32 +86,12 @@ function vuelikeConstructor(target, props, children) {
     // innumerable(props, '$ref', props.ref);
     delete props.ref;
   }
-
-  let mixins = [target];
-  if (target.mixins) Array.prototype.push.apply(mixins, target.mixins);
- 
-  walkMixins(mixins, target);
 }
-
-function otherConstructor(props) {
-  if (!props) return;
-  if (props.$slots) delete props.$slots;
-  // Object.keys(props).forEach(key => {
-  //   if (!/^\$\S+/.test(key)) return;
-  //   delete props[key];
-  // });
-}
-
-function fallbackConstructor(props) {
-  beforeClass(props);
-}
-
 
 export {
-  VUE_LIKE_METHODS,
+  VUELIKE_METHODS,
   REACT_LIFECYCLE_HOOKS,
-  fallbackConstructor,
-  otherConstructor
+  vuelikeInject
 };
 
 export default vuelikeConstructor;

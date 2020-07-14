@@ -1,6 +1,16 @@
-const { LibraryName, LibraryVarName, findClassStaticPath, expr2var, expr2str, isObserverClass } = require('../utils');
+const { 
+  LibraryName, LibraryVarName, ObserverTagName,
+  expr2str, 
+  isVuelikeClasses,
+  // isVuelikeClassHoc,
+  findClassVarName,
+  findClassAllMethods,
+  importDefaultSpecifier
+} = require('../utils');
+// const options = require('../options');
 
 const COMP_METHS = [
+  'constructor',
   'data',
   'provide',
   'render',
@@ -40,7 +50,7 @@ module.exports = function ({ types: t, template }) {
     if (t.isThisExpression(path.node.object)) return true;
     if (t.isMemberExpression(path.node.object)) return isClassMember(path.get('object'));
     const object = path.get('object');
-    let name = expr2var(object.node);
+    let name = expr2str(object.node);
     let binding = object.scope.bindings[name];
     let funcParent = path.getFunctionParent();
     while (!binding && funcParent) {
@@ -72,7 +82,7 @@ module.exports = function ({ types: t, template }) {
       CallExpression(path) {
         if (path.getFunctionParent() !== exprPath) return;
         if (!t.isMemberExpression(path.node.callee)) return;
-        let calleeStr = expr2var(path.node.callee);
+        let calleeStr = expr2str(path.node.callee);
         if (calleeStr === 'Object.assign') {
           ret = isClassMember(path.get('arguments.0'));
           return path.stop();
@@ -93,62 +103,55 @@ module.exports = function ({ types: t, template }) {
   }
 
   let handled = [];
-  function FunctionExprVisitor(exprPath) {
-    let expression = exprPath.node;
-    if (handled.includes(expression)) return;
-    handled.push(expression);
+  function FunctionExprVisitor(onFind, useLibVar) {
+    return function (exprPath) {
+      let expression = exprPath.node;
+      if (handled.includes(expression)) return;
+      handled.push(expression);
+  
+      if (!hasAssgin(exprPath)) return;
 
-    if (!hasAssgin(exprPath)) return;
-
-    if (expression.async) {
-      asyncToGen(exprPath);
-      exprPath.replaceWith(template(`${LibraryVarName}.flow($1)`)({ $1: exprPath.node }).expression);
-      return;
-    }
-
-    exprPath.replaceWith(template('$THIS$._a($HANDER$)')({
-      $THIS$: t.thisExpression(),
-      $HANDER$: expression,
-    }).expression);
+      if (t.isCallExpression(exprPath.parent)
+        && /\.(flow|action|runAction|_a)$/.test(expr2str(exprPath.parent.callee))) return;
+  
+      if (expression.async) {
+        asyncToGen(exprPath);
+        onFind && onFind.call(this);
+        exprPath.replaceWith(template(`${LibraryVarName}.flow($1)`)({ $1: exprPath.node }).expression);
+        return;
+      }
+  
+      onFind && onFind.call(this);
+      exprPath.replaceWith(template('$THIS$._a($HANDER$)')({
+        $THIS$: useLibVar ? t.identifier(LibraryVarName) : t.thisExpression(),
+        $HANDER$: expression,
+      }).expression);
+    };
   }
 
   function ClassVisitor(path) {
     if (handled.includes(path.node)) return;
     handled.push(path.node);
+    
 
-    if (!isObserverClass(path)) return;
-
-    let allMethods = [];
-
+    if (!isVuelikeClasses(path)/* && !isVuelikeClassHoc(path, options.vuelikePath) */) return;
+    
     let flows = [];
-    let { methodsPath: staticMethodPath, varName } = findClassStaticPath(path, 'methods');
-    if (staticMethodPath) {
-      staticMethodPath.traverse({
-        ObjectMethod(path) {
-          if (path.node.kind === 'method') allMethods.push(path);
-        }
-      });
-    }
-    path.traverse({
-      ClassMethod(path) {
-        if (path.node.kind !== 'method') return;
-        allMethods.push(path);
-      }
-    });
-
+    let varName = findClassVarName(path);
+    let allMethods = findClassAllMethods(path, { staticVars: ['methods'] });
 
     allMethods.forEach(path => {
       path.traverse({
-        ArrowFunctionExpression: FunctionExprVisitor,
-        // FunctionExpression: FunctionExprVisitor,
+        ArrowFunctionExpression: FunctionExprVisitor(),
+        // FunctionExpression: FunctionExprVisitor(),
       });
 
-      if (COMP_METHS.includes(expr2var(path.node.key))) return;
+      if (COMP_METHS.includes(expr2str(path.node.key))) return;
 
       // if (!path.node.decorators) path.node.decorators = [];
       if (!path.node.static && path.node.async) {
         asyncToGen(path);
-        flows.push(t.stringLiteral(expr2var(path.node.key)));
+        flows.push(t.stringLiteral(expr2str(path.node.key)));
         // path.node.decorators.push(t.decorator(flowExpr));
       }
       // else path.node.decorators.push(t.decorator(actionExpr));
@@ -166,8 +169,35 @@ module.exports = function ({ types: t, template }) {
       handled = [];
     },
     visitor: {
+      Program: {
+        enter(path) {
+          path.traverse({
+            JSXElement(path) {
+              if (!t.isJSXIdentifier(path.node.openingElement.name)
+                || expr2str(path.node.openingElement.name) !== ObserverTagName) return;
+
+              if (handled.includes(path.node)) return path.skip();
+              handled.push(path.node);
+      
+              const ctx = {};
+              
+              path.traverse({
+                ArrowFunctionExpression: FunctionExprVisitor(() => {
+                  if (!ctx.isLibImported) {
+                    importDefaultSpecifier(path, LibraryVarName);
+                    ctx.isLibImported = true;
+                  }
+                }, true),
+              });
+
+              path.skip();
+            },
+          });
+        }
+      },
       ClassDeclaration: ClassVisitor,
       ClassExpression: ClassVisitor,
+
       CallExpression(path) {
         if (handled.includes(path.node)) return path.skip();
         handled.push(path.node);

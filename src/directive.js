@@ -4,13 +4,15 @@ import PropTypes from 'prop-types';
 import { action } from './mobx';
 import config from './config';
 import {
+  VUELIKE_PREFIX,
   iterativeParent,
   isFunction,
   isObject,
-  warn
+  warn,
+  innumerable
 } from './utils';
 
-class Directive extends React.Component {
+class VuelikeDirective extends React.Component {
 
   static propTypes = {
     _source: PropTypes.oneOfType([
@@ -28,9 +30,6 @@ class Directive extends React.Component {
   }
 
   componentDidMount() {
-    iterativeParent(this, parent => this.$parent = parent, vm => vm._isVueLike);
-    if (!this.$parent) throw new Error('[ReactVueLike error]: can not find directive parent component');
-
     const _pending = () => {
       this.$directives = this.$parent.$directives;
 
@@ -42,6 +41,16 @@ class Directive extends React.Component {
       };
       this.setState({ isMounted: true });
     };
+
+    const { vuelike } = this.props;
+    if (vuelike) {
+      this.$directives = this.vuelike.directives;
+      _pending();
+      return;
+    }
+  
+    iterativeParent(this, parent => this.$parent = parent, vm => vm.isVuelikeComponentInstance);
+    if (!this.$parent) throw new Error('[Vuelike error]: can not find VuelikeDirective parent component');
 
     if (this.$parent._isWillMount) _pending();
     else this.$parent._mountedPending.push(_pending);
@@ -75,7 +84,7 @@ class Directive extends React.Component {
       let d = this.$directives[binding.name];
       if (!d) {
         if (process.env.NODE_ENV !== 'production') {
-          warn(`directive '${binding.name}' not be found!`);
+          warn(`VuelikeDirective '${binding.name}' not be found!`);
         }
         return;
       }
@@ -95,6 +104,6 @@ class Directive extends React.Component {
 
 }
 
-Directive.__vueLikeDirective = true;
+innumerable(VuelikeDirective, `${VUELIKE_PREFIX}DirectiveClass`, true);
 
-export default Directive;
+export default VuelikeDirective;

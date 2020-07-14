@@ -7,7 +7,7 @@ const options = require('../options');
 
 module.exports = function ({ types: t }) {
   let defines = options.transform.define;
-  if (defines && typeof consts !== 'object') defines = {};
+  if (defines && typeof defines !== 'object') defines = {};
   let defineNames = Object.getOwnPropertyNames(defines);
 
   function IdentifierVisitor(path) {

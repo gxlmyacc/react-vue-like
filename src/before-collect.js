@@ -1,11 +1,11 @@
 import collect from './collect';
 
-export default function beforeCollect(target, ReactVueLike) {
+export default function beforeCollect(target, VuelikeComponent) {
   if (target.render) {
-    target.render = collect.wrap(target.render, ReactVueLike.prototype._eachRenderElement);
+    target.render = collect.wrap(target.render, VuelikeComponent.prototype.componentEachJSXElement);
   }
   if (target.renderError) {
-    target.renderError = collect.wrap(target.renderError, ReactVueLike.prototype._eachRenderElement);
+    target.renderError = collect.wrap(target.renderError, VuelikeComponent.prototype.componentEachJSXElement);
   }
 }
 

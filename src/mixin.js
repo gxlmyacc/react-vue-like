@@ -1,10 +1,15 @@
-class Mixin {
+import {
+  VUELIKE_PREFIX,
+  innumerable
+} from './utils';
 
-  static isReactVueLikeMixin = true;
+class VuelikeMixin {
+
+  static isVuelikeMixin = true;
 
 }
 
-Mixin.__vuelikeMixin = true;
+innumerable(VuelikeMixin, `${VUELIKE_PREFIX}MixinClass`, true);
 
 
-export default Mixin;
+export default VuelikeMixin;

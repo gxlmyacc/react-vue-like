@@ -1,3 +1,4 @@
+import React from 'react';
 import { observable } from './mobx';
 import config from './config';
 
@@ -9,9 +10,11 @@ export {
   isGenerator
 } from './mobx';
 
+export const hasSymbol = typeof Symbol === 'function' && Symbol.for;
 export const isProduction = process.env.NODE_ENV === 'production';
+export const REACT_FORWARD_REF_TYPE = hasSymbol ? Symbol.for('react.forward_ref') : 0xead0;
 
-export { observer, Provider, Observer } from 'mobx-react';
+export { observer, Provider, Observer, useLocalStore, useObserver } from 'mobx-react';
 
 // isArray support ObservableArray
 const arrayType = observable.array([11, 22]);
@@ -62,7 +65,7 @@ export function camelize(str) {
 }
 
 export function iterativeParent(ctx, callback, componentClassFn, fromSelf) {
-  if (ctx._isVueLikeRoot) return;
+  if (ctx._isVuelikeRoot) return;
   let parentNode = fromSelf
     ? ctx.stateNode ? ctx : ctx
     : ctx._reactInternalFiber
@@ -73,7 +76,7 @@ export function iterativeParent(ctx, callback, componentClassFn, fromSelf) {
     if (vm && (!componentClassFn || componentClassFn(vm))) {
       if (callback(vm)) break;
     }
-    if (vm && vm._isVueLikeRoot) break;
+    if (vm && vm._isVuelikeRoot) break;
     parentNode = parentNode.return;
   }
 }
@@ -132,7 +135,7 @@ export function warn(msg, vm) {
   if (config.warnHandler) {
     config.warnHandler.call(null, msg, vm, trace);
   } else if (!config.silent) {
-    console.error(('[ReactVueLike warn]: ' + msg + trace));
+    console.error(('[Vuelike warn]: ' + msg + trace));
   }
 }
 
@@ -164,14 +167,14 @@ export function handleError(err, vm, info) {
   if (vm) {
     let cur = vm;
     do {
-      let hooks = cur.$listeners['hook:errorCaptured'];
+      let hooks = cur.$listeners.componentDidCatch;
       if (hooks) {
         for (let i = 0; i < hooks.length; i++) {
           try {
             let capture = hooks[i].call(cur, err, vm, info) === false;
             if (capture) { return; }
           } catch (e) {
-            globalHandleError(e, cur, 'errorCaptured hook');
+            globalHandleError(e, cur, 'componentDidCatch');
           }
         }
       }
@@ -204,7 +207,7 @@ function repeat(str, n) {
 }
 
 function generateComponentTrace(vm) {
-  if (vm._isVueLike && vm.$parent) {
+  if (vm.isVuelikeComponentInstance && vm.$parent) {
     let tree = [];
     let currentRecursiveSequence = 0;
     while (vm) {
@@ -280,14 +283,14 @@ export function mergeMethods(target, source, excludes = []) {
     if (tfn) {
       target[key] = function () {
         let sr = sfn.apply(this, arguments);
-        let tr = tfn.apply(this, arguments);
+        let tr = tfn.apply(this, arguments.concat(sr));
         return tr === undefined ? sr : tr;
       };
     } else innumerable(target, key, sfn);
   });
 }
 
-export function replaceMethods(target, source, includes) {
+export function replaceMethods(target, source, includes, prefix = '') {
   let ret = {};
   const sm = includes || Object.getOwnPropertyNames(source);
   const tm = Object.getOwnPropertyNames(target);
@@ -296,6 +299,7 @@ export function replaceMethods(target, source, includes) {
     let sfn = source[key];
     if (!isFunction(sfn)) return;
     let tfn = tm.includes(key) ? target[key] : null;
+    if (!tfn && prefix && tm.includes(prefix + key)) tfn =  target[prefix + key]; 
     if (tfn) {
       target[key] = sfn;
       ret[key] = tfn;
@@ -330,15 +334,16 @@ export function mergeObject(target) {
   for (let i = 1; i < arguments.length; i++) _mergeObject(ret, arguments[i], copiedObjects);
   return ret;
 }
+export const VUELIKE_PREFIX = '__vuelike';
+export const VUELIKE_COMPONENT_CLASS = `${VUELIKE_PREFIX}ComponentClass`;
+export const VUELIKE_CLASS = `${VUELIKE_PREFIX}Class`;
 
-export const VUE_LIKE_CLASS = '__vuelikeClass';
-
-export function isVueLikeComponent(source) {
-  return source && source.__vuelike && !hasOwnProperty(source, VUE_LIKE_CLASS);
+export function isVuelikeComponent(source) {
+  return source && source[VUELIKE_PREFIX] && !hasOwnProperty(source, VUELIKE_COMPONENT_CLASS);
 }
 
-export function isVueLikeClass(source) {
-  return source && source.__vuelike && source[VUE_LIKE_CLASS];
+export function isVuelikeComponentClass(source) {
+  return source && source[VUELIKE_COMPONENT_CLASS];
 }
 
 export function directivesMergeStrategies(parent, child, vm, key) {
@@ -357,4 +362,28 @@ export function filtersMergeStrategies(parent, child, vm, key) {
   if (parent) return mergeObject(ret, parent);
   if (child) return mergeObject(ret, child);
   return ret;
+}
+
+export function isFunctionComponent(component) {
+  return component
+  && (typeof component === 'function')
+  && (!component.prototype || !component.prototype.render)
+  && !component.isReactClass
+  && !Object.prototype.isPrototypeOf.call(React.Component, component);
+}
+
+export function isForwardComponent(component) {
+  return component && (component.$$typeof === REACT_FORWARD_REF_TYPE) 
+    && (typeof component.render === 'function');
+}
+
+export function isReactComponent(component) {
+  return component && component.prototype && component.prototype.render
+    && component.isReactClass;
+}
+
+export function resolveComponents(components, compName) {
+  let comp = components[compName];
+  if (!isProduction && !comp) warn(`can not resolve component '${compName}'!`, this);
+  return comp || compName;
 }

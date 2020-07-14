@@ -1,5 +1,5 @@
 
-const { appendAttrEvent, directiveRegx, parseDirective, bindModifiers, expr2var, escapeRegx } = require('../utils');
+const { appendAttrEvent, directiveRegx, parseDirective, bindModifiers, expr2str, escapeRegx } = require('../utils');
 const options = require('../options');
 
 module.exports = function ({ types: t, template }) {
@@ -12,14 +12,14 @@ module.exports = function ({ types: t, template }) {
             JSXAttribute(path) {
               const attr = path.node;
               if (!attr.name || !t.isJSXExpressionContainer(attr.value)) return;
-              const parsed = parseDirective(expr2var(attr.name), attrName);
+              const parsed = parseDirective(expr2str(attr.name), attrName);
               if (!parsed) return;
 
               const openingElement = path.parent;
               let defalutProp = 'value';
-              if (expr2var(openingElement.name) === 'input') {
-                const attr = openingElement.attributes.find(attr => attr.name && expr2var(attr.name) === 'type');
-                let type = attr && expr2var(attr.value);
+              if (expr2str(openingElement.name) === 'input') {
+                const attr = openingElement.attributes.find(attr => attr.name && expr2str(attr.name) === 'type');
+                let type = attr && expr2str(attr.value);
                 if (type && ['checkbox', 'radio'].includes(type)) defalutProp = 'checked';
               }
 

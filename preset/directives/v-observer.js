@@ -1,7 +1,7 @@
 
 const {
   importSpecifier, parseDirective, directiveRegx, escapeRegx,
-  getAttrASTAndIndexByName, removeAttrASTByIndex, expr2var,
+  getAttrASTAndIndexByName, removeAttrASTByIndex, expr2str,
   ObserverName, mergeFns
 } = require('../utils');
 const options = require('../options');
@@ -13,7 +13,7 @@ module.exports = function ({ types: t, template }) {
     const binding = getAttrASTAndIndexByName(path.node, attrName);
     if (!binding) return;
 
-    const parsed = parseDirective(expr2var(binding.attr.name), attrName);
+    const parsed = parseDirective(expr2str(binding.attr.name), attrName);
     if (!parsed) return;
 
     removeAttrASTByIndex(path.node, binding.index);

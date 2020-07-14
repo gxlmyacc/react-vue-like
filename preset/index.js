@@ -24,6 +24,7 @@ const injectFlag = require('./injects/inject-flag');
 const injectScope = require('./injects/inject-scope');
 const injectAttrs = require('./injects/inject-attrs');
 const injectPragma = require('./injects/inject-pragma');
+const injectDecorator = require('./injects/inject-decorator');
 
 let pkg;
 if (fileExists(path.join(process.cwd(), 'package.json'))) {
@@ -46,7 +47,7 @@ module.exports = declare((api, opts = {}) => {
   if (!opts) opts = {};
   if (!loaded) {
     loaded = true;
-    const { attrName, transform, directive, inject, ...others } = opts;
+    const { attrName, transform, directive, inject, vuelikePath, ...others } = opts;
 
     let config = api && api.loadPartialConfig();
     if (config) {
@@ -56,6 +57,7 @@ module.exports = declare((api, opts = {}) => {
       }
     }
 
+    if (vuelikePath) options.hocPath = vuelikePath;
     if (attrName) Object.assign(options.attrName, attrName);
     if (transform) Object.assign(options.transform, transform);
     if (directive) Object.assign(options.directive, directive);
@@ -98,6 +100,7 @@ module.exports = declare((api, opts = {}) => {
   if (options.inject.flag) plugins.push(injectFlag);
   if (options.inject.scope) plugins.push(injectScope);
   if (options.inject.attrs) plugins.push(injectAttrs);
+  if (options.inject.decorator) plugins.push(injectDecorator);
 
   plugins = plugins.map(p => pluginHook(p));
 

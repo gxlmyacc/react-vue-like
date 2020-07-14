@@ -25,8 +25,9 @@ module.exports = function () {
       key: index
     } = path;
 
-    let nextNode = findNextNode(path, siblings, index);
+    let { nextNode, nextIndex } = findNextNode(path, siblings, index) || {};
     if (!nextNode) return transformIfBinding(path, ifBinding);
+    index = nextIndex;
 
     let elseBinding = getAttrASTAndIndexByName(nextNode, elseAttrName);
     const elseIfBindings = [];
@@ -35,8 +36,9 @@ module.exports = function () {
       let elseIfBinding = getAttrASTAndIndexByName(nextNode, elseIfAttrName);
       while (elseIfBinding) {
         elseIfBindings.push(elseIfBinding);
-        index += 1;
-        nextNode = findNextNode(path, siblings, index);
+        let data = findNextNode(path, siblings, index) || { nextIndex: index + 1 };
+        nextNode = data.nextNode;
+        index = data.nextIndex;
         elseIfBinding = nextNode ? getAttrASTAndIndexByName(nextNode, elseIfAttrName) : null;
       }
       if (nextNode) {

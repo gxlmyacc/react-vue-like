@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {
   // iterativeParent,
+  VUELIKE_PREFIX,
   warn,
   innumerable,
   isFunction
@@ -10,11 +11,11 @@ import {
 function defaultInitial(instance) {
   const className = instance.props.className;
   return React.createElement('span', {
-    className: `${className ? `${className} ` : ''}react-vue-like-async-placeholder`
+    className: `${className ? `${className} ` : ''}vuelike-async-placeholder`
   });
 }
 
-class ReactVueLikeAsync extends React.Component {
+class VuelikeAsync extends React.Component {
 
   static propTypes = {
     className: PropTypes.any,
@@ -107,6 +108,6 @@ class ReactVueLikeAsync extends React.Component {
 
 }
 
-innumerable(ReactVueLikeAsync, '__vuelikeAsyncClass', true);
+innumerable(VuelikeAsync, `${VUELIKE_PREFIX}AsyncClass`, true);
 
-export default ReactVueLikeAsync;
+export default VuelikeAsync;

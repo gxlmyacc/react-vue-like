@@ -1,9 +1,22 @@
-import { configure } from 'mobx';
+import { configure, action } from 'mobx';
 import config from './config';
 import {
-  mergeObject, isFunction, isPlainObject, camelize
+  mergeObject, isFunction, isPlainObject, camelize, VUELIKE_PREFIX, VUELIKE_CLASS,
+  isReactComponent, warn, observer, innumerable, isProduction, handleError,
+  isVuelikeComponent, isFunctionComponent, isForwardComponent, replaceMethods,
+  isVuelikeComponentClass 
 } from './utils';
 
+const LIFECYCLE_HOOKS = [
+  'componentWillMount',
+  'componentDidMount',
+  'getSnapshotBeforeUpdate',
+  'componentDidUpdate',
+  'componentDidActivate',
+  'componentWillUnactivate',
+  'componentWillUnmount',
+  'componentDidCatch',
+];
 
 function normalizeComponentNames(comps, prefix, parentKey = '') {
   const COMP_REGX = /^[A-Z][A-Za-z]+/;
@@ -21,53 +34,148 @@ function normalizeComponentNames(comps, prefix, parentKey = '') {
   return ret;
 }
 
-class PluginArray extends Array {
-
-  get(name) {
-    let p = this.find(p => p.name === name);
-    return p ? p.plugin : null;
+function withVuelike(vuelike, component, options = {}) {
+  if (component[`${VUELIKE_PREFIX}Hoc`] === true) {
+    warn(
+      "[withVuelike]You are trying to use 'withVuelike' on a component that already has 'withVuelike'"
+    );
+    return component;
   }
+  
+  const isVuelikeClasses = isVuelikeComponent(component);
+  if (!isVuelikeClasses) {
+    let originComponent = component;
+    if (isReactComponent(component)) {
+      innumerable(component, 'beforeConstructor', function (target, props, children) {
+        Object.assign(props, { $vuelike: vuelike }, vuelike.inherits);
+        const originMethods = replaceMethods(target.prototype, LIFECYCLE_HOOKS.reduce((p, key) => {
+          p[key] = function () {
+            let handlers = vuelike.listeners.component[key] || [];
+            if (originComponent.isRoot) handlers = handlers.concat(vuelike.listeners.app[key] || []);
+            let sr = vuelike._call(key, handlers, arguments);
+            let tr = originMethods[key] && originMethods[key](arguments.concat(sr));
+            return tr === undefined ? sr : tr;
+          };
+        }, {}), 'UNSAFE_');
+      });
+    } else if (isFunctionComponent(component)) {
+      component = function VuelikeFunctionWrapper(props) {
+        innumerable(props, '$vuelike', vuelike);
+        Object.keys(vuelike.inherits).forEach(key => innumerable(props, key, vuelike.inherits[key]));
+        return originComponent(props);
+      };
+    } else if (isForwardComponent(component)) {
+      const originRender = originComponent.render;
+      originComponent.render = function (props) {
+        innumerable(props, '$vuelike', vuelike);
+        Object.keys(vuelike.inherits).forEach(key => innumerable(props, key, vuelike.inherits[key]));
+        return originRender.call(vuelike, props);
+      };
+    }
+    component = observer(component);
+  }
+  // if (!isReactComponent(component)) {
+  //   if (!component.vuelikeConstructor) {
+  //     // eslint-disable-next-line no-proto
+  //     const oldConstructor = component.__proto__;
+  //     const VuelikeWrapper = function (props) {
+  //       oldConstructor.apply(vuelike, arguments);
+  //       vuelike._createInstance(props, component);
+  //     };
+  //     // VuelikeWrapper.prototype = Object.assign(target.prototype, {
+  //     //   constructor: VuelikeWrapper
+  //     // });
+  //     component.prototype.prototype = VuelikeComponent.prototype;
+  //     // eslint-disable-next-line no-proto
+  //     component.__proto__ = VuelikeWrapper;
+  
+  //     innumerable(component, 'vuelikeConstructor', function (target, props, children) {
+  //       return vuelikeConstructor(component, props, children);
+  //     });
+  //   }
+  // } else {
+  //   component = observer(component);
+  // }
 
+  const walkHocs = component => {
+    vuelike.hocs.forEach(hoc => {
+      const newComponent = hoc(component, options);
+      if (newComponent !== undefined) {
+        component = newComponent;
+      }
+    });
+    vuelike.plugins.forEach(({ pluginName, plugin }) => {
+      if (!plugin.hoc) return;
+      const newComponent = plugin.hoc(component, pluginName ? (options[pluginName] || {}) : options);
+      if (newComponent !== undefined) {
+        component = newComponent;
+      }
+    });
+    return component;
+  };
+
+  component = walkHocs(component);
+
+  innumerable(component, `${VUELIKE_PREFIX}Hoc`, true);
+
+  return component;
 }
 
-class ReactVueLike {
+class Vuelike {
 
   constructor(options = {}) {
-    this.isVueLike = true;
+    this.isVuelikeInstance = true;
     this.options = options;
-    this.plugins = new PluginArray();
+    this.plugins = [];
     this.mixins = [];
     this.components = {};
     this.filters = {};
     this.directives = {};
     this.hocs = [];
-    this.events = { components: {}, app: {} };
+    this.events = { component: {}, app: {} };
     this.inherits = {};
-    this.config = { ...config };
+    this.config =  mergeObject({ keyCodes: {}, optionMergeStrategies: {} }, config);
+
+    innumerable(this, 'withVuelike', (component, options = {}) => withVuelike(this, component, options));
+  }
+
+  getPlugin(name) {
+    let p = this.plugins.find(p => {
+      const pluginName = p.pluginName || p.name;
+      return pluginName === name;
+    });
+    return p ? p.plugin : null;
   }
 
   configure(options = {}) {
     mergeObject(this.config, options);
     if (this.config.enforceActions !== undefined) {
-      configure({ enforceActions: config.enforceActions ? 'observed' : 'never' });
+      configure({ enforceActions: this.config.enforceActions ? 'observed' : 'never' });
     }
   }
 
   use(plugin, options = {}) {
     if (!plugin) return;
-    // if (!plugin.name) throw new Error('[ReactVueLike.use]plugin \'name\' can not be empty!');
+    // if (!plugin.name) throw new Error('[Vuelike.use]plugin \'name\' can not be empty!');
+
+    const pluginName = plugin.pluginName || plugin.name;
 
     let install = isFunction(plugin)
       ? plugin
       : plugin.install
         ? plugin.install.bind(plugin)
         : null;
-    if (!install) throw Error('[ReactVueLike.use]plugin need has \'install\' method!');
+    if (!install) throw Error(`[Vuelike.use]plugin ${pluginName ? `'${pluginName}'` : ''} need has 'install' method!`);
+
+    if (pluginName && this.getPlugin(pluginName)) {
+      console.warn(`[Vuelike.use]plugin ${pluginName} aleady be used!`);
+      return;
+    }
 
     let ret = install(this, options);
 
     let afterInstall = () => {
-      this.plugins.push({ name: plugin.name, plugin, options });
+      this.plugins.push({ name: pluginName, plugin, options });
       return () => {
         let ret;
         let idx = this.plugins.find(p => p.plugin === plugin);
@@ -85,7 +193,18 @@ class ReactVueLike {
     return function () {
       let ret;
       let idx = this.mixins.find(v => v === mixin);
-      if (~idx) ret = this.plugins.splice(idx, 1);
+      if (~idx) ret = this.mixins.splice(idx, 1);
+      return ret;
+    };
+  }
+
+  hoc(hoc) {
+    if (!hoc) return;
+    this.hocs.push(hoc);
+    return function () {
+      let ret;
+      let idx = this.hocs.find(v => v === hoc);
+      if (~idx) ret = this.hocs.splice(idx, 1);
       return ret;
     };
   }
@@ -115,7 +234,7 @@ class ReactVueLike {
   }
 
   _off(name, listener, events) {
-    if (!name) throw new Error('[ReactVueLike]on name can not be empty!');
+    if (!name) throw new Error('[Vuelike]on name can not be empty!');
     let listeners = events[name];
     if (!listeners) return; 
 
@@ -132,10 +251,10 @@ class ReactVueLike {
   }
 
   on(name, listener, isComponent) {
-    if (!name) throw new Error('[ReactVueLike]on name can not be empty!');
-    if (!listener) throw new Error('[ReactVueLike]on listener can not be null!');
+    if (!name) throw new Error('[Vuelike]on name can not be empty!');
+    if (!listener) throw new Error('[Vuelike]on listener can not be null!');
     name = camelize(name);
-    let events = isComponent ? this.events.components : this.events.app;
+    let events = isComponent ? this.events.component : this.events.app;
     let listeners = events[name];
     if (!listeners) events[name] = listeners = []; 
     const v = listeners.find(v => v === listener);
@@ -145,7 +264,7 @@ class ReactVueLike {
 
   off(name, listener, isComponent) {
     name = camelize(name);
-    let events = isComponent ? this.events.components : this.events.app;
+    let events = isComponent ? this.events.component : this.events.app;
     return this._off(name, listener, events);
   }
 
@@ -158,7 +277,67 @@ class ReactVueLike {
     return this.inherits[keyOrInherits] = value;
   }
 
+  createApp(App, options = {}) {
+    let target = App;
+    if (isForwardComponent(target) && target.__component) target = target.__component;
+    if (isVuelikeComponentClass(target)) {
+      if (target.isRoot && typeof target.isRoot === 'boolean' && !target.vuelike) {
+        target.vuelike = this;
+      }
+    }
+    return App;
+  }
+
+  _call(eventName, handlers, args) {
+    try {
+      if (!handlers) return;
+      if (isFunction(handlers)) return handlers.call(this, ...args);
+      let ret;
+      for (let handler of handlers) {
+        ret = handler.apply(this, args.concat(ret));
+      }
+    
+      return ret;
+    } catch (e) {
+      handleError(e, this, `_call:${eventName}`);
+      throw e;
+    }
+  }
+
+  _resolveComp(compName) {
+    let comp = this.components[compName];
+    if (!isProduction && !comp) warn(`can not resolve component '${compName}'!`, this);
+    return comp || compName;
+  }
+
+  _resolveAction(handler) {
+    if (!handler) return handler;
+    return action(handler);
+  }
+
+  _resolveFilter(filter, filterName) {
+    if (!this.filters) return '';
+    try {
+      return filter();
+    } catch (e) {
+      handleError(e, this, `filter:${filterName}`);
+      return '';
+    }
+  }
+
 }
 
+innumerable(Vuelike, VUELIKE_CLASS, true);
 
-export default ReactVueLike;
+const ALIAS_METHODS = {
+  _resolveComp: '_c',
+  _resolveAction: '_a',
+  _resolveFilter: '_f',
+};
+Object.keys(ALIAS_METHODS).forEach(key => innumerable(
+  Vuelike.prototype, 
+  ALIAS_METHODS[key], 
+  Vuelike.prototype[key]
+));
+
+export default Vuelike;

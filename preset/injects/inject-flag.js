@@ -1,22 +1,37 @@
 
 const {
   ComponentFlagPrefix,
-  isObserverClass,
-  isObserverClassMixin,
+  isVuelikeClasses,
+  isVuelikeClassHoc,
+  isVuelikeClassMixin,
   findClassVarName
 } = require('../utils');
 
+
 module.exports = function ({ types: t, template }) {
+  const options = require('../options');
   function ClassVisitor(path) {
     if (this.handled.includes(path.node)) return;
     this.handled.push(path.node);
 
-    if (!isObserverClass(path)) return;
+    const isClass = isVuelikeClasses(path);
+    const isHoc = isVuelikeClassHoc(path, options.vuelikePath);
+
+    if (!isClass && !isHoc) return;
 
     const varName = findClassVarName(path);
     if (!varName) return;
 
-    let expr = template(`${varName}.${ComponentFlagPrefix}${isObserverClassMixin(path) ? 'Mixin' : ''} = true;`)({});
+        
+    let expr = template(`${varName}.${ComponentFlagPrefix}${
+      isClass
+        ? ''
+        : isHoc
+          ? 'Hoc'
+          : isVuelikeClassMixin(path) 
+            ? 'Mixin' 
+            : ''
+    } = true;`)({});
 
     let parentPath = t.isProgram(path.parentPath.node) ? path : path.parentPath;
     if (t.isReturnStatement(parentPath.node)) parentPath.insertBefore(expr);
